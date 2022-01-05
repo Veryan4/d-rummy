@@ -1,0 +1,52 @@
+{
+  "name": "cards",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite --mode=dev",
+    "build-develop": "tsc && vite build --mode=dev --base=/",
+    "build-production": "tsc && vite build --mode=prod --base=/",
+    "serve": "vite preview",
+    "lint": "eslint --ext .ts --ignore-path .gitignore --fix src",
+    "format": "prettier . --write",
+    "test": "jest src",
+    "gun": "node ./gun.js"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^13.1.1",
+    "@types/gun": "^0.9.3",
+    "@types/jest": "^27.0.1",
+    "@typescript-eslint/eslint-plugin": "^4.30.0",
+    "@typescript-eslint/parser": "^4.30.0",
+    "@web/rollup-plugin-copy": "^0.3.0",
+    "@web/rollup-plugin-html": "^1.10.1",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^27.1.0",
+    "prettier": "2.3.2",
+    "rollup": "^2.61.1",
+    "rollup-plugin-minify-html-literals": "^1.2.6",
+    "rollup-plugin-summary": "^1.3.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "start-server-and-test": "^1.14.0",
+    "ts-jest": "^27.0.5",
+    "typescript": "^4.3.2",
+    "vite": "^2.5.2",
+    "vite-plugin-eslint": "^1.3.0"
+  },
+  "dependencies": {
+    "@google-web-components/google-signin": "^3.0.1",
+    "@material/mwc-button": "^0.25.3",
+    "@material/mwc-checkbox": "^0.25.3",
+    "@material/mwc-formfield": "^0.25.3",
+    "@material/mwc-icon-button": "^0.25.3",
+    "@material/mwc-list": "^0.25.3",
+    "@material/mwc-menu": "^0.25.3",
+    "@material/mwc-switch": "^0.25.3",
+    "@material/mwc-textfield": "^0.25.3",
+    "@peculiar/webcrypto": "^1.2.3",
+    "gun": "^0.2020.1235",
+    "lit": "^2.0.2",
+    "workbox-core": "^6.4.2"
+  }
+}

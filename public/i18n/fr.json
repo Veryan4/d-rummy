@@ -1,0 +1,59 @@
+{
+  "header": {
+    "about": "aide",
+    "language": "language",
+    "logout": "déconnexion"
+  },
+  "about": {
+    "rank": {
+      "title": "ORDRE DES CARTES",
+      "text": "A, 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K"
+    },
+    "goal": {
+      "title": "BUT DU JEU",
+      "text": "Le but du jeu est d'être le premier a vider sa main de tout ses cartes. Ceci peux-être fait en formant des séries constituants de groupes de 3 ou 4 cartes de la même valeur, ou un séquence d'au moins 3 cartes de la même suite."
+    },
+    "play": {
+      "title": "UN TOUR",
+      "text": "Chaque joueur doit soit piger la première carte du paquet, ou soit piger la paquet entier de cartes jeter. Un joueur peux mettre sur la table une série. À la fin du tour un joueur doit jeter une carte dans le paquet des cartes jeter. Si un joueur n'a plus de cartes dans les mains avant de jeter, il gagne la partie, car ceci représente la fin du jeu."
+    },
+    "sets": {
+      "title": "AJOUTER À UNE SÉRIE",
+      "text": "Sur son tour, et si le joueur à déjà réussit a placer une série, il peu ajouter à une série d'un autre joueur. Par example, si les trois are sont disponible, il peux ajouter le quatriéme trois. Si 10, 9, 8 sont disponibles, on pourrait continuer la série, avec en example le J ou le Q, J, 7, ou le 7, 6."
+    },
+    "empty": {
+      "title": "PAQUET VIDE",
+      "text": "Si la derniere carte du paquet a été tirer et aucun joueur a gagner, le prochain joueur peux renverser le paquet jeter en paquet normal sans le mélanger, et continuer de jouer en pigeant sa carte."
+    }
+  },
+  "lobby": {
+    "title": "Salle de Jeu",
+    "create": "Créer une salle de jeu",
+    "start": "Commencer la partie",
+    "host": {
+      "you": "Vous êtes l'hôte!",
+      "invite": "Invitez d'autres joueur avec le liens suivant qui à déjà été copier a votre ctrl + c"
+    },
+    "missing": "{amount} joueurs manquants",
+    "login": {
+      "title": "Choisissez un nom",
+      "name": "N'importe lequel",
+      "button": "Soumettre"
+    }
+  },
+  "rummy": {
+    "you": "C'est votre tour",
+    "deck": "Paquets",
+    "others": "Les Autres",
+    "sets": "Séries",
+    "hand": "Main",
+    "no_set": "Ce joueur n'a pas encore de série",
+    "discard": "Jeter",
+    "discard_end": "Il faut jeter une carte pour terminer son tour",
+    "win": "a gagner le jeu!",
+    "rematch": "Revanche",
+    "return": "Retour a l'acceuil",
+    "player": "{player} a {amount} cartes en main",
+    "their_turn": ", et c'est son tour"
+  }
+}

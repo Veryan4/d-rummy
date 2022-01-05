@@ -1,0 +1,85 @@
+import { css } from "lit";
+
+export const styles = css`
+  .material-icons {
+    font-family: "Material Icons";
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: "liga";
+    -webkit-font-smoothing: antialiased;
+
+    vertical-align: middle;
+    padding-right: 1rem;
+  }
+
+  .mdc-top-app-bar {
+    background-color: white;
+    color: black;
+  }
+
+  @media screen and (min-width: 780px) {
+    .mdc-top-app-bar__section--align-end,
+    .mdc-top-app-bar__section--align-start {
+      justify-content: center;
+      justify-content: center;
+    }
+  }
+
+  header {
+    width: 100%;
+    background: white;
+    border-bottom: 1px solid #b0bec5;
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    z-index: 999;
+  }
+
+  .logo {
+    background-image: url("./truba-logo.svg");
+    width: 151px;
+    height: 50px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    cursor: pointer;
+  }
+  .flag {
+    background-size: contain;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    height: 1rem;
+    width: 1rem;
+  }
+  .uk-flag {
+    background-image: url("/uk-flag.svg");
+  }
+  .fr-flag {
+    background-image: url("/fr-flag.svg");
+  }
+  .links {
+    color: black;
+    font-family: "Roboto", sans-serif;
+    font-size: 15px;
+    font-weight: initial;
+    letter-spacing: -1px;
+    line-height: 1;
+    text-align: center;
+    padding: 15px;
+  }
+  a {
+    cursor: pointer;
+    text-decoration:unset;
+    color:unset;
+  }
+  .material-icons.mdc-top-app-bar__action-item.mdc-icon-button.hamburger {
+    color: black;
+  }
+`;

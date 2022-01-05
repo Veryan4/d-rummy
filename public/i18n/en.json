@@ -1,0 +1,59 @@
+{
+  "header": {
+    "about": "help",
+    "language": "language",
+    "logout": "logout"
+  },
+  "about": {
+    "rank": {
+      "title": "RANK OF CARDS",
+      "text": "A, 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K (high)"
+    },
+    "goal": {
+      "title": "GOAL OF THE GAME",
+      "text": "The goal of the game is to be the first player to rid your hand of all their cards. This can be done by forming matched sets consisting of groups of three or four of a kind, or sequences of three or more cards of the same suit."
+    },
+    "play": {
+      "title": "THE PLAY",
+      "text": "Each turn a player has to either draw the top card of the deck or take the entire discard pile and adds it to their hand. A player may also lay down on the table, any matched set. At the end of their turn, the player discards one card, face up, onto the discard pile. If all of their remaining cards are matched, the player may lay them down without discarding on their last turn. This ends the game and there is no further play."
+    },
+    "sets": {
+      "title": "ADDING TO SETS",
+      "text": "On their turn and if the players has already managed to place a set, they may add one or more from their hand to any matched set already shown on the table. Thus, if threes are showing, they may add the fourth three; if 10, 9, 8 are showing, they may add J, or Q, J, 7, or 7, 6."
+    },
+    "empty": {
+      "title": "EMPTY DECK",
+      "text": "If the last card of the deck has been drawn and no player has won, the next player may turn the discard pile over to form a new deck (without shuffling it) and draw the top card."
+    }
+  },
+  "lobby": {
+    "title": "Lobby",
+    "create": "Create Lobby",
+    "start": "Start Game",
+    "host": {
+      "you": "You are the host!",
+      "invite": "Invite players with the following link which has already been copied to clipboard"
+    },
+    "missing": "Missing {amount} players",
+    "login": {
+      "title": "Pick a username",
+      "name": "Any name",
+      "button": "Submit"
+    }
+  },
+  "rummy": {
+    "you": "It's your turn",
+    "deck": "Deck",
+    "others": "Others",
+    "sets": "Sets",
+    "hand": "Hand",
+    "no_set": "This player has not sets yet",
+    "discard": "Discard",
+    "discard_end": "Discard card to end turn",
+    "win": "has won the game!",
+    "rematch": "Rematch",
+    "return": "Return to Lobby",
+    "player": "{player} has {amount} cards in hand",
+    "their_turn": ", and it's their turn"
+  }
+}
