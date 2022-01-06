@@ -1,4 +1,4 @@
-import { user, db, userService } from "./user.service";
+import { user, db } from "./user.service";
 import GUN from "gun";
 
 const encryptKey = "#foo";

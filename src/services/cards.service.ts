@@ -35,13 +35,8 @@ export const cardsService = {
   hasAtLeastOne,
   hasAtLeastOneOfColor,
   hasAtLeastOneOfValue,
-  getCardOnIndex,
-  getColorOfCard,
-  getRandomCardIndex,
   getSumOfValues,
   getSumOfValuesWithColor,
-  getValueOfCard,
-  countCards,
   countCardsEqualTo,
   countCardsOfColor,
   countCardsOfValue,
@@ -57,8 +52,8 @@ function createDeck(colors = 4, values = 13): Card[] {
       deck.push(new Card(col, val));
     }
   }
-  shuffle(deck);
-  return deck;
+  const firstShuffle = shuffle(deck);
+  return shuffle(firstShuffle);
 }
 
 function createDeckWithOffset(
@@ -74,8 +69,8 @@ function createDeckWithOffset(
       deck.push(new Card(col, val));
     }
   }
-  shuffle(deck);
-  return deck;
+  const firstShuffle = shuffle(deck);
+  return shuffle(firstShuffle);
 }
 
 function merge(obj: Card[], objs: Card[][]): void {
@@ -90,7 +85,7 @@ function merge(obj: Card[], objs: Card[][]): void {
   }
 }
 
-function shuffle(obj: Card[]): void {
+function shuffle(obj: Card[]): Card[] {
   const shuffled = [];
   let n = obj.length,
     i;
@@ -103,7 +98,7 @@ function shuffle(obj: Card[]): void {
       n--;
     }
   }
-  obj = shuffled;
+  return shuffled;
 }
 
 function flip(obj: Card[]): void {
@@ -111,7 +106,7 @@ function flip(obj: Card[]): void {
 }
 
 function split(obj: Card[], index: number): Card[] {
-  return (obj = obj.splice(index, obj.length - index));
+  return obj.splice(index, obj.length - index);
 }
 
 function moveCard(
@@ -275,26 +270,6 @@ function getSumOfValuesWithColor(obj: Card[], color: number): number {
   return overallValue;
 }
 
-function getColorOfCard(obj: Card[], index: number): number {
-  return obj[index].color;
-}
-
-function getValueOfCard(obj: Card[], index: number): number {
-  return obj[index].value;
-}
-
-function getRandomCardIndex(obj: Card[]): number {
-  return Math.floor(Math.random() * obj.length + 1);
-}
-
-function getCardOnIndex(obj: Card[], index: number): Card {
-  return obj[index];
-}
-
-function countCards(obj: Card[]): number {
-  return obj.length;
-}
-
 function countCardsOfColor(obj: Card[], color: number): number {
   let counter = 0;
   for (let i = 0; i < obj.length; i++) {
@@ -327,14 +302,13 @@ function createRummyTable(players: string[]): Table {
   const table: Table = {
     players: {},
     playerOrder: [],
-    deck: cardsService.createDeck(),
+    deck: createDeck(),
     pile: [],
     hasDrawn: false,
   };
   players.forEach((player) => {
     table.players[player] = new PlayerHand();
-    cardsService.shuffle(table.deck);
-    cardsService.moveCards(
+    moveCards(
       table.deck,
       table.players[player].hand,
       "top",
