@@ -446,7 +446,7 @@ class Rummy extends LitElement {
       return;
     }
     this.table.hasDrawn = true;
-    cardsService.shuffle(this.table.deck);
+    this.table.deck = cardsService.shuffle(this.table.deck);
     cardsService.moveCard(
       this.table.deck,
       this.table.players[this.user.value!].hand,
