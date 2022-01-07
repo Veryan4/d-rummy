@@ -44,8 +44,8 @@ export const styles = css`
   }
 
   .logo {
-    background-image: url("./truba-logo.svg");
-    width: 151px;
+    background-image: url("./d-rummy-logo.png");
+    width: 170px;
     height: 50px;
     background-size: contain;
     background-repeat: no-repeat;
