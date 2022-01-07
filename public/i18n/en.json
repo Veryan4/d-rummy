@@ -47,7 +47,7 @@
     "others": "Others",
     "sets": "Sets",
     "hand": "Hand",
-    "no_set": "This player has not sets yet",
+    "no_set": "This player has no sets yet",
     "discard": "Discard",
     "discard_end": "Discard card to end turn",
     "win": "has won the game!",

@@ -56,7 +56,7 @@ class Rummy extends LitElement {
   events: RummyEvent[] = [];
 
   @property({ type: String })
-  winner: string;
+  winner: string | null;
 
   constructor() {
     super();
@@ -291,13 +291,16 @@ class Rummy extends LitElement {
     this.sendAction(this.table);
   }
 
-  toggleSelected(card: Card) {
+  async toggleSelected(card: Card) {
+    await this.updateComplete;
     card.selected = !card.selected;
     if (card.selected) {
       this.selected.push(card);
     } else {
       this.selected = this.selected.filter((c) => c.id !== card.id);
     }
+    await this.updateComplete;
+    this.requestUpdate();
   }
 
   private dragMouseEventHandler(e: Event, value: string) {
@@ -355,7 +358,7 @@ class Rummy extends LitElement {
     return false;
   }
 
-  _renderEvents(rummyEvents: RummyEvent[]): void {
+  async _renderEvents(rummyEvents: RummyEvent[]): Promise<void> {
     if (this.events !== rummyEvents) {
       this.events = rummyEvents;
       const table = rummyEvents[rummyEvents.length - 1].what;
@@ -368,11 +371,9 @@ class Rummy extends LitElement {
         }
 
         // Checks for EndGame
-        const winner = this.isGameOver(this.table);
-        if (winner) {
-          this.winner = winner;
-        }
+        this.winner = this.isGameOver(this.table);
 
+        await this.updateComplete;
         this.requestUpdate();
       }
     }
@@ -581,8 +582,8 @@ class Rummy extends LitElement {
     this.selected = [];
   }
 
-  isGameOver(table: Table): false | string {
-    let gameOver: false | string = false;
+  isGameOver(table: Table): string | null {
+    let gameOver = null;
     table.playerOrder.forEach((player) => {
       if (table.players[player].hand.length === 0) {
         gameOver = player;
