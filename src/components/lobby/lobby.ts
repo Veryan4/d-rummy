@@ -3,33 +3,20 @@ import { customElement, property, query } from "lit/decorators.js";
 import { TranslationController } from "../../controllers/translation.controller";
 import { UserController } from "../../controllers/user.controller";
 import { navigate } from "../../services/router.service";
-import { user, db, userService } from "../../services/user.service";
+import { db, userService } from "../../services/user.service";
 import { cardsService } from "../../services/cards.service";
 import { gunService } from "../../services/gun.service";
+import { Lobby } from "../../models/lobby.model";
+import { GunEvent } from "../../models/gun.model";
 import { styles } from "./lobby.styles";
-
-import GUN from "gun";
-const encryptKey = "#foo";
-
-const minPLayers = 3;
-
-class Room {
-  players: string[] = [];
-  hasStarted = false;
-}
-
-class LobbyEvent {
-  who: string;
-  when: number;
-  what: Room;
-}
-
 import "@material/mwc-button";
 import "@material/mwc-formfield";
 import "@material/mwc-textfield";
 
+const MIN_PLAYERS = 3;
+
 @customElement("card-lobby")
-class Lobby extends LitElement {
+class LobbyComponent extends LitElement {
   static styles = [styles];
 
   private i18n = new TranslationController(this);
@@ -42,13 +29,10 @@ class Lobby extends LitElement {
   game: string | null = null;
 
   @property({ type: Object })
-  room = new Room();
+  lobby = new Lobby();
 
   @property({ type: Array })
-  events: LobbyEvent[] = [];
-
-  @property({ type: Boolean })
-  isHost = false;
+  events: GunEvent<Lobby>[] = [];
 
   @property({ type: Boolean })
   isFormValid = false;
@@ -65,7 +49,9 @@ class Lobby extends LitElement {
       this.game = sessionStorage.getItem("game");
     }
 
-    this.isHost = this.game === this.user.value;
+    if(this.game) {
+      this.lobby.host = this.game;
+    }
   }
 
   render() {
@@ -130,7 +116,7 @@ class Lobby extends LitElement {
   }
 
   renderLobby() {
-    return this.room.players.length === 0
+    return this.lobby.players.length === 0
       ? html`<mwc-button
           dense
           unelevated
@@ -140,7 +126,7 @@ class Lobby extends LitElement {
       : html`
           <div class="players-waiting">
             <p>Players Waiting</p>
-            ${this.room.players.map((player) => {
+            ${this.lobby.players.map((player) => {
               const src =
                 "https://avatars.dicebear.com/api/initials/" + player + ".svg";
               return html` <div class="player">
@@ -149,24 +135,24 @@ class Lobby extends LitElement {
               </div>`;
             })}
           </div>
-          ${this.renderHost(this.room.players)}
+          ${this.renderHost(this.lobby.players)}
         `;
   }
 
   renderHost(players: string[]) {
-    return this.isHost
+    return this.lobby.host === this.user.value
       ? this.renderStartGame(players)
       : this.renderPlayerWaiting(players);
   }
 
   renderPlayerWaiting(players: string[]) {
-    return players.length >= minPLayers
+    return players.length >= MIN_PLAYERS
       ? html`<div>Waiting on Host</div>`
       : this.renderMissingPlayers(players);
   }
 
   renderStartGame(players: string[]) {
-    return players.length >= minPLayers
+    return players.length >= MIN_PLAYERS
       ? html`<mwc-button
           dense
           unelevated
@@ -186,7 +172,7 @@ class Lobby extends LitElement {
   renderMissingPlayers(players: string[]) {
     return html`<p>
       ${this.i18n.t("lobby.missing", {
-        amount: minPLayers - players.length - 1,
+        amount: MIN_PLAYERS - players.length - 1,
       })}
     </p>`;
   }
@@ -194,7 +180,7 @@ class Lobby extends LitElement {
   async createLobby() {
     this.game = this.user.value!;
     sessionStorage.setItem("game", this.game);
-    this.isHost = this.game === this.user.value;
+    this.lobby.host = this.user.value!
     await this.playerJoin();
     navigator.clipboard.writeText(location.href);
     window.history.replaceState(null, "", `lobby?game=${this.user.value}`);
@@ -202,18 +188,18 @@ class Lobby extends LitElement {
     this.connectedCallback();
   }
 
-  _renderEvents(lobbyEvents: LobbyEvent[]): void {
-    if (this.events !== lobbyEvents) {
-      this.events = lobbyEvents;
-      const room = lobbyEvents[lobbyEvents.length - 1].what;
-      if (room.hasStarted) {
-        const playerString = JSON.stringify(room.players);
+  async _renderEvents(gunEvents: GunEvent<Lobby>[]): Promise<void> {
+    if (this.events !== gunEvents) {
+      this.events = gunEvents;
+      const lobby = gunEvents[gunEvents.length - 1].what;
+      if (lobby.hasStarted) {
+        const playerString = JSON.stringify(lobby.players);
         sessionStorage.setItem("players", playerString);
         navigate("rummy");
       }
-      if (this.room !== room) {
-        this.room = room;
-        this.isHost = room.players[0] === this.user.value;
+      if (this.lobby !== lobby) {
+        this.lobby = lobby;
+        await this.updateComplete;
         this.requestUpdate();
       }
     }
@@ -257,7 +243,7 @@ class Lobby extends LitElement {
     if (event.what) {
       const events = [...this.events.slice(-100), event].sort(
         (a, b) => a.when - b.when
-      ) as LobbyEvent[];
+      ) as GunEvent<Lobby>[];
       this._renderEvents(events);
     }
   }
@@ -267,7 +253,7 @@ class Lobby extends LitElement {
     db.get(`${this.user.value}-rummy-lobby`).off();
   }
 
-  async sendAction(what: Room): Promise<void> {
+  async sendAction(what: Lobby): Promise<void> {
     if (!this.game) {
       return;
     }
@@ -276,26 +262,18 @@ class Lobby extends LitElement {
 
   async playerJoin(): Promise<void> {
     const player = this.user.value;
-    if (player && !this.room.players.includes(player)) {
-      this.room.players.push(player);
-      await this.sendAction(this.room);
+    if (player && !this.lobby.players.includes(player)) {
+      this.lobby.players.push(player);
+      await this.sendAction(this.lobby);
     }
   }
 
   async startGame(): Promise<void> {
-    if (!this.room.hasStarted && this.room.players.length > 0) {
-      const table = cardsService.createRummyTable(this.room.players);
-      const secret = await GUN.SEA.encrypt(table, encryptKey);
-      const message = user.get("all").set({ what: secret });
-      const index = new Date().toISOString();
-      await db
-        .get(`${gunService.getPlayersString(this.room.players)}-rummy-game`)
-        .get(index)
-        .put(message)
-        // @ts-ignore
-        .then();
-      this.room.hasStarted = true;
-      await this.sendAction(this.room);
+    if (!this.lobby.hasStarted && this.lobby.players.length > 0) {
+      const table = cardsService.createRummyTable(this.lobby.players);
+      await gunService.sendAction(`${gunService.getPlayersString(this.lobby.players)}-rummy-game`, table)
+      this.lobby.hasStarted = true;
+      await this.sendAction(this.lobby);
     }
   }
 

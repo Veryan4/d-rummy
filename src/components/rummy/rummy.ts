@@ -8,22 +8,13 @@ import { cardsService } from "../../services/cards.service";
 import { gunService } from "../../services/gun.service";
 import { navigate } from "../../services/router.service";
 import { Card, Table, PlayerHand } from "../../models/cards.model";
-import { user, userService, db } from "../../services/user.service";
-
-import "../game-card/game-card";
+import { GunEvent } from "../../models/gun.model";
+import { userService, db } from "../../services/user.service";
 import { styles } from "./rummy.styles";
 import "@material/mwc-button";
 import "@material/mwc-formfield";
 import "@material/mwc-textfield";
-
-import GUN from "gun";
-const encryptKey = "#foo";
-
-class RummyEvent {
-  who: string;
-  when: number;
-  what: Table;
-}
+import "../game-card/game-card";
 
 @customElement("card-rummy")
 class Rummy extends LitElement {
@@ -53,7 +44,7 @@ class Rummy extends LitElement {
   players: string[] = [];
 
   @property({ type: Array })
-  events: RummyEvent[] = [];
+  events: GunEvent<Table>[] = [];
 
   @property({ type: String })
   winner: string | null;
@@ -358,7 +349,7 @@ class Rummy extends LitElement {
     return false;
   }
 
-  async _renderEvents(rummyEvents: RummyEvent[]): Promise<void> {
+  async _renderEvents(rummyEvents: GunEvent<Table>[]): Promise<void> {
     if (this.events !== rummyEvents) {
       this.events = rummyEvents;
       const table = rummyEvents[rummyEvents.length - 1].what;
@@ -417,7 +408,7 @@ class Rummy extends LitElement {
     if (event.what) {
       const events = [...this.events.slice(-100), event].sort(
         (a, b) => a.when - b.when
-      ) as RummyEvent[];
+      ) as GunEvent<Table>[];
       this._renderEvents(events);
     }
   }
