@@ -95,30 +95,28 @@ class Rummy extends LitElement {
         <div class="second-half">
           <h3>${this.i18n.t("rummy.sets")}</h3>
           <div class="sets">
-            ${this.table.players[this.user.value!].sets &&
-            this.table.players[this.user.value!].sets.length > 0
-              ? this.table.players[this.user.value!].sets.map(
-                  (set) =>
-                    html` <div
-                      class="set"
-                      @click=${(e: Event) => this.placeSet(set)}
-                    >
-                      ${set.map(
-                        (card) =>
-                          html`<game-card
-                            class="small"
-                            symbol="${card.symbol}"
-                            rank="${card.rank}"
-                          ></game-card>`
-                      )}
-                    </div>`
-                )
-              : html` <div
-                  class="set empty"
-                  @click=${(e: Event) => this.placeSet([])}
+            ${this.table.players[this.user.value!].sets.map(
+              (set) =>
+                html` <div
+                  class="set"
+                  @click=${(e: Event) => this.placeSet(set)}
                 >
-                  <div class="empty-card"></div>
-                </div>`}
+                  ${set.map(
+                    (card) =>
+                      html`<game-card
+                        class="small"
+                        symbol="${card.symbol}"
+                        rank="${card.rank}"
+                      ></game-card>`
+                  )}
+                </div>`
+            )}
+            <div
+              class="set empty"
+              @click=${(e: Event) => this.placeNewSet()}
+            >
+              <div class="empty-card"></div>
+            </div>
           </div>
           <h3>${this.i18n.t("rummy.hand")}</h3>
           <div class="hand">
@@ -197,7 +195,8 @@ class Rummy extends LitElement {
               ${this.i18n.t("rummy.player", {
                 player: other,
                 amount: this.table.players[other].hand.length,
-              })}${other == this.table.playerOrder[0]
+              })}
+              ${other == this.table.playerOrder[0]
                 ? this.i18n.t("rummy.their_turn")
                 : ""}
             </div>
@@ -209,7 +208,7 @@ class Rummy extends LitElement {
                   (set) =>
                     html` <div
                       class="set"
-                      @click=${(e: Event) => this.placeOthersSet(set)}
+                      @click=${(e: Event) => this.placeOthersSet(set, other)}
                     >
                       ${set.map(
                         (card) =>
@@ -299,7 +298,6 @@ class Rummy extends LitElement {
     } else {
       this.selected = this.selected.filter((c) => c.id !== card.id);
     }
-    this.requestUpdate();
   }
 
   private dragMouseEventHandler(e: Event, value: string) {
@@ -471,44 +469,55 @@ class Rummy extends LitElement {
     this.sendAction(this.table);
   }
 
-  placeOthersSet(cards: Card[]) {
+  placeOthersSet(cards: Card[], otherPlayer: string) {
     if (this.table.players[this.user.value!].sets.length > 0) {
-      this.placeSet(cards);
+      this.placeSet(cards, otherPlayer);
     }
   }
 
-  placeSet(cards: Card[]) {
+  placeSet(cards: Card[], otherPlayer?: string) {
     const set = cards.concat(this.selected).map((card) => {
       card.selected = false;
       return card;
     });
-    if (!this.isYourTurn()) {
+    if (!this.isYourTurn() || !this.isValidSet(set)) {
       return;
     }
-    if (!this.isValidSet(set)) {
-      return;
-    }
-    const players = Object.keys(this.table.players);
-    let currentSet: Card[] = [];
-    players.forEach((player) => {
-      this.table.players[player].sets.forEach((s) => {
-        if (set.some((c) => s[0].id === c.id)) {
-          currentSet = set;
-        }
-      });
-      if (currentSet.length > 0) {
-        this.table.players[player].sets = this.table.players[
-          player
-        ].sets.filter((s) => s != currentSet);
-      }
-    });
+
     const user = this.user.value!;
-    if (currentSet.length == 0) {
-      this.table.players[user].sets.push(set);
-    }
+    const player = otherPlayer ? otherPlayer : user;
+
+    this.table.players[player].sets = this.table.players[player].sets.map((s) => {
+      if (set.some((c) => s[0].id === c.id)) {
+        return set;
+      }
+      return s;
+    });
+
     this.table.players[user].hand = this.table.players[
       user
     ].hand.filter((c) => !set.some((card) => card.id === c.id));
+
+    this.sendAction(this.table);
+    this.selected = [];
+  }
+
+  placeNewSet(){
+    const set = this.selected.map((card) => {
+      card.selected = false;
+      return card;
+    });
+    if (!this.isYourTurn() || !this.isValidSet(set)) {
+      return;
+    }
+
+    const user = this.user.value!;
+
+    this.table.players[user].sets.push(set);
+    this.table.players[user].hand = this.table.players[
+      user
+    ].hand.filter((c) => !set.some((card) => card.id === c.id));
+
     this.sendAction(this.table);
     this.selected = [];
   }
@@ -557,23 +566,19 @@ class Rummy extends LitElement {
 
   //ends turn
   discardToPile(): void {
-    const card = this.selected[0];
-    card.selected = false;
-    if (!this.isYourTurn()) {
+    if (!this.isYourTurn() || this.selected.length !== 1) {
       return;
     }
-    const players = Object.keys(this.table.players);
-    players.forEach((player) => {
-      if (this.table.players[player].hand.some((c) => card.id === c.id)) {
-        this.table.players[player].hand = this.table.players[
-          player
-        ].hand.filter((c) => card.id !== c.id);
-        this.table.pile.push(card);
-      }
-    });
+    const card = this.selected[0];
+    card.selected = false;
+    this.table.players[this.user.value!].hand = this.table.players[
+      this.user.value!
+    ].hand.filter((c) => card.id !== c.id);
+    this.table.pile.push(card);
     this.table.playerOrder.push(this.table.playerOrder.shift()!);
     this.table.hasDrawn = false;
     this.sendAction(this.table);
+    this.selected = [];
   }
 
   isGameOver(table: Table): false | string {
