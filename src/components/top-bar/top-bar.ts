@@ -69,10 +69,10 @@ class TopBar extends LitElement {
             >${this.i18n.t("header.about")}</a
           ></mwc-list-item
         >
-        <mwc-list-item @click=${this.logout}
+        ${this.user.value ? html`<mwc-list-item @click=${this.logout}
           ><i class="material-icons mdc-icon-button__icon">clear</i
           >${this.i18n.t("header.logout")}</mwc-list-item
-        >
+        >`: ""}
         <hr />
         <mwc-list-item @click=${(e: Event) => this.language("en")}>
           <i class="material-icons mdc-icon-button__icon flag uk-flag"></i>

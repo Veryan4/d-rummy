@@ -44,6 +44,7 @@
   "rummy": {
     "you": "It's your turn",
     "deck": "Deck",
+    "pile": "Discards",
     "others": "Others",
     "sets": "Sets",
     "hand": "Hand",

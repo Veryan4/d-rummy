@@ -44,6 +44,7 @@
   "rummy": {
     "you": "C'est votre tour",
     "deck": "Paquets",
+    "pile": "Rejets",
     "others": "Les Autres",
     "sets": "Séries",
     "hand": "Main",

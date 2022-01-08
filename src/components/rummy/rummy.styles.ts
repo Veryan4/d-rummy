@@ -17,6 +17,10 @@ export const styles = css`
   .pile {
     display: flex;
   }
+  .deck,
+  .pile {
+    flex-direction: column;
+  }
   .table.draw {
     border: 1px solid blue;
     border-radius: 1rem;
@@ -29,6 +33,9 @@ export const styles = css`
     padding: 1rem;
     font-weight: 700;
   }
+  .row{
+    display: flex;
+  }
   .empty-card {
     height: 86px;
     width: 60px;
@@ -36,7 +43,7 @@ export const styles = css`
     border: 3px dotted black;
   }
   game-card,
-  .set {
+  .set, .pile {
     cursor: pointer;
   }
   .sets {

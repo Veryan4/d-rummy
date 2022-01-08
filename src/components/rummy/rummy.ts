@@ -68,16 +68,22 @@ class Rummy extends LitElement {
     return html`
       <div class="table-wrapper">
         <div class="first-half">
-          <h3>${this.i18n.t("rummy.deck")}</h3>
+          
           ${this.renderYourTurn()}
           <div class="table ${classMap(classes)}">
             <div class="deck" @click=${this.drawFromDeck}>
-              ${this.renderDeck()}
-              <div class="count">${this.table.deck.length}</div>
+              <h3>${this.i18n.t("rummy.deck")}</h3>
+              <div class="row">
+                ${this.renderDeck()}
+                <div class="count">${this.table.deck.length}</div>
+              </div>
             </div>
-            <div class="pile" @click=${this.drawFromPile}>
-              ${this.renderPile()}
-              <div class="count">${this.table.pile.length}</div>
+            <div class="pile" @click=${this.touchPile}>
+            <h3>${this.i18n.t("rummy.pile")}</h3>
+              <div class="row">
+                ${this.renderPile()}
+                <div class="count">${this.table.pile.length}</div>
+              </div>
             </div>
           </div>
           <h3>${this.i18n.t("rummy.others")}</h3>
@@ -136,7 +142,6 @@ class Rummy extends LitElement {
                 </div>`
             )}
           </div>
-          ${this.renderDiscard()}
         </div>
       </div>
       ${this.renderGameWinner()}
@@ -144,7 +149,7 @@ class Rummy extends LitElement {
   }
 
   renderYourTurn() {
-    return this.isYourTurn() ? html`<h4>${this.i18n.t("rummy.you")}</h4>` : "";
+    return this.isYourTurn() ? html`<h4>${this.i18n.t("rummy.you")}</h4><h5>${this.i18n.t("rummy.discard_end")}</h5>` : "";
   }
 
   renderDeck() {
@@ -186,8 +191,7 @@ class Rummy extends LitElement {
               ${this.i18n.t("rummy.player", {
                 player: other,
                 amount: this.table.players[other].hand.length,
-              })}
-              ${other == this.table.playerOrder[0]
+              })}${other == this.table.playerOrder[0]
                 ? this.i18n.t("rummy.their_turn")
                 : ""}
             </div>
@@ -222,19 +226,6 @@ class Rummy extends LitElement {
           : ""}
       `;
     });
-  }
-
-  renderDiscard() {
-    return this.selected.length === 1 &&
-      this.table.hasDrawn &&
-      this.isYourTurn()
-      ? html` <mwc-button
-          dense
-          unelevated
-          @click=${this.discardToPile}
-          label=${this.i18n.t("rummy.discard")}
-        ></mwc-button>`
-      : html`<h5>${this.i18n.t("rummy.discard_end")}</h5>`;
   }
 
   renderGameWinner() {
@@ -446,6 +437,14 @@ class Rummy extends LitElement {
     this.sendAction(this.table);
   }
 
+  touchPile() {
+    if (this.table.hasDrawn) {
+      this.discardToPile();
+    } else {
+      this.drawFromPile();
+    }
+  }
+
   drawFromPile(): void {
     if (this.table.hasDrawn || !this.isYourTurn()) {
       return;
@@ -558,7 +557,7 @@ class Rummy extends LitElement {
 
   //ends turn
   discardToPile(): void {
-    if (!this.isYourTurn() || this.selected.length !== 1) {
+    if (!this.isYourTurn() || !this.table.hasDrawn || this.selected.length !== 1) {
       return;
     }
     const card = this.selected[0];

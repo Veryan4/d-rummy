@@ -9,6 +9,7 @@ import { t, getLanguage } from "../services/translate.service";
 
 class TranslationDirective extends Directive {
   private currentLanguage: string;
+  private properties: Record<string, string | number>;
 
   update(
     part: ChildPart,
@@ -23,10 +24,13 @@ class TranslationDirective extends Directive {
     language: string,
     properties?: Record<string, string | number>
   ) {
-    if (this.currentLanguage === language) {
+    if (this.currentLanguage === language && this.properties === properties) {
       return noChange;
     }
     this.currentLanguage = language;
+    if (properties) {
+      this.properties = properties;
+    }
     return t(translationKey, properties);
   }
 }
