@@ -10,7 +10,7 @@ class NotFound extends LitElement {
       body {
         background-color: #222526;
         color: #fff;
-        font-family: "Roboto", sans-serif;
+        font-family: var(--font-family);
         font-weight: 100;
         height: 100vh;
         margin: 0;

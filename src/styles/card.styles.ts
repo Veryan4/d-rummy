@@ -46,7 +46,7 @@ export const cardStyles = css`
     height: 100%;
     top: 0;
     left: 0;
-    border: 1px solid transparent;
+    border: 2px solid transparent;
     border-radius: inherit;
     content: "";
     pointer-events: none;

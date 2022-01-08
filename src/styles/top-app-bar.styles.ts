@@ -9,14 +9,14 @@ import { css } from "lit";
 
 export const topAppBarStyles = css`
   .material-icons.mdc-top-app-bar__action-item.mdc-icon-button.hamburger {
-    color: black;
+    color: var(--primary-color);
     font-size: 2rem;
     height: unset;
   }
   .mdc-top-app-bar {
     background-color: #6200ee;
     background-color: var(--mdc-theme-primary, #6200ee);
-    color: white;
+    color: var(--secondary-background-color);
     display: flex;
     position: fixed;
     flex-direction: column;
@@ -105,7 +105,7 @@ export const topAppBarStyles = css`
   .mdc-top-app-bar__title {
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
-    font-family: Roboto, sans-serif;
+    font-family: var(--font-family);
     font-family: var(
       --mdc-typography-headline6-font-family,
       var(--mdc-typography-font-family, Roboto, sans-serif)

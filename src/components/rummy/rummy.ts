@@ -10,15 +10,14 @@ import { navigate } from "../../services/router.service";
 import { Card, Table, PlayerHand } from "../../models/cards.model";
 import { GunEvent } from "../../models/gun.model";
 import { userService, db } from "../../services/user.service";
+import { buttonStyles } from "../../styles/button.styles";
 import { styles } from "./rummy.styles";
 import "@material/mwc-button";
-import "@material/mwc-formfield";
-import "@material/mwc-textfield";
 import "../game-card/game-card";
 
 @customElement("card-rummy")
 class Rummy extends LitElement {
-  static styles = [styles];
+  static styles = [styles, buttonStyles];
 
   private i18n = new TranslationController(this);
   private user = new UserController(this);

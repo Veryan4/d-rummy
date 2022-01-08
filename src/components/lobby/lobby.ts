@@ -8,7 +8,10 @@ import { cardsService } from "../../services/cards.service";
 import { gunService } from "../../services/gun.service";
 import { Lobby } from "../../models/lobby.model";
 import { GunEvent } from "../../models/gun.model";
+import { buttonStyles } from "../../styles/button.styles";
+import { textFieldStyles } from "../../styles/text-field.styles";
 import { styles } from "./lobby.styles";
+
 import "@material/mwc-button";
 import "@material/mwc-formfield";
 import "@material/mwc-textfield";
@@ -17,7 +20,7 @@ const MIN_PLAYERS = 3;
 
 @customElement("card-lobby")
 class LobbyComponent extends LitElement {
-  static styles = [styles];
+  static styles = [styles, buttonStyles, textFieldStyles];
 
   private i18n = new TranslationController(this);
   private user = new UserController(this);
@@ -162,7 +165,7 @@ class LobbyComponent extends LitElement {
       : html`
           ${this.renderMissingPlayers(players)}
           <div class="host">
-            <p>${this.i18n.t("lobby.host.you")}</p>
+            <h2>${this.i18n.t("lobby.host.you")}</h2>
             <p class="invite">${this.i18n.t("lobby.host.invite")}</p>
             <p class="invite-link">${location.href}</p>
           </div>

@@ -1,9 +1,11 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { initTranslateLanguage } from "./services/translate.service";
+import { themeService } from "./services/theme.service";
 import { RouteController } from "./controllers/route.controller";
+import { topAppBarStyles } from "./styles/top-app-bar.styles";
 import "./components/top-bar/top-bar";
-import { topAppBarStyles } from "./styles/top-app-bar.styles.min";
+
 
 @customElement("my-app")
 class Truba extends LitElement {

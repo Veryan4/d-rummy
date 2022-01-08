@@ -1,11 +1,6 @@
 import { css } from "lit";
 
 export const styles = css`
-  mwc-button {
-    --mdc-theme-primary: #296954;
-    --mdc-theme-on-primary: white;
-  }
-
   .table-wrapper {
     display: flex;
   }
@@ -22,7 +17,7 @@ export const styles = css`
     flex-direction: column;
   }
   .table.draw {
-    border: 1px solid blue;
+    border: 2px solid var(--theme-color);
     border-radius: 1rem;
     padding: 1rem;
   }
@@ -40,7 +35,7 @@ export const styles = css`
     height: 86px;
     width: 60px;
     border-radius: 10px;
-    border: 3px dotted black;
+    border: 3px dotted var(--primary-color);
   }
   game-card,
   .set, .pile {
@@ -54,7 +49,7 @@ export const styles = css`
     grid-gap: 0.5rem;
     grid-template-columns: repeat(auto-fill, minmax(0, max-content));
     transition: grid-template-columns 0.5s;
-    border: 1px dotted black;
+    border: 1px dotted var(--primary-color);
     width: fit-content;
     padding: 0.5rem;
     border-radius: 0.5rem;
@@ -72,7 +67,7 @@ export const styles = css`
     flex-direction: column;
   }
   .other.active {
-    border: 1px solid blue;
+    border: 2px solid var(--theme-color);
     border-radius: 1rem;
   }
   .other-info {
@@ -119,7 +114,7 @@ export const styles = css`
     background-color: #fefefe;
     margin: 15% auto;
     padding: 20px;
-    border: 1px solid #888;
+    border: 2px solid #888;
     width: fit-content;
   }
 

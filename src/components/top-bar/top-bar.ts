@@ -4,10 +4,12 @@ import { TranslationController } from "../../controllers/translation.controller"
 import { DeviceController } from "../../controllers/device.controller";
 import { useLanguage } from "../../services/translate.service";
 import { userService } from "../../services/user.service";
+import { themeService } from "../../services/theme.service";
 import { UserController } from "../../controllers/user.controller";
 import { styles } from "./top-bar.styles";
-import { topAppBarStyles } from "../../styles/top-app-bar.styles.min";
-import { iconButtonStyles } from "../../styles/icon-button.styles.min";
+import { topAppBarStyles } from "../../styles/top-app-bar.styles";
+import { iconButtonStyles } from "../../styles/icon-button.styles";
+import { menuStyles } from "../../styles/menu.styles";
 
 import "@material/mwc-menu";
 import "@material/mwc-list/mwc-list-item";
@@ -16,7 +18,7 @@ import "@material/mwc-formfield";
 
 @customElement("top-bar")
 class TopBar extends LitElement {
-  static styles = [topAppBarStyles, iconButtonStyles, styles];
+  static styles = [topAppBarStyles, iconButtonStyles, menuStyles, styles];
 
   private i18n = new TranslationController(this);
   private user = new UserController(this);
@@ -69,6 +71,10 @@ class TopBar extends LitElement {
             >${this.i18n.t("header.about")}</a
           ></mwc-list-item
         >
+        <mwc-list-item @click=${themeService.changeTheme}>
+          <i class="material-icons mdc-icon-button__icon">invert_colors</i>
+          Color Change
+        </mwc-list-item>
         ${this.user.value ? html`<mwc-list-item @click=${this.logout}
           ><i class="material-icons mdc-icon-button__icon">clear</i
           >${this.i18n.t("header.logout")}</mwc-list-item

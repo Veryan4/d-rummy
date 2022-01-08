@@ -21,8 +21,8 @@ export const styles = css`
   }
 
   .mdc-top-app-bar {
-    background-color: white;
-    color: black;
+    background-color: var(--secondary-background-color);
+    color: var(--primary-color);
   }
 
   @media screen and (min-width: 780px) {
@@ -35,8 +35,7 @@ export const styles = css`
 
   header {
     width: 100%;
-    background: white;
-    border-bottom: 1px solid #b0bec5;
+    border-bottom: 1px solid var(--outline-color);
     display: flex;
     justify-content: center;
     position: fixed;
@@ -50,6 +49,7 @@ export const styles = css`
     background-size: contain;
     background-repeat: no-repeat;
     cursor: pointer;
+    filter: var(--image-color);
   }
   .flag {
     background-size: contain;
@@ -65,8 +65,8 @@ export const styles = css`
     background-image: url("/fr-flag.svg");
   }
   .links {
-    color: black;
-    font-family: "Roboto", sans-serif;
+    color: var(--primary-color);
+    font-family: var(--font-family);
     font-size: 15px;
     font-weight: initial;
     letter-spacing: -1px;
@@ -80,6 +80,6 @@ export const styles = css`
     color:unset;
   }
   .material-icons.mdc-top-app-bar__action-item.mdc-icon-button.hamburger {
-    color: black;
+    color: var(--primary-color);
   }
 `;

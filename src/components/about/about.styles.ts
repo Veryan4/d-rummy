@@ -6,7 +6,7 @@ export const styles = css`
     justify-content: center;
     width: 100vw;
     line-height: 1.8;
-    font-family: "Roboto", sans-serif;
+    font-family: var(--font-family);
   }
   .about-wrap {
     display: flex;
@@ -17,7 +17,7 @@ export const styles = css`
     margin: 0 auto 30px;
   }
   .about-title {
-    color: black;
+    color: var(--primary-color);
     padding-top: 25px;
     font-size: 28px;
     font-weight: 600;

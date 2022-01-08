@@ -11,7 +11,7 @@ export const chipStyles = css`
     padding: 0 12px;
     border-radius: 32px;
     font-size: 13px;
-    font-family: "Roboto", sans-serif;
+    font-family: var(--font-family);
     color: #333;
     cursor: pointer;
     display: flex;

@@ -1,21 +1,12 @@
 import { css } from "lit";
 
 export const styles = css`
-  mwc-button {
-    --mdc-theme-primary: #296954;
-    --mdc-theme-on-primary: white;
-  }
-
-  mwc-textfield {
-    --mdc-theme-primary: #296954;
-  }
-
   .lobby {
-    font-family: "Roboto", sans-serif;
+    font-family: var(--font-family);
   }
 
   .players-waiting {
-    border: 1px solid blue;
+    border: 2px solid var(--theme-color);
     border-radius: 1rem;
     padding: 0 1rem 1rem 1rem;
     min-width: 20rem;
@@ -43,17 +34,13 @@ export const styles = css`
   .host {
     padding: 1rem 0;
   }
-  mwc-button {
-    --mdc-theme-primary: #296954;
-    --mdc-theme-on-primary: white;
-  }
 
   .card {
-    font-family: "Roboto", sans-serif;
+    font-family: var(--font-family);
     width: 275px;
     margin: 110px auto;
-    background-color: white;
-    border: 1px solid #b0bec5;
+    background-color: var(--secondary-background-color);
+    border: 1px solid var(--outline-color);
     border-radius: 1px;
     padding: 30px;
     box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2),

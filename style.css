@@ -1,4 +1,11 @@
 :root {
+  --theme-color: #296954;
+  --primary-color: #2c2c2c;
+  --primary-background-color: #fafafa;
+  --secondary-background-color: white;
+  --image-color: unset;
+  --input-fill: WhiteSmoke;
+  --outline-color: #b0bec5;
   /* Fonts */
   --font-family: "Roboto Sans", sans-serif;
   --font-size: 18px;
@@ -13,8 +20,8 @@
 
 body {
   margin: unset;
-  color: var(--very-dark-blue);
-  background-color: #fafafa;
+  color: var(--primary-color, #2c2c2c);
+  background-color: var(--primary-background-color, #fafafa);
 }
 
 *:focus {
