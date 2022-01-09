@@ -3,6 +3,7 @@ import { css } from "lit";
 export const styles = css`
   .table-wrapper {
     display: flex;
+    font-family: var(--font-family)
   }
   .first-half {
     margin-right: 5rem;
@@ -36,6 +37,11 @@ export const styles = css`
     width: 60px;
     border-radius: 10px;
     border: 3px dotted var(--primary-color);
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
   game-card,
   .set, .pile {

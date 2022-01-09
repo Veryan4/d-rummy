@@ -5,7 +5,8 @@
     "dark_mode": "toggle dark mode",
     "sound_on": "sound On",
     "sound_off": "sound Off",
-    "logout": "logout"
+    "logout": "logout",
+    "menu": "Menu"
   },
   "about": {
     "rank": {
@@ -61,6 +62,16 @@
     "their_turn": ", and it's their turn",
     "pile_warning": "Are you sure you want to pick up all {count} cards from the discard pile?",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "empty":"Empty",
+    "add_set": "Add Set",
+    "flip_discard": "Flip to Deck",
+    "error" :{
+      "wait_your_turn": "Wait for your turn",
+      "need_3_cards": "It takes at least 3 cards to form a set",
+      "need_valid_set": "This set is not valid",
+      "place_set_first": "You need to place your own Set before adding to others",
+      "only_dicard_1": "You may only discard 1 card"
+    }
   }
 }

@@ -5,7 +5,8 @@
     "dark_mode": "changer la couleur",
     "sound_on": "Son",
     "sound_off": "Muet",
-    "logout": "déconnexion"
+    "logout": "déconnexion",
+    "menu": "Menu"
   },
   "about": {
     "rank": {
@@ -61,6 +62,16 @@
     "their_turn": ", et c'est son tour",
     "pile_warning": "Êtes-vous certain de voulir ramasser les {count} cartes rejets?",
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "empty":"Vide",
+    "add_set": "Ajouter",
+    "flip_discard": "Renverser au Paquet",
+    "error" :{
+      "wait_your_turn": "Il faut attende son tour",
+      "need_3_cards": "Il faut au moins 3 cartes pour former une série",
+      "need_valid_set": "Ceci n'est pas une série valide",
+      "place_set_first": "Il faut placer au moins une série avant de contribuer aux autres",
+      "only_dicard_1": "On peux seulement jeter une carte"
+    }
   }
 }

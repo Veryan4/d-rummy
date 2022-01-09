@@ -40,6 +40,7 @@ export const styles = css`
     justify-content: center;
     position: fixed;
     z-index: 999;
+    font-family: var(--font-family)
   }
 
   .logo {

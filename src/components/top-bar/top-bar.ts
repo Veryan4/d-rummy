@@ -45,14 +45,17 @@ class TopBar extends LitElement {
           role="toolbar"
         >
           <div style="position: relative;">
-            <button
-              @click=${(e: Event) => (this.menu.open = true)}
-              id="anchor"
-              aria-label="Options"
-              class="material-icons mdc-top-app-bar__action-item mdc-icon-button hamburger toolbar mdc-menu-surface--anchor"
-            >
-              view_headline
-            </button>
+
+            <div style="cursor:pointer" @click=${() => (this.menu.open = true)}>
+              ${this.i18n.t("header.menu")}
+              <button
+                id="anchor"
+                aria-label="Options"
+                class="material-icons mdc-top-app-bar__action-item mdc-icon-button hamburger toolbar mdc-menu-surface--anchor"
+              >
+                view_headline
+              </button>
+            </div>
             ${this.renderMenu()}
           </div>
         </section>

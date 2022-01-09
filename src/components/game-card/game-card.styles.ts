@@ -37,7 +37,7 @@ export const cardStyles = css`
 
   #front.selected,
   #back.selected {
-    border: 2px solid var(--theme-color);
+    border: 0.5rem solid var(--theme-color);
   }
 
   #front,

@@ -22,7 +22,7 @@ export class SoundController {
   }
 
   play(sound: HTMLAudioElement): void {
-    if (!this.soundPlaying){
+    if (!this.soundPlaying && this.value){
       this.soundPlaying = true;
       sound.play().then(() => this.soundPlaying = false);
     }

@@ -19,6 +19,7 @@ import "../game-card/game-card";
 
 const yourTurnSound = new Audio('/sounds/your_turn.mp3');
 const theirTurnSound = new Audio('/sounds/their_turn.mp3');
+const errorSound = new Audio('/sounds/error.mp3');
 
 @customElement("card-rummy")
 class Rummy extends LitElement {
@@ -120,7 +121,7 @@ class Rummy extends LitElement {
               class="set empty"
               @click=${(e: Event) => this.placeNewSet()}
             >
-              <div class="empty-card"></div>
+              <div class="empty-card">${this.i18n.t("rummy.add_set")}</div>
             </div>
           </div>
           <h3>${this.i18n.t("rummy.hand")}</h3>
@@ -169,7 +170,7 @@ class Rummy extends LitElement {
           rank="2"
           .unrevealed=${true}
         ></game-card>`
-      : html`<div class="empty-card" @click=${this.flipPileToDeck}></div>`;
+      : html`<div class="empty-card" @click=${this.flipPileToDeck}>${this.i18n.t("rummy.flip_discard")}</div>`;
   }
 
   renderPile() {
@@ -183,7 +184,7 @@ class Rummy extends LitElement {
           symbol="${topCard.symbol}"
           rank="${topCard.rank}"
         ></game-card>`
-      : html`<div class="empty-card"></div>`;
+      : html`<div class="empty-card">${this.i18n.t("rummy.empty")}</div>`;
   }
 
   renderOthers() {
@@ -396,7 +397,7 @@ class Rummy extends LitElement {
         }
 
         // Sounds
-        if (this.sound.value && !table.hasDrawn) {
+        if (!table.hasDrawn) {
           if (table.playerOrder[0] === this.user.value) {
             this.sound.play(yourTurnSound);
           }else {
@@ -482,7 +483,12 @@ class Rummy extends LitElement {
   }
 
   drawFromDeck(): void {
-    if (this.table.hasDrawn || !this.isYourTurn()) {
+    if (this.table.hasDrawn) {
+      return;
+    }
+    if(!this.isYourTurn()) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.wait_your_turn")
       return;
     }
     this.table.hasDrawn = true;
@@ -509,7 +515,12 @@ class Rummy extends LitElement {
   }
 
   drawFromPile(): void {
-    if (this.table.hasDrawn || !this.isYourTurn()) {
+    if (this.table.hasDrawn || this.table.pile.length === 0) {
+      return;
+    }
+    if(!this.isYourTurn()) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.wait_your_turn")
       return;
     }
     this.table.hasDrawn = true;
@@ -525,9 +536,12 @@ class Rummy extends LitElement {
   }
 
   placeOthersSet(cards: Card[], otherPlayer: string) {
-    if (this.table.players[this.user.value!].sets.length > 0) {
-      this.placeSet(cards, otherPlayer);
+    if (this.table.players[this.user.value!].sets.length === 0) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.place_set_first")
+      return;
     }
+    this.placeSet(cards, otherPlayer);
   }
 
   placeSet(cards: Card[], otherPlayer?: string) {
@@ -536,7 +550,20 @@ class Rummy extends LitElement {
       return card;
     });
     set = [...new Set(set)].sort((a,b) => (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0));
-    if (!this.isYourTurn() || set.length < 3 || !this.isValidSet(set) ) {
+
+    if (!this.isYourTurn()) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.wait_your_turn")
+      return;
+    }
+    if(set.length < 3) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.need_3_cards")
+      return;
+    }
+    if(!this.isValidSet(set)) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.need_valid_set")
       return;
     }
 
@@ -564,7 +591,20 @@ class Rummy extends LitElement {
       return card;
     });
     set = [...new Set(set)].sort((a,b) => (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0));
-    if (!this.isYourTurn() || set.length < 3 || !this.isValidSet(set)) {
+
+    if (!this.isYourTurn()) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.wait_your_turn")
+      return;
+    }
+    if(set.length < 3) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.need_3_cards")
+      return;
+    }
+    if(!this.isValidSet(set)) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.need_valid_set")
       return;
     }
 
@@ -626,7 +666,17 @@ class Rummy extends LitElement {
 
   //ends turn
   discardToPile(): void {
-    if (!this.isYourTurn() || !this.table.hasDrawn || this.selected.length !== 1) {
+    if (!this.table.hasDrawn) {
+      return;
+    }
+    if(!this.isYourTurn()) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.wait_your_turn")
+      return;
+    }
+    if(this.selected.length !== 1) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.only_dicard_1")
       return;
     }
     const card = this.selected[0];
