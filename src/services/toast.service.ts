@@ -1,6 +1,8 @@
 import { Toast } from "../models/toast.model";
 
-export const toastService = { newToast, newError };
+const TOAST_EVENT = "toast";
+
+export const toastService = { newToast, newError, TOAST_EVENT };
 
 function newToast(key: string): void {
   const toast: Toast = {
@@ -9,7 +11,7 @@ function newToast(key: string): void {
     key,
   };
   window.dispatchEvent(
-    new CustomEvent("toast", {
+    new CustomEvent(TOAST_EVENT, {
       detail: toast,
     })
   );
@@ -22,7 +24,7 @@ function newError(key: string): void {
     key,
   };
   window.dispatchEvent(
-    new CustomEvent("toast", {
+    new CustomEvent(TOAST_EVENT, {
       detail: toast,
     })
   );

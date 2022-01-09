@@ -1,7 +1,7 @@
 export const themeService = { changeTheme };
 
-const storedTheme = localStorage.getItem("rummy-theme");
-let theme = storedTheme ? storedTheme : "light";
+const THEME_KEY = "rummy-theme"
+const storedTheme = localStorage.getItem(THEME_KEY);
 const root = document.querySelector(":root") as HTMLElement;
 const primaryWhite = "#fafafa";
 const secondaryWhite = "white";
@@ -16,6 +16,7 @@ const invertedOutlineColor = "#2c2c2c";
 const toastBackground = "#313131";
 const chipBackground = "#696969";
 
+let theme = storedTheme ? storedTheme : "light";
 if (theme === "light") {
   setLightTheme();
 } else {
@@ -52,5 +53,5 @@ function changeTheme(): void {
     theme = "light";
     setLightTheme();
   }
-  localStorage.setItem("rummy-theme", theme);
+  localStorage.setItem(THEME_KEY, theme);
 }

@@ -1,6 +1,8 @@
+const ROUTE_EVENT = "route-update"
+
 export function navigate(href: string): void {
   window.history.pushState({}, "", href);
-  window.dispatchEvent(new CustomEvent("route-update", { detail: href }));
+  window.dispatchEvent(new CustomEvent(ROUTE_EVENT, { detail: href }));
 }
 
 export const routerService = {
@@ -8,6 +10,7 @@ export const routerService = {
   parseParams,
   patternToRegExp,
   testRoute,
+  ROUTE_EVENT
 };
 
 function parseQuery(querystring: string): any {

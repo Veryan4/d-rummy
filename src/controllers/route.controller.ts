@@ -168,12 +168,12 @@ export class RouteController {
   }
 
   hostConnected(): void {
-    window.addEventListener("route-update", this._changeRoute as EventListener);
+    window.addEventListener(routerService.ROUTE_EVENT, this._changeRoute as EventListener);
   }
 
   hostDisconnected(): void {
     window.removeEventListener(
-      "route-update",
+      routerService.ROUTE_EVENT,
       this._changeRoute as EventListener
     );
   }

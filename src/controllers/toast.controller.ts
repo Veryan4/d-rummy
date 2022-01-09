@@ -9,6 +9,7 @@ import {
 import { classMap } from "lit-html/directives/class-map.js";
 import { until } from "lit/directives/until.js";
 import { Toast } from "../models/toast.model";
+import { toastService } from "../services/toast.service";
 import { t } from "../services/translate.service";
 
 class ToastDirective extends Directive {
@@ -65,10 +66,10 @@ export class ToastController {
   }
 
   hostConnected(): void {
-    window.addEventListener("toast", this._newToast as EventListener);
+    window.addEventListener(toastService.TOAST_EVENT, this._newToast as EventListener);
   }
 
   hostDisconnected(): void {
-    window.removeEventListener("toast", this._newToast as EventListener);
+    window.removeEventListener(toastService.TOAST_EVENT, this._newToast as EventListener);
   }
 }

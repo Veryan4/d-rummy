@@ -18,12 +18,12 @@ export class UserController {
   }
 
   hostConnected(): void {
-    window.addEventListener("user-update", this._changeUser as EventListener);
+    window.addEventListener(userService.USER_EVENT, this._changeUser as EventListener);
   }
 
   hostDisconnected(): void {
     window.removeEventListener(
-      "user-update",
+      userService.USER_EVENT,
       this._changeUser as EventListener
     );
   }

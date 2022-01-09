@@ -6,7 +6,7 @@ import {
   directive,
   DirectiveResult,
 } from "lit/directive.js";
-import { t, getLanguage } from "../services/translate.service";
+import { t, getLanguage, LANGUAGE_EVENT } from "../services/translate.service";
 
 class TranslationDirective extends Directive {
   private currentLanguage: string;
@@ -62,14 +62,14 @@ export class TranslationController {
 
   hostConnected(): void {
     window.addEventListener(
-      "lang-update",
+      LANGUAGE_EVENT,
       this._changeLanguage as EventListener
     );
   }
 
   hostDisconnected(): void {
     window.removeEventListener(
-      "lang-update",
+      LANGUAGE_EVENT,
       this._changeLanguage as EventListener
     );
   }

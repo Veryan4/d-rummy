@@ -1,13 +1,16 @@
-import { dataService } from "./data.service";
+const LANGUAGE_KEY = "tuba_lang";
+const LANGUAGE_EVENT = "lang-update";
 
 let translations: any;
 let currentLang: string;
 
+export { useLanguage, t, initTranslateLanguage, getLanguage, LANGUAGE_EVENT };
+
 async function useLanguage(lang: string) {
   if (currentLang === lang) return;
   translations = await fetch(`./i18n/${lang}.json`).then((res) => res.json());
-  window.dispatchEvent(new CustomEvent("lang-update", { detail: { lang } }));
-  dataService.setLanguage(lang);
+  window.dispatchEvent(new CustomEvent(LANGUAGE_EVENT, { detail: { lang } }));
+  setLanguage(lang);
   currentLang = lang;
   return translations;
 }
@@ -32,7 +35,7 @@ function t(
 
 async function initTranslateLanguage() {
   if (currentLang) return;
-  const lang = dataService.getLanguage();
+  const lang = getStoredLanguage();
   if (lang) {
     return useLanguage(lang);
   }
@@ -47,4 +50,15 @@ function getLanguage(): string {
   return currentLang;
 }
 
-export { useLanguage, t, initTranslateLanguage, getLanguage };
+function setLanguage(lang: string): void {
+  if (!lang) {
+    return;
+  }
+  localStorage.removeItem(LANGUAGE_KEY);
+  localStorage.setItem(LANGUAGE_KEY, lang);
+}
+
+function getStoredLanguage(): string {
+  const lang = localStorage.getItem(LANGUAGE_KEY);
+  return lang ? lang : "en";
+}

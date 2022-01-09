@@ -3,13 +3,16 @@ import GUN from "gun";
 import "gun/sea";
 import "gun/axe";
 
+const password = "SamePasswordForEveryone";
+const USER_KEY = "username";
+const USER_EVENT = "user-update";
+
 export const userService = {
   getUser,
   signUpAndLogin,
   signOut,
+  USER_EVENT
 };
-
-const password = "SamePasswordForEveryone";
 
 export const db = GUN(["https://d-rummy-gun.herokuapp.com/gun"]);
 export const user = db.user().recall({ sessionStorage: true });
@@ -67,16 +70,16 @@ async function login(username: string): Promise<void> {
 }
 
 function getUser() {
-  return sessionStorage.getItem("username")
+  return sessionStorage.getItem(USER_KEY)
 }
 
 function setUser(nextUser: string | null) {
   if (nextUser) {
-    sessionStorage.setItem("username", nextUser)
+    sessionStorage.setItem(USER_KEY, nextUser)
   } else {
-    sessionStorage.removeItem("username")
+    sessionStorage.removeItem(USER_KEY)
   }
   window.dispatchEvent(
-    new Event("user-update")
+    new Event(USER_EVENT)
   );
 }
