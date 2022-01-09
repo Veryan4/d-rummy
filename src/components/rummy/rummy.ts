@@ -54,6 +54,9 @@ class Rummy extends LitElement {
   @property({ type: String })
   winner: string | null;
 
+  @property({ type: Boolean })
+  showPileWarning = false;
+
   constructor() {
     super();
 
@@ -150,6 +153,7 @@ class Rummy extends LitElement {
         </div>
       </div>
       ${this.renderGameWinner()}
+      ${this.renderPileWarning()}
     `;
   }
 
@@ -252,6 +256,32 @@ class Rummy extends LitElement {
                 dense
                 @click=${this.returnToLobby}
                 label=${this.i18n.t("rummy.return")}
+              ></mwc-button>
+            </div>
+          </div>
+        </div>`
+      : "";
+  }
+
+  renderPileWarning() {
+    return this.showPileWarning
+      ? html` <div class="winner-overlay">
+          <div class="winner-modal">
+            <div class="winner-text">
+              ${this.i18n.t("rummy.pile_warning", {count: this.table.pile.length})}
+            </div>
+            <div class="winner-buttons">
+              <mwc-button
+                style="margin-right:1rem;"
+                dense
+                unelevated
+                @click=${this.drawFromPile}
+                label=${this.i18n.t("rummy.yes")}
+              ></mwc-button>
+              <mwc-button
+                dense
+                @click=${() => this.showPileWarning = false}
+                label=${this.i18n.t("rummy.no")}
               ></mwc-button>
             </div>
           </div>
@@ -470,7 +500,11 @@ class Rummy extends LitElement {
     if (this.table.hasDrawn) {
       this.discardToPile();
     } else {
-      this.drawFromPile();
+      if (this.table.pile.length > 1) {
+        this.showPileWarning = true;
+      } else {
+        this.drawFromPile();
+      }
     }
   }
 
@@ -487,6 +521,7 @@ class Rummy extends LitElement {
       this.table.pile.length
     );
     this.sendAction(this.table);
+    this.showPileWarning = false;
   }
 
   placeOthersSet(cards: Card[], otherPlayer: string) {
@@ -563,7 +598,7 @@ class Rummy extends LitElement {
     }
     
     // Needs to be a straight
-    values = values.sort();
+    values = values.sort((a,b) => (a > b) ? 1 : ((b > a) ? -1 : 0));
     let valid = true;
     values.forEach((v, i) => {
         if (v !== 1 && i !== 0) {

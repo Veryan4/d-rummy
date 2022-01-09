@@ -91,7 +91,7 @@ export const styles = css`
   .hand {
     display: grid;
     grid-gap: 0.5rem;
-    grid-template-columns: repeat(7, 2rem);
+    grid-template-columns: repeat(7, 3rem);
     transition: grid-template-columns 0.5s;
   }
 
@@ -111,10 +111,10 @@ export const styles = css`
   }
 
   .winner-modal {
-    background-color: #fefefe;
+    background-color: var(--primary-background-color);
     margin: 15% auto;
     padding: 20px;
-    border: 2px solid #888;
+    border: 2px solid var(--outline-color);
     width: fit-content;
   }
 
@@ -137,6 +137,8 @@ export const styles = css`
 
     .hand {
       grid-template-columns: repeat(5, 2rem);
+      position: absolute;
+      left: 0.5rem;
     }
 
     .hand .card-wrapper:hover {

@@ -58,6 +58,9 @@
     "rematch": "Rematch",
     "return": "Return to Lobby",
     "player": "{player} has {amount} cards in hand",
-    "their_turn": ", and it's their turn"
+    "their_turn": ", and it's their turn",
+    "pile_warning": "Are you sure you want to pick up all {count} cards from the discard pile?",
+    "yes": "Yes",
+    "no": "No"
   }
 }
