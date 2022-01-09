@@ -6,6 +6,10 @@
   --image-color: unset;
   --input-fill: WhiteSmoke;
   --outline-color: #b0bec5;
+  --toast-background: #313131;
+  --toast-color: #fff;
+  --toast-border-radius: .5rem;
+  --toast-offset: 100px;
   /* Fonts */
   --font-family: "Roboto Sans", sans-serif;
   --font-size: 18px;

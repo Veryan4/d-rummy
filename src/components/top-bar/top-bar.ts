@@ -73,7 +73,7 @@ class TopBar extends LitElement {
         >
         <mwc-list-item @click=${themeService.changeTheme}>
           <i class="material-icons mdc-icon-button__icon">invert_colors</i>
-          Color Change
+          ${this.i18n.t("header.dark_mode")}
         </mwc-list-item>
         ${this.user.value ? html`<mwc-list-item @click=${this.logout}
           ><i class="material-icons mdc-icon-button__icon">clear</i

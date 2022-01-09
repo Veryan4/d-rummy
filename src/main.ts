@@ -1,9 +1,10 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { initTranslateLanguage } from "./services/translate.service";
-import { themeService } from "./services/theme.service";
 import { RouteController } from "./controllers/route.controller";
+import { ToastController } from "./controllers/toast.controller";
 import { topAppBarStyles } from "./styles/top-app-bar.styles";
+import { toastStyles } from "./styles/toast.styles";
 import "./components/top-bar/top-bar";
 
 
@@ -11,6 +12,7 @@ import "./components/top-bar/top-bar";
 class Truba extends LitElement {
   static styles = [
     topAppBarStyles,
+    toastStyles,
     css`
       .main {
         padding: 1rem;
@@ -21,6 +23,7 @@ class Truba extends LitElement {
   ];
 
   private router = new RouteController(this);
+  private toaster = new ToastController(this);
 
   @property({ type: Boolean })
   hasLoadedTranslations: boolean;
@@ -34,41 +37,9 @@ class Truba extends LitElement {
       <top-bar></top-bar>
       <main class="mdc-top-app-bar--fixed-adjust">
         <div class="main">${this.router.navigation()}</div>
+        ${this.toaster.wait()}
       </main>
     `;
-  }
-
-  renderLoader() {
-    return html` <div class="loader">
-      <svg
-        version="1.1"
-        id="loader-1"
-        xmlns="http://www.w3.org/2000/svg"
-        xmlns:xlink="http://www.w3.org/1999/xlink"
-        x="0px"
-        y="0px"
-        width="100px"
-        height="100px"
-        viewBox="0 0 50 50"
-        style="enable-background:new 0 0 50 50;"
-        xml:space="preserve"
-      >
-        <path
-          fill="#000"
-          d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z"
-        >
-          <animateTransform
-            attributeType="xml"
-            attributeName="transform"
-            type="rotate"
-            from="0 25 25"
-            to="360 25 25"
-            dur="0.6s"
-            repeatCount="indefinite"
-          ></animateTransform>
-        </path>
-      </svg>
-    </div>`;
   }
 
   shouldUpdate(

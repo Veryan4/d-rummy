@@ -2,6 +2,7 @@
   "header": {
     "about": "help",
     "language": "language",
+    "dark_mode": "toggle dark mode",
     "logout": "logout"
   },
   "about": {

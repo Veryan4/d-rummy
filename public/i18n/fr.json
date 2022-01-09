@@ -2,6 +2,7 @@
   "header": {
     "about": "aide",
     "language": "language",
+    "dark_mode": "changer la couleur",
     "logout": "déconnexion"
   },
   "about": {

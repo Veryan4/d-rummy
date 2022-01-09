@@ -6,6 +6,7 @@ import { TranslationController } from "../../controllers/translation.controller"
 import { UserController } from "../../controllers/user.controller";
 import { cardsService } from "../../services/cards.service";
 import { gunService } from "../../services/gun.service";
+import { toastService } from "../../services/toast.service";
 import { navigate } from "../../services/router.service";
 import { Card, Table, PlayerHand } from "../../models/cards.model";
 import { GunEvent } from "../../models/gun.model";
@@ -353,6 +354,10 @@ class Rummy extends LitElement {
 
         // Checks for EndGame
         this.winner = this.isGameOver(this.table);
+
+        if (this.isYourTurn() && !this.table.hasDrawn) {
+          toastService.newToast("rummy.you")
+        }
 
         await this.updateComplete;
         this.requestUpdate();
