@@ -119,7 +119,7 @@ class TopBar extends LitElement {
 
   async logout(): Promise<void> {
     this.user.value = null;
-    await userService.signout();
+    await userService.signOut();
   }
 
   language(lang: string): void {

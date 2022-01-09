@@ -38,7 +38,7 @@ class Rummy extends LitElement {
   @property({ type: Object })
   table: Table = {
     players: {
-      [userService.user()!]: new PlayerHand(),
+      [userService.getUser()!]: new PlayerHand(),
     },
     playerOrder: [],
     deck: cardsService.createDeck(),

@@ -1,14 +1,12 @@
-import { userStore } from "./user.store";
 import { navigate } from "./router.service";
 import GUN from "gun";
 import "gun/sea";
 import "gun/axe";
 
 export const userService = {
-  user: () => userStore.getUser(),
+  getUser,
   signUpAndLogin,
-  signout,
-  setUser,
+  signOut,
 };
 
 const password = "SamePasswordForEveryone";
@@ -24,7 +22,7 @@ db.on("auth", async (event: Event) => {
   console.log(`signed in as ${alias}`);
 });
 
-function signout(): void {
+function signOut(): void {
   user.leave();
   setUser(null);
   navigate("login");
@@ -68,8 +66,17 @@ async function login(username: string): Promise<void> {
   });
 }
 
-function setUser(newUser: string | null): string | null {
-  userStore.setUser(newUser);
-  window.dispatchEvent(new CustomEvent("user-update", { detail: newUser }));
-  return newUser;
+function getUser() {
+  return sessionStorage.getItem("username")
+}
+
+function setUser(nextUser: string | null) {
+  if (nextUser) {
+    sessionStorage.setItem("username", nextUser)
+  } else {
+    sessionStorage.removeItem("username")
+  }
+  window.dispatchEvent(
+    new Event("user-update")
+  );
 }

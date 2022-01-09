@@ -3,11 +3,11 @@ import { userService } from "../services/user.service";
 
 export class UserController {
   private host: ReactiveControllerHost;
-  value = userService.user();
+  value = userService.getUser();
 
-  _changeUser = (e: CustomEvent) => {
-    if (this.value !== userService.user()) {
-      this.value = userService.user();
+  _changeUser = (e: Event) => {
+    if (this.value !== userService.getUser()) {
+      this.value = userService.getUser();
       this.host.requestUpdate();
     }
   };

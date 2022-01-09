@@ -1,20 +1,8 @@
 import { Card, Table, PlayerHand } from "../models/cards.model";
 
 const sides = { top: "top", bottom: "bottom" };
-const compare = {
-  color: "color",
-  value: "value",
-  both: "both",
-  bigger: "bigger",
-  smaller: "smaller",
-  next: "next",
-  previous: "previous",
-};
-
-const cards: Card[] = [];
 
 export const cardsService = {
-  cards: () => cards,
   createDeck,
   createDeckWithOffset,
   merge,
@@ -24,22 +12,6 @@ export const cardsService = {
   moveCard,
   moveCards,
   moveCardsFromIndex,
-  compareCards,
-  isSumOver,
-  isSumUnder,
-  isSumEqual,
-  areAllValuesEqual,
-  areAllValuesEqualTo,
-  areAllColorsEqual,
-  areAllColorsEqualTo,
-  hasAtLeastOne,
-  hasAtLeastOneOfColor,
-  hasAtLeastOneOfValue,
-  getSumOfValues,
-  getSumOfValuesWithColor,
-  countCardsEqualTo,
-  countCardsOfColor,
-  countCardsOfValue,
   createRummyTable,
 };
 
@@ -148,146 +120,6 @@ function moveCardsFromIndex(
     if (to == sides.top) dest.unshift(cardsToMove[i]);
     else if (to == sides.bottom) dest.push(cardsToMove[i]);
   }
-}
-
-function compareCards(
-  cardOne: Card,
-  cardTwo: Card,
-  comparer: keyof typeof compare
-): boolean {
-  if (comparer == compare.color) {
-    return cardOne.color == cardTwo.color;
-  }
-
-  if (comparer == compare.value) {
-    return cardOne.value == cardTwo.value;
-  }
-
-  if (comparer == compare.both) {
-    return cardOne.color == cardTwo.color && cardOne.value == cardTwo.value;
-  }
-
-  if (comparer == compare.bigger) {
-    return cardOne.value > cardTwo.value;
-  }
-
-  if (comparer == compare.smaller) {
-    return cardOne.value < cardTwo.value;
-  }
-
-  if (comparer == compare.next) {
-    return cardOne.value - 1 == cardTwo.value && cardOne.color == cardTwo.color;
-  }
-
-  if (comparer == compare.previous) {
-    return cardOne.value + 1 == cardTwo.value && cardOne.color == cardTwo.color;
-  }
-
-  return false;
-}
-
-function isSumOver(obj: Card[], value: number): boolean {
-  let overallValue = 0;
-  for (let i = 0; i < obj.length; i++) overallValue += obj[i].value;
-  return overallValue > value;
-}
-
-function isSumUnder(obj: Card[], value: number): boolean {
-  let overallValue = 0;
-  for (let i = 0; i < obj.length; i++) overallValue += obj[i].value;
-  return overallValue < value;
-}
-
-function isSumEqual(obj: Card[], value: number): boolean {
-  let overallValue = 0;
-  for (let i = 0; i < obj.length; i++) overallValue += obj[i].value;
-  return overallValue == value;
-}
-
-function areAllValuesEqual(obj: Card[]): boolean {
-  for (let i = 0; i < obj.length - 1; i++) {
-    if (obj[i].value != obj[i + 1].value) return false;
-  }
-  return true;
-}
-
-function areAllValuesEqualTo(obj: Card[], value: number): boolean {
-  for (let i = 0; i < obj.length - 1; i++) {
-    if (obj[i].value != value) return false;
-  }
-  return true;
-}
-
-function areAllColorsEqual(obj: Card[]): boolean {
-  for (let i = 0; i < obj.length; i++) {
-    if (obj[i].color != obj[i + 1].color) return false;
-  }
-  return true;
-}
-
-function areAllColorsEqualTo(obj: Card[], color: number): boolean {
-  for (let i = 0; i < obj.length; i++) {
-    if (obj[i].color != color) return false;
-  }
-  return true;
-}
-
-function hasAtLeastOne(obj: Card[], color: number, value: number): boolean {
-  for (let i = 0; i < obj.length; i++) {
-    if (obj[i].color == color && obj[i].value == value) return true;
-  }
-  return false;
-}
-
-function hasAtLeastOneOfColor(obj: Card[], color: number): boolean {
-  for (let i = 0; i < obj.length; i++) {
-    if (obj[i].color == color) return true;
-  }
-  return false;
-}
-
-function hasAtLeastOneOfValue(obj: Card[], value: number): boolean {
-  for (let i = 0; i < obj.length; i++) {
-    if (obj[i].value == value) return true;
-  }
-  return false;
-}
-
-function getSumOfValues(obj: Card[]): number {
-  let overallValue = 0;
-  for (let i = 0; i < obj.length; i++) overallValue += obj[i].value;
-  return overallValue;
-}
-
-function getSumOfValuesWithColor(obj: Card[], color: number): number {
-  let overallValue = 0;
-  for (let i = 0; i < obj.length; i++)
-    if (obj[i].color == color) overallValue += obj[i].value;
-  return overallValue;
-}
-
-function countCardsOfColor(obj: Card[], color: number): number {
-  let counter = 0;
-  for (let i = 0; i < obj.length; i++) {
-    if (obj[i].color == color) counter++;
-  }
-  return counter;
-}
-
-function countCardsOfValue(obj: Card[], value: number): number {
-  let counter = 0;
-  for (let i = 0; i < obj.length; i++) {
-    if (obj[i].value == value) counter++;
-  }
-  return counter;
-}
-
-function countCardsEqualTo(obj: Card[], color: number, value: number): number {
-  let counter = 0;
-  for (let i = 0; i < obj.length; i++) {
-    if (obj[i].color == color && obj[i].value == value) counter++;
-  }
-  return counter;
 }
 
 function createRummyTable(players: string[]): Table {
