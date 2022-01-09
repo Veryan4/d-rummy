@@ -8,9 +8,7 @@ import { userService } from "../../services/user.service";
 import { themeService } from "../../services/theme.service";
 import { UserController } from "../../controllers/user.controller";
 import { styles } from "./top-bar.styles";
-import { topAppBarStyles } from "../../styles/top-app-bar.styles";
-import { iconButtonStyles } from "../../styles/icon-button.styles";
-import { menuStyles } from "../../styles/menu.styles";
+import { topAppBarStyles, iconButtonStyles, menuStyles } from "../../styles";
 
 import "@material/mwc-menu";
 import "@material/mwc-list/mwc-list-item";
@@ -45,7 +43,6 @@ class TopBar extends LitElement {
           role="toolbar"
         >
           <div style="position: relative;">
-
             <div style="cursor:pointer" @click=${() => (this.menu.open = true)}>
               ${this.i18n.t("header.menu")}
               <button
@@ -65,7 +62,8 @@ class TopBar extends LitElement {
 
   renderMenu() {
     return html`
-      <mwc-menu id="menu"
+      <mwc-menu
+        id="menu"
         .anchor=${this.anchor}
         .corner=${this.device.isMobile ? "TOP_RIGHT" : "TOP_LEFT"}
         .menuCorner=${this.device.isMobile ? "END" : "START"}
@@ -81,13 +79,21 @@ class TopBar extends LitElement {
           ${this.i18n.t("header.dark_mode")}
         </mwc-list-item>
         <mwc-list-item @click=${this.toggleSound}>
-          <i class="material-icons mdc-icon-button__icon">${this.sound.value ? "notifications_active" : "notifications_none"}</i>
-          ${this.sound.value ? html`${this.i18n.t("header.sound_on")}` : html`${this.i18n.t("header.sound_off")}`}
+          <i class="material-icons mdc-icon-button__icon"
+            >${this.sound.value
+              ? "notifications_active"
+              : "notifications_none"}</i
+          >
+          ${this.sound.value
+            ? html`${this.i18n.t("header.sound_on")}`
+            : html`${this.i18n.t("header.sound_off")}`}
         </mwc-list-item>
-        ${this.user.value ? html`<mwc-list-item @click=${this.logout}
-          ><i class="material-icons mdc-icon-button__icon">clear</i
-          >${this.i18n.t("header.logout")}</mwc-list-item
-        >`: ""}
+        ${this.user.value
+          ? html`<mwc-list-item @click=${this.logout}
+              ><i class="material-icons mdc-icon-button__icon">clear</i
+              >${this.i18n.t("header.logout")}</mwc-list-item
+            >`
+          : ""}
         <hr />
         <mwc-list-item @click=${(e: Event) => this.language("en")}>
           <i class="material-icons mdc-icon-button__icon flag uk-flag"></i>
@@ -106,9 +112,9 @@ class TopBar extends LitElement {
   }
 
   connectedCallback() {
-    super.connectedCallback()
+    super.connectedCallback();
     // re-renders the mwc-menu
-    setTimeout(()=> this.requestUpdate(), 300)
+    setTimeout(() => this.requestUpdate(), 300);
   }
 
   async logout(): Promise<void> {

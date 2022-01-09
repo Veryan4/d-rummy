@@ -232,11 +232,7 @@ function areAllColorsEqualTo(obj: Card[], color: number): boolean {
   return true;
 }
 
-function hasAtLeastOne(
-  obj: Card[],
-  color: number,
-  value: number
-): boolean {
+function hasAtLeastOne(obj: Card[], color: number, value: number): boolean {
   for (let i = 0; i < obj.length; i++) {
     if (obj[i].color == color && obj[i].value == value) return true;
   }
@@ -286,11 +282,7 @@ function countCardsOfValue(obj: Card[], value: number): number {
   return counter;
 }
 
-function countCardsEqualTo(
-  obj: Card[],
-  color: number,
-  value: number
-): number {
+function countCardsEqualTo(obj: Card[], color: number, value: number): number {
   let counter = 0;
   for (let i = 0; i < obj.length; i++) {
     if (obj[i].color == color && obj[i].value == value) counter++;
@@ -308,13 +300,7 @@ function createRummyTable(players: string[]): Table {
   };
   players.forEach((player) => {
     table.players[player] = new PlayerHand();
-    moveCards(
-      table.deck,
-      table.players[player].hand,
-      "top",
-      "top",
-      7
-    );
+    moveCards(table.deck, table.players[player].hand, "top", "top", 7);
     table.playerOrder.push(player);
   });
   return table;

@@ -2,7 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
 import { classMap } from "lit-html/directives/class-map.js";
 import { cardStyles } from "./game-card.styles";
-import { SymbolType, RankType } from "/@/models/cards.model";
+import { SymbolType, RankType } from "../../models/cards.model";
 
 @customElement("game-card")
 class GameCard extends LitElement {

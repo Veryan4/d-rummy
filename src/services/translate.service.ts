@@ -12,7 +12,10 @@ async function useLanguage(lang: string) {
   return translations;
 }
 
-function t(record: string, placeholders?: Record<string, string | number>): string {
+function t(
+  record: string,
+  placeholders?: Record<string, string | number>
+): string {
   const cleaned = record.replaceAll(":", ".");
   let result = translations;
   try {

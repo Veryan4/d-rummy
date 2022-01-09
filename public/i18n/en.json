@@ -63,10 +63,10 @@
     "pile_warning": "Are you sure you want to pick up all {count} cards from the discard pile?",
     "yes": "Yes",
     "no": "No",
-    "empty":"Empty",
+    "empty": "Empty",
     "add_set": "Add Set",
     "flip_discard": "Flip to Deck",
-    "error" :{
+    "error": {
       "wait_your_turn": "Wait for your turn",
       "need_3_cards": "It takes at least 3 cards to form a set",
       "need_valid_set": "This set is not valid",

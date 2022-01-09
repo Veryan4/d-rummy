@@ -40,7 +40,7 @@ export const styles = css`
     justify-content: center;
     position: fixed;
     z-index: 999;
-    font-family: var(--font-family)
+    font-family: var(--font-family);
   }
 
   .logo {
@@ -77,8 +77,8 @@ export const styles = css`
   }
   a {
     cursor: pointer;
-    text-decoration:unset;
-    color:unset;
+    text-decoration: unset;
+    color: unset;
   }
   .material-icons.mdc-top-app-bar__action-item.mdc-icon-button.hamburger {
     color: var(--primary-color);

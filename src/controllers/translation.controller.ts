@@ -4,7 +4,7 @@ import {
   ChildPart,
   DirectiveParameters,
   directive,
-  DirectiveResult
+  DirectiveResult,
 } from "lit/directive.js";
 import { t, getLanguage } from "../services/translate.service";
 
@@ -41,7 +41,10 @@ export class TranslationController {
   private host: ReactiveControllerHost;
   language = getLanguage();
 
-  t(translationKey: string, properties?: Record<string, string | number>): DirectiveResult<typeof TranslationDirective> {
+  t(
+    translationKey: string,
+    properties?: Record<string, string | number>
+  ): DirectiveResult<typeof TranslationDirective> {
     return translationDirective(translationKey, this.language, properties);
   }
 
@@ -50,7 +53,7 @@ export class TranslationController {
       this.language = e.detail.lang;
       this.host.requestUpdate();
     }
-  }
+  };
 
   constructor(host: ReactiveControllerHost) {
     this.host = host;

@@ -12,14 +12,14 @@ import { navigate } from "../../services/router.service";
 import { Card, Table, PlayerHand } from "../../models/cards.model";
 import { GunEvent } from "../../models/gun.model";
 import { userService, db } from "../../services/user.service";
-import { buttonStyles } from "../../styles/button.styles";
+import { buttonStyles } from "../../styles";
 import { styles } from "./rummy.styles";
 import "@material/mwc-button";
 import "../game-card/game-card";
 
-const yourTurnSound = new Audio('/sounds/your_turn.mp3');
-const theirTurnSound = new Audio('/sounds/their_turn.mp3');
-const errorSound = new Audio('/sounds/error.mp3');
+const yourTurnSound = new Audio("/sounds/your_turn.mp3");
+const theirTurnSound = new Audio("/sounds/their_turn.mp3");
+const errorSound = new Audio("/sounds/error.mp3");
 
 @customElement("card-rummy")
 class Rummy extends LitElement {
@@ -77,7 +77,6 @@ class Rummy extends LitElement {
     return html`
       <div class="table-wrapper">
         <div class="first-half">
-          
           ${this.renderYourTurn()}
           <div class="table ${classMap(classes)}">
             <div class="deck" @click=${this.drawFromDeck}>
@@ -88,7 +87,7 @@ class Rummy extends LitElement {
               </div>
             </div>
             <div class="pile" @click=${this.touchPile}>
-            <h3>${this.i18n.t("rummy.pile")}</h3>
+              <h3>${this.i18n.t("rummy.pile")}</h3>
               <div class="row">
                 ${this.renderPile()}
                 <div class="count">${this.table.pile.length}</div>
@@ -117,10 +116,7 @@ class Rummy extends LitElement {
                   )}
                 </div>`
             )}
-            <div
-              class="set empty"
-              @click=${(e: Event) => this.placeNewSet()}
-            >
+            <div class="set empty" @click=${(e: Event) => this.placeNewSet()}>
               <div class="empty-card">${this.i18n.t("rummy.add_set")}</div>
             </div>
           </div>
@@ -153,13 +149,15 @@ class Rummy extends LitElement {
           </div>
         </div>
       </div>
-      ${this.renderGameWinner()}
-      ${this.renderPileWarning()}
+      ${this.renderGameWinner()} ${this.renderPileWarning()}
     `;
   }
 
   renderYourTurn() {
-    return this.isYourTurn() ? html`<h4>${this.i18n.t("rummy.you")}</h4><h5>${this.i18n.t("rummy.discard_end")}</h5>` : "";
+    return this.isYourTurn()
+      ? html`<h4>${this.i18n.t("rummy.you")}</h4>
+          <h5>${this.i18n.t("rummy.discard_end")}</h5>`
+      : "";
   }
 
   renderDeck() {
@@ -170,7 +168,9 @@ class Rummy extends LitElement {
           rank="2"
           .unrevealed=${true}
         ></game-card>`
-      : html`<div class="empty-card" @click=${this.flipPileToDeck}>${this.i18n.t("rummy.flip_discard")}</div>`;
+      : html`<div class="empty-card" @click=${this.flipPileToDeck}>
+          ${this.i18n.t("rummy.flip_discard")}
+        </div>`;
   }
 
   renderPile() {
@@ -269,7 +269,9 @@ class Rummy extends LitElement {
       ? html` <div class="winner-overlay">
           <div class="winner-modal">
             <div class="winner-text">
-              ${this.i18n.t("rummy.pile_warning", {count: this.table.pile.length})}
+              ${this.i18n.t("rummy.pile_warning", {
+                count: this.table.pile.length,
+              })}
             </div>
             <div class="winner-buttons">
               <mwc-button
@@ -281,7 +283,7 @@ class Rummy extends LitElement {
               ></mwc-button>
               <mwc-button
                 dense
-                @click=${() => this.showPileWarning = false}
+                @click=${() => (this.showPileWarning = false)}
                 label=${this.i18n.t("rummy.no")}
               ></mwc-button>
             </div>
@@ -314,13 +316,13 @@ class Rummy extends LitElement {
     if (card.selected) {
       this.selected = this.selected.filter((c) => c.id !== card.id);
     } else {
-      if(this.selected.length > 0) {
+      if (this.selected.length > 0) {
         const potentialSet = this.selected.concat([card]);
         if (!this.isValidSet(potentialSet)) {
-          return
+          return;
         }
       }
-      if (!this.selected.some(c => c.id === card.id)) {
+      if (!this.selected.some((c) => c.id === card.id)) {
         this.selected.push(card);
       }
     }
@@ -392,7 +394,11 @@ class Rummy extends LitElement {
         // Prevents re-ordering of hand by other players
         const hand = this.table.players[this.user.value!].hand;
         this.table = table;
-        if (table.playerOrder[0] !== this.user.value && table.hasDrawn && hand.length > 0) {
+        if (
+          table.playerOrder[0] !== this.user.value &&
+          table.hasDrawn &&
+          hand.length > 0
+        ) {
           this.table.players[this.user.value!].hand = hand;
         }
 
@@ -400,7 +406,7 @@ class Rummy extends LitElement {
         if (!table.hasDrawn) {
           if (table.playerOrder[0] === this.user.value) {
             this.sound.play(yourTurnSound);
-          }else {
+          } else {
             this.sound.play(theirTurnSound);
           }
         }
@@ -412,7 +418,7 @@ class Rummy extends LitElement {
         }
 
         if (this.isYourTurn() && !this.table.hasDrawn) {
-          toastService.newToast("rummy.you")
+          toastService.newToast("rummy.you");
         }
 
         await this.updateComplete;
@@ -455,7 +461,7 @@ class Rummy extends LitElement {
   }
 
   private async handleGunData(data: any) {
-    const event = await gunService.getEventFromData(data)
+    const event = await gunService.getEventFromData(data);
     if (event.what) {
       const events = [...this.events.slice(-100), event].sort(
         (a, b) => a.when - b.when
@@ -478,7 +484,10 @@ class Rummy extends LitElement {
 
   async sendAction(what: Table): Promise<void> {
     if (this.players.length > 0) {
-      await gunService.sendAction(`${gunService.getPlayersString(this.players)}-rummy-game`, what)
+      await gunService.sendAction(
+        `${gunService.getPlayersString(this.players)}-rummy-game`,
+        what
+      );
     }
   }
 
@@ -486,9 +495,9 @@ class Rummy extends LitElement {
     if (this.table.hasDrawn) {
       return;
     }
-    if(!this.isYourTurn()) {
+    if (!this.isYourTurn()) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.wait_your_turn")
+      toastService.newError("rummy.error.wait_your_turn");
       return;
     }
     this.table.hasDrawn = true;
@@ -518,9 +527,9 @@ class Rummy extends LitElement {
     if (this.table.hasDrawn || this.table.pile.length === 0) {
       return;
     }
-    if(!this.isYourTurn()) {
+    if (!this.isYourTurn()) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.wait_your_turn")
+      toastService.newError("rummy.error.wait_your_turn");
       return;
     }
     this.table.hasDrawn = true;
@@ -538,7 +547,7 @@ class Rummy extends LitElement {
   placeOthersSet(cards: Card[], otherPlayer: string) {
     if (this.table.players[this.user.value!].sets.length === 0) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.place_set_first")
+      toastService.newError("rummy.error.place_set_first");
       return;
     }
     this.placeSet(cards, otherPlayer);
@@ -549,37 +558,41 @@ class Rummy extends LitElement {
       card.selected = false;
       return card;
     });
-    set = [...new Set(set)].sort((a,b) => (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0));
+    set = [...new Set(set)].sort((a, b) =>
+      a.value > b.value ? 1 : b.value > a.value ? -1 : 0
+    );
 
     if (!this.isYourTurn()) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.wait_your_turn")
+      toastService.newError("rummy.error.wait_your_turn");
       return;
     }
-    if(set.length < 3) {
+    if (set.length < 3) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.need_3_cards")
+      toastService.newError("rummy.error.need_3_cards");
       return;
     }
-    if(!this.isValidSet(set)) {
+    if (!this.isValidSet(set)) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.need_valid_set")
+      toastService.newError("rummy.error.need_valid_set");
       return;
     }
 
     const user = this.user.value!;
     const player = otherPlayer ? otherPlayer : user;
 
-    this.table.players[player].sets = this.table.players[player].sets.map((s) => {
-      if (set.some((c) => s[0].id === c.id)) {
-        return set;
+    this.table.players[player].sets = this.table.players[player].sets.map(
+      (s) => {
+        if (set.some((c) => s[0].id === c.id)) {
+          return set;
+        }
+        return s;
       }
-      return s;
-    });
+    );
 
-    this.table.players[user].hand = this.table.players[
-      user
-    ].hand.filter((c) => !set.some((card) => card.id === c.id));
+    this.table.players[user].hand = this.table.players[user].hand.filter(
+      (c) => !set.some((card) => card.id === c.id)
+    );
 
     this.sendAction(this.table);
     this.selected = [];
@@ -590,30 +603,32 @@ class Rummy extends LitElement {
       card.selected = false;
       return card;
     });
-    set = [...new Set(set)].sort((a,b) => (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0));
+    set = [...new Set(set)].sort((a, b) =>
+      a.value > b.value ? 1 : b.value > a.value ? -1 : 0
+    );
 
     if (!this.isYourTurn()) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.wait_your_turn")
+      toastService.newError("rummy.error.wait_your_turn");
       return;
     }
-    if(set.length < 3) {
+    if (set.length < 3) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.need_3_cards")
+      toastService.newError("rummy.error.need_3_cards");
       return;
     }
-    if(!this.isValidSet(set)) {
+    if (!this.isValidSet(set)) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.need_valid_set")
+      toastService.newError("rummy.error.need_valid_set");
       return;
     }
 
     const user = this.user.value!;
 
     this.table.players[user].sets.push(set);
-    this.table.players[user].hand = this.table.players[
-      user
-    ].hand.filter((c) => !set.some((card) => card.id === c.id));
+    this.table.players[user].hand = this.table.players[user].hand.filter(
+      (c) => !set.some((card) => card.id === c.id)
+    );
 
     this.sendAction(this.table);
     this.selected = [];
@@ -627,40 +642,38 @@ class Rummy extends LitElement {
     }
 
     // Otherwise can't have duplicate ranks in a straight
-    if ((new Set(values)).size !== values.length) {
-      return false
+    if (new Set(values).size !== values.length) {
+      return false;
     }
 
     // Straight needs to be of the same suit
     const colors = set.map((card) => card.color);
-    if ((new Set(colors)).size > 1) {
-      return false
+    if (new Set(colors).size > 1) {
+      return false;
     }
-    
+
     // Needs to be a straight
-    values = values.sort((a,b) => (a > b) ? 1 : ((b > a) ? -1 : 0));
+    values = values.sort((a, b) => (a > b ? 1 : b > a ? -1 : 0));
     let valid = true;
     values.forEach((v, i) => {
-        if (v !== 1 && i !== 0) {
-          if (values[i-1] !== (values[i] -1)) {
-            valid = false;
-          }
+      if (v !== 1 && i !== 0) {
+        if (values[i - 1] !== values[i] - 1) {
+          valid = false;
         }
-    })
+      }
+    });
     return valid;
   }
 
   reOrderHand(): void {
     const hand: Card[] = [];
-    this.renderRoot
-      .querySelectorAll(".card-wrapper")
-      .forEach((el: Element) => {
-        const id = el.getAttribute("id")!;
-        const card = this.table.players[this.user.value!].hand.find(
-          (c) => c.id == id
-        );
-        hand.push(card!);
-      });
+    this.renderRoot.querySelectorAll(".card-wrapper").forEach((el: Element) => {
+      const id = el.getAttribute("id")!;
+      const card = this.table.players[this.user.value!].hand.find(
+        (c) => c.id == id
+      );
+      hand.push(card!);
+    });
     this.table.players[this.user.value!].hand = hand;
   }
 
@@ -669,14 +682,14 @@ class Rummy extends LitElement {
     if (!this.table.hasDrawn) {
       return;
     }
-    if(!this.isYourTurn()) {
+    if (!this.isYourTurn()) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.wait_your_turn")
+      toastService.newError("rummy.error.wait_your_turn");
       return;
     }
-    if(this.selected.length !== 1) {
+    if (this.selected.length !== 1) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.only_dicard_1")
+      toastService.newError("rummy.error.only_dicard_1");
       return;
     }
     const card = this.selected[0];

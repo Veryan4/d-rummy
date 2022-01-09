@@ -8,8 +8,7 @@ import { cardsService } from "../../services/cards.service";
 import { gunService } from "../../services/gun.service";
 import { Lobby } from "../../models/lobby.model";
 import { GunEvent } from "../../models/gun.model";
-import { buttonStyles } from "../../styles/button.styles";
-import { textFieldStyles } from "../../styles/text-field.styles";
+import { buttonStyles, textFieldStyles } from "../../styles";
 import { styles } from "./lobby.styles";
 
 import "@material/mwc-button";
@@ -52,7 +51,7 @@ class LobbyComponent extends LitElement {
       this.game = sessionStorage.getItem("game");
     }
 
-    if(this.game) {
+    if (this.game) {
       this.lobby.host = this.game;
     }
   }
@@ -183,7 +182,7 @@ class LobbyComponent extends LitElement {
   async createLobby() {
     this.game = this.user.value!;
     sessionStorage.setItem("game", this.game);
-    this.lobby.host = this.user.value!
+    this.lobby.host = this.user.value!;
     await this.playerJoin();
     navigator.clipboard.writeText(location.href);
     window.history.replaceState(null, "", `lobby?game=${this.user.value}`);
@@ -242,7 +241,7 @@ class LobbyComponent extends LitElement {
   }
 
   private async handleGunData(data: any) {
-    const event = await gunService.getEventFromData(data)
+    const event = await gunService.getEventFromData(data);
     if (event.what) {
       const events = [...this.events.slice(-100), event].sort(
         (a, b) => a.when - b.when
@@ -260,7 +259,7 @@ class LobbyComponent extends LitElement {
     if (!this.game) {
       return;
     }
-    await gunService.sendAction(`${this.game}-rummy-lobby`, what)
+    await gunService.sendAction(`${this.game}-rummy-lobby`, what);
   }
 
   async playerJoin(): Promise<void> {
@@ -274,10 +273,12 @@ class LobbyComponent extends LitElement {
   async startGame(): Promise<void> {
     if (!this.lobby.hasStarted && this.lobby.players.length > 0) {
       const table = cardsService.createRummyTable(this.lobby.players);
-      await gunService.sendAction(`${gunService.getPlayersString(this.lobby.players)}-rummy-game`, table)
+      await gunService.sendAction(
+        `${gunService.getPlayersString(this.lobby.players)}-rummy-game`,
+        table
+      );
       this.lobby.hasStarted = true;
       await this.sendAction(this.lobby);
     }
   }
-
 }

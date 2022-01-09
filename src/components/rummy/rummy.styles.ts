@@ -3,7 +3,7 @@ import { css } from "lit";
 export const styles = css`
   .table-wrapper {
     display: flex;
-    font-family: var(--font-family)
+    font-family: var(--font-family);
   }
   .first-half {
     margin-right: 5rem;
@@ -29,7 +29,7 @@ export const styles = css`
     padding: 1rem;
     font-weight: 700;
   }
-  .row{
+  .row {
     display: flex;
   }
   .empty-card {
@@ -44,7 +44,8 @@ export const styles = css`
     align-items: center;
   }
   game-card,
-  .set, .pile {
+  .set,
+  .pile {
     cursor: pointer;
   }
   .sets {

@@ -3,10 +3,8 @@ import { customElement, property } from "lit/decorators.js";
 import { initTranslateLanguage } from "./services/translate.service";
 import { RouteController } from "./controllers/route.controller";
 import { ToastController } from "./controllers/toast.controller";
-import { topAppBarStyles } from "./styles/top-app-bar.styles";
-import { toastStyles } from "./styles/toast.styles";
+import { topAppBarStyles, toastStyles } from "./styles";
 import "./components/top-bar/top-bar";
-
 
 @customElement("my-app")
 class Truba extends LitElement {
