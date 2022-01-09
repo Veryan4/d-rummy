@@ -4,6 +4,7 @@ import { classMap } from "lit-html/directives/class-map.js";
 import { repeat } from "lit/directives/repeat.js";
 import { TranslationController } from "../../controllers/translation.controller";
 import { UserController } from "../../controllers/user.controller";
+import { SoundController } from "../../controllers/sound.controller";
 import { cardsService } from "../../services/cards.service";
 import { gunService } from "../../services/gun.service";
 import { toastService } from "../../services/toast.service";
@@ -16,12 +17,18 @@ import { styles } from "./rummy.styles";
 import "@material/mwc-button";
 import "../game-card/game-card";
 
+const yourTurnSound = new Audio('/sounds/your_turn.mp3');
+const theirTurnSound = new Audio('/sounds/their_turn.mp3');
+
 @customElement("card-rummy")
 class Rummy extends LitElement {
   static styles = [styles, buttonStyles];
 
   private i18n = new TranslationController(this);
   private user = new UserController(this);
+  private sound = new SoundController(this);
+
+  private soundPlaying = false;
 
   @property({ type: Array })
   selected: Card[] = [];
@@ -277,7 +284,9 @@ class Rummy extends LitElement {
     await this.updateComplete;
     card.selected = !card.selected;
     if (card.selected) {
-      this.selected.push(card);
+      if (!this.selected.some(c => c.id === card.id)) {
+        this.selected.push(card);
+      }
     } else {
       this.selected = this.selected.filter((c) => c.id !== card.id);
     }
@@ -348,12 +357,24 @@ class Rummy extends LitElement {
         // Prevents re-ordering of hand by other players
         const hand = this.table.players[this.user.value!].hand;
         this.table = table;
-        if (!this.isYourTurn() && table.hasDrawn && hand.length > 0) {
+        if (table.playerOrder[0] !== this.user.value && table.hasDrawn && hand.length > 0) {
           this.table.players[this.user.value!].hand = hand;
+        }
+
+        // Sounds
+        if (this.sound.value && !table.hasDrawn) {
+          if (table.playerOrder[0] === this.user.value) {
+            this.sound.play(yourTurnSound);
+          }else {
+            this.sound.play(theirTurnSound);
+          }
         }
 
         // Checks for EndGame
         this.winner = this.isGameOver(this.table);
+        if (this.winner) {
+          this.selected = [];
+        }
 
         if (this.isYourTurn() && !this.table.hasDrawn) {
           toastService.newToast("rummy.you")
@@ -471,10 +492,11 @@ class Rummy extends LitElement {
   }
 
   placeSet(cards: Card[], otherPlayer?: string) {
-    const set = cards.concat(this.selected).map((card) => {
+    let set = cards.concat(this.selected).map((card) => {
       card.selected = false;
       return card;
     });
+    set = [...new Set(set)].sort((a,b) => (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0));
     if (!this.isYourTurn() || !this.isValidSet(set)) {
       return;
     }
@@ -497,11 +519,12 @@ class Rummy extends LitElement {
     this.selected = [];
   }
 
-  placeNewSet(){
-    const set = this.selected.map((card) => {
+  placeNewSet() {
+    let set = this.selected.map((card) => {
       card.selected = false;
       return card;
     });
+    set = [...new Set(set)].sort((a,b) => (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0));
     if (!this.isYourTurn() || !this.isValidSet(set)) {
       return;
     }
@@ -522,34 +545,42 @@ class Rummy extends LitElement {
     if (set.length < 3) {
       return false;
     }
+
     // Can be all matching ranks
     let values = set.map((card) => card.value);
     if (values.every((v) => v === values[0])) {
       return true;
     }
-    // Otherwise needs to be a straight of the same suit
-    const colors = set.map((card) => card.color);
-    if (colors.every((c) => c === colors[0])) {
-      values = values.sort();
-      const first = values[0];
-      const last = values[values.length - 1];
-      let count = 0;
-      for (let i = first; i < last; i++) {
-        if (values[count] != i) {
-          return false;
-        }
-        count++;
-      }
-      return true;
+
+    // Otherwise can't have duplicate ranks in a straight
+    if ((new Set(values)).size !== values.length) {
+      return false
     }
-    return false;
+
+    // Straight needs to be of the same suit
+    const colors = set.map((card) => card.color);
+    if ((new Set(colors)).size > 1) {
+      return false
+    }
+    
+    // Needs to be a straight
+    values = values.sort();
+    let valid = true;
+    values.forEach((v, i) => {
+        if (v !== 1 && i !== 0) {
+          if (values[i] !== (values[i-1] -1)) {
+            valid = false;
+          }
+        }
+    })
+    return valid;
   }
 
   reOrderHand(): void {
     const hand: Card[] = [];
     this.renderRoot
       .querySelectorAll(".card-wrapper")
-      .forEach((el: Element, i) => {
+      .forEach((el: Element) => {
         const id = el.getAttribute("id")!;
         const card = this.table.players[this.user.value!].hand.find(
           (c) => c.id == id

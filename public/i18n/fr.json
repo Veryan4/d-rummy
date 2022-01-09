@@ -3,6 +3,8 @@
     "about": "aide",
     "language": "language",
     "dark_mode": "changer la couleur",
+    "sound_on": "Son",
+    "sound_off": "Muet",
     "logout": "déconnexion"
   },
   "about": {

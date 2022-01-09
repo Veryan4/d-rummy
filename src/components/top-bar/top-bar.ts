@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { TranslationController } from "../../controllers/translation.controller";
 import { DeviceController } from "../../controllers/device.controller";
+import { SoundController } from "../../controllers/sound.controller";
 import { useLanguage } from "../../services/translate.service";
 import { userService } from "../../services/user.service";
 import { themeService } from "../../services/theme.service";
@@ -23,6 +24,7 @@ class TopBar extends LitElement {
   private i18n = new TranslationController(this);
   private user = new UserController(this);
   private device = new DeviceController(this);
+  private sound = new SoundController(this);
 
   @query("#anchor")
   anchor: HTMLElement;
@@ -75,6 +77,10 @@ class TopBar extends LitElement {
           <i class="material-icons mdc-icon-button__icon">invert_colors</i>
           ${this.i18n.t("header.dark_mode")}
         </mwc-list-item>
+        <mwc-list-item @click=${this.toggleSound}>
+          <i class="material-icons mdc-icon-button__icon">${this.sound.value ? "notifications_active" : "notifications_none"}</i>
+          ${this.sound.value ? html`${this.i18n.t("header.sound_on")}` : html`${this.i18n.t("header.sound_off")}`}
+        </mwc-list-item>
         ${this.user.value ? html`<mwc-list-item @click=${this.logout}
           ><i class="material-icons mdc-icon-button__icon">clear</i
           >${this.i18n.t("header.logout")}</mwc-list-item
@@ -90,6 +96,10 @@ class TopBar extends LitElement {
         </mwc-list-item>
       </mwc-menu>
     `;
+  }
+
+  toggleSound() {
+    window.dispatchEvent(new Event("sound-update"));
   }
 
   connectedCallback() {

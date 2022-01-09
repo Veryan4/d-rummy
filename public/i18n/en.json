@@ -3,6 +3,8 @@
     "about": "help",
     "language": "language",
     "dark_mode": "toggle dark mode",
+    "sound_on": "sound On",
+    "sound_off": "sound Off",
     "logout": "logout"
   },
   "about": {

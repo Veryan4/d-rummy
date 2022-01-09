@@ -30,7 +30,6 @@ export const toastStyles = css`
     	background: crimson;
     	color: #fff;	
     }
-
 `;
 
 
