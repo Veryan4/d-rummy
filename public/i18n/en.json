@@ -28,6 +28,9 @@
     "empty": {
       "title": "EMPTY DECK",
       "text": "If the last card of the deck has been drawn and no player has won, the next player may turn the discard pile over to form a new deck (without shuffling it) and draw the top card."
+    },
+    "open_source": {
+      "title": "Open Source Application"
     }
   },
   "lobby": {

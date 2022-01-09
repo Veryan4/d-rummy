@@ -23,6 +23,12 @@ class About extends LitElement {
           <span class="about-item">${this.i18n.t("about.sets.text")}</span>
           <div class="about-title">${this.i18n.t("about.empty.title")}</div>
           <span class="about-item">${this.i18n.t("about.empty.text")}</span>
+          <div class="about-title">${this.i18n.t("about.open_source.title")}</div>
+          <span class="about-item">
+            <a href="https://github.com/Veryan4/d-rummy" target="_blank">
+              https://github.com/Veryan4/d-rummy
+            </a>
+          </span>
         </div>
       </div>
     `;

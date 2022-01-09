@@ -27,7 +27,10 @@
     },
     "empty": {
       "title": "PAQUET VIDE",
-      "text": "Si la derniere carte du paquet a été tirer et aucun joueur a gagner, le prochain joueur peux renverser le paquet jeter en paquet normal sans le mélanger, et continuer de jouer en pigeant sa carte."
+      "text": "Si la dernière carte du paquet a été tirer et aucun joueur a gagner, le prochain joueur peux renverser le paquet jeter en paquet normal sans le mélanger, et continuer de jouer en pigeant sa carte."
+    },
+    "open_source": {
+      "title": "Code source ouvert"
     }
   },
   "lobby": {
