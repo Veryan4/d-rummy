@@ -28,8 +28,6 @@ class Rummy extends LitElement {
   private user = new UserController(this);
   private sound = new SoundController(this);
 
-  private soundPlaying = false;
-
   @property({ type: Array })
   selected: Card[] = [];
 
@@ -282,14 +280,20 @@ class Rummy extends LitElement {
 
   async toggleSelected(card: Card) {
     await this.updateComplete;
-    card.selected = !card.selected;
     if (card.selected) {
+      this.selected = this.selected.filter((c) => c.id !== card.id);
+    } else {
+      if(this.selected.length > 0) {
+        const potentialSet = this.selected.concat([card]);
+        if (!this.isValidSet(potentialSet)) {
+          return
+        }
+      }
       if (!this.selected.some(c => c.id === card.id)) {
         this.selected.push(card);
       }
-    } else {
-      this.selected = this.selected.filter((c) => c.id !== card.id);
     }
+    card.selected = !card.selected;
     await this.updateComplete;
     this.requestUpdate();
   }
@@ -497,7 +501,7 @@ class Rummy extends LitElement {
       return card;
     });
     set = [...new Set(set)].sort((a,b) => (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0));
-    if (!this.isYourTurn() || !this.isValidSet(set)) {
+    if (!this.isYourTurn() || set.length < 3 || !this.isValidSet(set) ) {
       return;
     }
 
@@ -525,7 +529,7 @@ class Rummy extends LitElement {
       return card;
     });
     set = [...new Set(set)].sort((a,b) => (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0));
-    if (!this.isYourTurn() || !this.isValidSet(set)) {
+    if (!this.isYourTurn() || set.length < 3 || !this.isValidSet(set)) {
       return;
     }
 
@@ -541,11 +545,6 @@ class Rummy extends LitElement {
   }
 
   isValidSet(set: Card[]): boolean {
-    // set has to be at least 3 cards
-    if (set.length < 3) {
-      return false;
-    }
-
     // Can be all matching ranks
     let values = set.map((card) => card.value);
     if (values.every((v) => v === values[0])) {
@@ -568,7 +567,7 @@ class Rummy extends LitElement {
     let valid = true;
     values.forEach((v, i) => {
         if (v !== 1 && i !== 0) {
-          if (values[i] !== (values[i-1] -1)) {
+          if (values[i-1] !== (values[i] -1)) {
             valid = false;
           }
         }
