@@ -184,8 +184,8 @@ class LobbyComponent extends LitElement {
     sessionStorage.setItem("game", this.game);
     this.lobby.host = this.user.value!;
     await this.playerJoin();
-    navigator.clipboard.writeText(location.href);
     window.history.replaceState(null, "", `lobby?game=${this.user.value}`);
+    navigator.clipboard.writeText(location.href);
     this.requestUpdate();
     this.connectedCallback();
   }
