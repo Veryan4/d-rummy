@@ -20,6 +20,9 @@ export class DeviceController {
   constructor(host: ReactiveControllerHost) {
     this.host = host;
     host.addController(this);
+
+    // re-renders the child web components
+    setTimeout(() => host.requestUpdate(), 300);
   }
 
   hostConnected(): void {

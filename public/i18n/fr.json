@@ -74,7 +74,8 @@
       "need_3_cards": "Il faut au moins 3 cartes pour former une série",
       "need_valid_set": "Ceci n'est pas une série valide",
       "place_set_first": "Il faut placer au moins une série avant de contribuer aux autres",
-      "only_dicard_1": "On peux seulement jeter une carte"
+      "only_discard_1": "On peux seulement jeter une carte",
+      "select_discard": "Il faut sélectionner une carte à jeter"
     }
   }
 }

@@ -687,9 +687,14 @@ class Rummy extends LitElement {
       toastService.newError("rummy.error.wait_your_turn");
       return;
     }
+    if (this.selected.length === 0) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.select_discard");
+      return;
+    }
     if (this.selected.length !== 1) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.only_dicard_1");
+      toastService.newError("rummy.error.only_discard_1");
       return;
     }
     const card = this.selected[0];

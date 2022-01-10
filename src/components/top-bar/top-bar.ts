@@ -111,12 +111,6 @@ class TopBar extends LitElement {
     window.dispatchEvent(new Event("sound-update"));
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-    // re-renders the mwc-menu
-    setTimeout(() => this.requestUpdate(), 300);
-  }
-
   async logout(): Promise<void> {
     this.user.value = null;
     await userService.signOut();
