@@ -1,13 +1,8 @@
 import { LitElement, html } from "lit";
 import { customElement, property, query } from "lit/decorators.js";
-import { TranslationController } from "../../controllers/translation.controller";
-import { UserController } from "../../controllers/user.controller";
-import { navigate } from "../../services/router.service";
-import { db, userService } from "../../services/user.service";
-import { cardsService } from "../../services/cards.service";
-import { gunService } from "../../services/gun.service";
-import { Lobby } from "../../models/lobby.model";
-import { GunEvent } from "../../models/gun.model";
+import { TranslationController, UserController } from "../../controllers";
+import { cardsService, gunService, routerService, userService } from "../../services";
+import { Lobby, GunEvent } from "../../models";
 import { buttonStyles, textFieldStyles } from "../../styles";
 import { styles } from "./lobby.styles";
 
@@ -174,7 +169,7 @@ class LobbyComponent extends LitElement {
   renderMissingPlayers(players: string[]) {
     return html`<p>
       ${this.i18n.t("lobby.missing", {
-        amount: MIN_PLAYERS - players.length - 1,
+        amount: MIN_PLAYERS - players.length,
       })}
     </p>`;
   }
@@ -197,7 +192,7 @@ class LobbyComponent extends LitElement {
       if (lobby.hasStarted) {
         const playerString = JSON.stringify(lobby.players);
         sessionStorage.setItem("players", playerString);
-        navigate("rummy");
+        routerService.navigate("rummy");
       }
       if (this.lobby !== lobby) {
         this.lobby = lobby;
@@ -220,7 +215,7 @@ class LobbyComponent extends LitElement {
     };
 
     if (this.game) {
-      db.get(`${this.game}-rummy-lobby`)
+      gunService.db.get(`${this.game}-rummy-lobby`)
         .map(match as any)
         // @ts-ignore
         .then(async (data: any) => {
@@ -230,7 +225,7 @@ class LobbyComponent extends LitElement {
           await this.playerJoin();
         });
 
-      db.get(`${this.game}-rummy-lobby`)
+        gunService.db.get(`${this.game}-rummy-lobby`)
         .map(match as any)
         .on(async (onData) => {
           if (onData) {
@@ -252,7 +247,7 @@ class LobbyComponent extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    db.get(`${this.user.value}-rummy-lobby`).off();
+    gunService.db.get(`${this.user.value}-rummy-lobby`).off();
   }
 
   async sendAction(what: Lobby): Promise<void> {

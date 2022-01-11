@@ -6,7 +6,7 @@ import {
   directive,
   DirectiveResult,
 } from "lit/directive.js";
-import { t, getLanguage, LANGUAGE_EVENT } from "../services/translate.service";
+import { translateService } from "../services";
 
 class TranslationDirective extends Directive {
   private currentLanguage: string;
@@ -32,14 +32,14 @@ class TranslationDirective extends Directive {
     if (properties) {
       this.properties = properties;
     }
-    return t(translationKey, properties);
+    return translateService.t(translationKey, properties);
   }
 }
 const translationDirective = directive(TranslationDirective);
 
 export class TranslationController {
   private host: ReactiveControllerHost;
-  language = getLanguage();
+  language = translateService.getLanguage();
 
   t(
     translationKey: string,
@@ -62,14 +62,14 @@ export class TranslationController {
 
   hostConnected(): void {
     window.addEventListener(
-      LANGUAGE_EVENT,
+      translateService.LANGUAGE_EVENT,
       this._changeLanguage as EventListener
     );
   }
 
   hostDisconnected(): void {
     window.removeEventListener(
-      LANGUAGE_EVENT,
+      translateService.LANGUAGE_EVENT,
       this._changeLanguage as EventListener
     );
   }

@@ -1,9 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { initTranslateLanguage } from "./services/translate.service";
-import { routerService } from "./services/router.service";
-import { RouteController } from "./controllers/route.controller";
-import { ToastController } from "./controllers/toast.controller";
+import { routerService, translateService } from "./services";
+import { RouteController, ToastController } from "./controllers";
 import { topAppBarStyles, toastStyles } from "./styles";
 import "./components/top-bar/top-bar";
 
@@ -55,7 +53,7 @@ class Truba extends LitElement {
       window.dispatchEvent(new CustomEvent(routerService.ROUTE_EVENT));
     };
 
-    !this.hasLoadedTranslations && (await initTranslateLanguage());
+    !this.hasLoadedTranslations && (await translateService.initTranslateLanguage());
     this.hasLoadedTranslations = true;
   }
 }

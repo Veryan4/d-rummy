@@ -4,9 +4,9 @@ const LANGUAGE_EVENT = "lang-update";
 let translations: any;
 let currentLang: string;
 
-export { useLanguage, t, initTranslateLanguage, getLanguage, LANGUAGE_EVENT };
+export const translateService = { useLanguage, t, initTranslateLanguage, getLanguage, LANGUAGE_EVENT };
 
-async function useLanguage(lang: string) {
+async function useLanguage(lang: string): Promise<any> {
   if (currentLang === lang) return;
   translations = await fetch(`./i18n/${lang}.json`).then((res) => res.json());
   window.dispatchEvent(new CustomEvent(LANGUAGE_EVENT, { detail: { lang } }));
@@ -33,7 +33,7 @@ function t(
   });
 }
 
-async function initTranslateLanguage() {
+async function initTranslateLanguage(): Promise<any> {
   if (currentLang) return;
   const lang = getStoredLanguage();
   if (lang) {

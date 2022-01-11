@@ -1,5 +1,5 @@
 import { ReactiveControllerHost } from "lit";
-import { userService } from "../services/user.service";
+import { userService } from "../services";
 
 export class UserController {
   private host: ReactiveControllerHost;

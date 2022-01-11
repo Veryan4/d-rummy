@@ -8,9 +8,8 @@ import {
 } from "lit/directive.js";
 import { classMap } from "lit-html/directives/class-map.js";
 import { until } from "lit/directives/until.js";
-import { Toast } from "../models/toast.model";
-import { toastService } from "../services/toast.service";
-import { t } from "../services/translate.service";
+import { Toast } from "../models";
+import { toastService, translateService } from "../services";
 
 class ToastDirective extends Directive {
   private toast: Toast;
@@ -36,7 +35,7 @@ class ToastDirective extends Directive {
       wait,
       html` <div class="toast-container">
         <div class="toast ${classMap(classes)}">
-          <div class="toast-wrap">${t(toast.key, toast.properties)}</div>
+          <div class="toast-wrap">${translateService.t(toast.key, toast.properties)}</div>
         </div>
       </div>`
     );

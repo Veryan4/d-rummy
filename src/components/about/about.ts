@@ -1,6 +1,6 @@
 import { LitElement, html } from "lit";
 import { customElement } from "lit/decorators.js";
-import { TranslationController } from "../../controllers/translation.controller";
+import { TranslationController } from "../../controllers";
 import { styles } from "./about.styles";
 
 @customElement("app-about")

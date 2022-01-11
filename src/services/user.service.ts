@@ -1,7 +1,5 @@
-import { navigate } from "./router.service";
-import GUN from "gun";
-import "gun/sea";
-import "gun/axe";
+import { routerService } from "./router.service";
+import { gunService } from "./gun.service";
 
 const password = "SamePasswordForEveryone";
 const USER_KEY = "username";
@@ -14,27 +12,25 @@ export const userService = {
   USER_EVENT
 };
 
-export const db = GUN(["https://d-rummy-gun.herokuapp.com/gun"]);
-export const user = db.user().recall({ sessionStorage: true });
 
-user.get("alias").on((v) => setUser(v));
+gunService.user.get("alias").on((v) => setUser(v));
 // @ts-ignore
-db.on("auth", async (event: Event) => {
-  const alias = await user.get("alias").on((v) => setUser(v)); // username string
+gunService.db.on("auth", async (event: Event) => {
+  const alias = await gunService.user.get("alias").on((v) => setUser(v)); // username string
 
   console.log(`signed in as ${alias}`);
 });
 
 function signOut(): void {
-  user.leave();
+  gunService.user.leave();
   setUser(null);
-  navigate("login");
+  routerService.navigate("login");
 }
 
 async function signUpAndLogin(username: string): Promise<void> {
   return new Promise((resolve, reject) => {
     // @ts-ignore
-    user.auth(username, password, ({ err }) => {
+    gunService.user.auth(username, password, ({ err }) => {
       if (err) {
         resolve(signup(username));
       }
@@ -45,7 +41,7 @@ async function signUpAndLogin(username: string): Promise<void> {
 async function signup(username: string): Promise<void> {
   return new Promise((resolve, reject) => {
     // @ts-ignore
-    user.create(username, password, async ({ err }) => {
+    gunService.user.create(username, password, async ({ err }) => {
       if (err) {
         alert(err);
         reject(err);
@@ -59,7 +55,7 @@ async function signup(username: string): Promise<void> {
 async function login(username: string): Promise<void> {
   return new Promise((resolve, reject) => {
     // @ts-ignore
-    user.auth(username, password, ({ err }) => {
+    gunService.user.auth(username, password, ({ err }) => {
       if (err) {
         alert(err);
         reject(err);
@@ -69,7 +65,7 @@ async function login(username: string): Promise<void> {
   });
 }
 
-function getUser() {
+function getUser(): string |  null {
   return sessionStorage.getItem(USER_KEY)
 }
 

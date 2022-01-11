@@ -1,17 +1,18 @@
 const ROUTE_EVENT = "route-update"
 
-export function navigate(href: string): void {
-  window.history.pushState({}, "", href);
-  window.dispatchEvent(new CustomEvent(ROUTE_EVENT, { detail: href }));
-}
-
 export const routerService = {
   parseQuery,
   parseParams,
   patternToRegExp,
   testRoute,
+  navigate,
   ROUTE_EVENT
 };
+
+function navigate(href: string): void {
+  window.history.pushState({}, "", href);
+  window.dispatchEvent(new CustomEvent(ROUTE_EVENT, { detail: href }));
+}
 
 function parseQuery(querystring: string): any {
   return querystring

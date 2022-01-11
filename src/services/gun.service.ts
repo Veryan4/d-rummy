@@ -1,8 +1,12 @@
-import { user, db } from "./user.service";
 import GUN from "gun";
+import "gun/sea";
+import "gun/axe";
 
 const encryptKey = "#foo";
-export const gunService = { getPlayersString, sendAction, getEventFromData };
+const db = GUN(["https://d-rummy-gun.herokuapp.com/gun"]);
+const user = db.user().recall({ sessionStorage: true });
+
+export const gunService = { getPlayersString, sendAction, getEventFromData, db, user };
 
 function getPlayersString(players: string[]): string {
   return players.reduce((acc, player, i) => {

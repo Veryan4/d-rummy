@@ -6,9 +6,8 @@ import {
   DirectiveResult,
 } from "lit/directive.js";
 import { AsyncDirective } from "lit/async-directive.js";
-import { Route } from "../models/route";
-import { routerService } from "../services/router.service";
-import { user } from "../services/user.service";
+import { Route } from "../models";
+import { routerService, gunService } from "../services";
 import { UserController } from "./user.controller";
 
 class RouteDirective extends AsyncDirective {
@@ -131,8 +130,8 @@ export class RouteController {
           const loginRoute = this.routes.filter(
             (route) => route.pattern === "lobby"
           )[0];
-          if ((user as any).is) {
-            user.get("alias").on((v) => {
+          if ((gunService.user as any).is) {
+            gunService.user.get("alias").on((v) => {
               if (!this.canceled) {
                 this.activeRoute = nextRoute!;
                 this.host.requestUpdate();

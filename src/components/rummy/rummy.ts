@@ -2,16 +2,9 @@ import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { classMap } from "lit-html/directives/class-map.js";
 import { repeat } from "lit/directives/repeat.js";
-import { TranslationController } from "../../controllers/translation.controller";
-import { UserController } from "../../controllers/user.controller";
-import { SoundController } from "../../controllers/sound.controller";
-import { cardsService } from "../../services/cards.service";
-import { gunService } from "../../services/gun.service";
-import { toastService } from "../../services/toast.service";
-import { navigate } from "../../services/router.service";
-import { Card, Table, PlayerHand } from "../../models/cards.model";
-import { GunEvent } from "../../models/gun.model";
-import { userService, db } from "../../services/user.service";
+import { TranslationController, UserController, SoundController } from "../../controllers";
+import { cardsService, gunService, toastService, routerService, userService } from "../../services";
+import { Card, Table, PlayerHand, GunEvent } from "../../models";
 import { buttonStyles } from "../../styles";
 import { styles } from "./rummy.styles";
 import "@material/mwc-button";
@@ -104,7 +97,7 @@ class Rummy extends LitElement {
               (set) =>
                 html` <div
                   class="set"
-                  @click=${(e: Event) => this.placeSet(set)}
+                  @click=${() => this.placeSet(set)}
                 >
                   ${set.map(
                     (card) =>
@@ -116,7 +109,7 @@ class Rummy extends LitElement {
                   )}
                 </div>`
             )}
-            <div class="set empty" @click=${(e: Event) => this.placeNewSet()}>
+            <div class="set empty" @click=${() => this.placeNewSet()}>
               <div class="empty-card">${this.i18n.t("rummy.add_set")}</div>
             </div>
           </div>
@@ -142,7 +135,7 @@ class Rummy extends LitElement {
                     symbol="${card.symbol}"
                     rank="${card.rank}"
                     .selected=${card.selected}
-                    @click=${(e: any) => this.toggleSelected(card)}
+                    @click=${() => this.toggleSelected(card)}
                   ></game-card>
                 </div>`
             )}
@@ -213,7 +206,7 @@ class Rummy extends LitElement {
                   (set) =>
                     html` <div
                       class="set"
-                      @click=${(e: Event) => this.placeOthersSet(set, other)}
+                      @click=${() => this.placeOthersSet(set, other)}
                     >
                       ${set.map(
                         (card) =>
@@ -299,7 +292,7 @@ class Rummy extends LitElement {
 
   returnToLobby() {
     sessionStorage.removeItem("game");
-    navigate("lobby");
+    routerService.navigate("lobby");
   }
 
   flipPileToDeck() {
@@ -441,7 +434,7 @@ class Rummy extends LitElement {
 
     if (this.players.length > 0) {
       const playersString = gunService.getPlayersString(this.players);
-      db.get(`${playersString}-rummy-game`)
+      gunService.db.get(`${playersString}-rummy-game`)
         .map(match as any)
         // @ts-ignore
         .then(async (data) => {
@@ -450,7 +443,7 @@ class Rummy extends LitElement {
           }
         });
 
-      db.get(`${playersString}-rummy-game`)
+        gunService.db.get(`${playersString}-rummy-game`)
         .map(match as any)
         .on(async (onData) => {
           if (onData) {
@@ -478,7 +471,7 @@ class Rummy extends LitElement {
     super.disconnectedCallback();
 
     if (this.players.length > 0) {
-      db.get(`${gunService.getPlayersString(this.players)}-rummy-game`).off();
+      gunService.db.get(`${gunService.getPlayersString(this.players)}-rummy-game`).off();
     }
   }
 

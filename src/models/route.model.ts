@@ -1,6 +1,6 @@
 import { TemplateResult } from "lit";
 
-export interface Route {
+export class Route {
   name: string;
   pattern: string;
   component: () => Promise<TemplateResult>;

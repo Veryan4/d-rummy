@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement } from "lit/decorators.js";
-import { TranslationController } from "../../controllers/translation.controller";
+import { TranslationController } from "../../controllers";
 
 @customElement("not-found")
 class NotFound extends LitElement {

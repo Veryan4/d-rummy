@@ -1,14 +1,9 @@
 import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
-import { TranslationController } from "../../controllers/translation.controller";
-import { DeviceController } from "../../controllers/device.controller";
-import { SoundController } from "../../controllers/sound.controller";
-import { useLanguage } from "../../services/translate.service";
-import { userService } from "../../services/user.service";
-import { themeService } from "../../services/theme.service";
-import { UserController } from "../../controllers/user.controller";
-import { styles } from "./top-bar.styles";
+import { TranslationController, DeviceController, SoundController, UserController } from "../../controllers";
+import { userService, themeService, translateService } from "../../services";
 import { topAppBarStyles, iconButtonStyles, menuStyles } from "../../styles";
+import { styles } from "./top-bar.styles";
 
 import "@material/mwc-menu";
 import "@material/mwc-list/mwc-list-item";
@@ -95,11 +90,11 @@ class TopBar extends LitElement {
             >`
           : ""}
         <hr />
-        <mwc-list-item @click=${(e: Event) => this.language("en")}>
+        <mwc-list-item @click=${() => this.language("en")}>
           <i class="material-icons mdc-icon-button__icon flag uk-flag"></i>
           English
         </mwc-list-item>
-        <mwc-list-item @click=${(e: Event) => this.language("fr")}>
+        <mwc-list-item @click=${() => this.language("fr")}>
           <i class="material-icons mdc-icon-button__icon flag fr-flag"></i>
           Francais
         </mwc-list-item>
@@ -117,6 +112,6 @@ class TopBar extends LitElement {
   }
 
   language(lang: string): void {
-    useLanguage(lang);
+    translateService.useLanguage(lang);
   }
 }
