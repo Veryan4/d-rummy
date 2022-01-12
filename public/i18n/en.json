@@ -50,6 +50,7 @@
   },
   "rummy": {
     "you": "It's your turn",
+    "them": "It's {user}'s turn",
     "deck": "Deck",
     "pile": "Discards",
     "others": "Others",
@@ -69,6 +70,7 @@
     "empty": "Empty",
     "add_set": "Add Set",
     "flip_discard": "Flip to Deck",
+    "place_other_set": "{from} placed a card on {to}'s set",
     "error": {
       "wait_your_turn": "Wait for your turn",
       "need_3_cards": "It takes at least 3 cards to form a set",

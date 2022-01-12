@@ -1,12 +1,9 @@
 import { css } from "lit";
 
 export const styles = css`
-  .table-wrapper {
+  .table-wrapper, h1 {
     display: flex;
     font-family: var(--font-family);
-  }
-  .first-half {
-    margin-right: 5rem;
   }
   .table,
   .deck,
@@ -20,7 +17,7 @@ export const styles = css`
   .table.draw {
     border: 2px solid var(--theme-color);
     border-radius: 1rem;
-    padding: 1rem;
+    padding: 0 1rem 1rem 1rem;
   }
   .count {
     display: flex;
@@ -48,8 +45,9 @@ export const styles = css`
   .pile {
     cursor: pointer;
   }
-  .sets {
+  .sets, .other-sets {
     display: flex;
+    flex-wrap: wrap;
   }
   .set {
     display: grid;
@@ -62,10 +60,30 @@ export const styles = css`
     border-radius: 0.5rem;
     margin-right: 0.5rem;
   }
-  .set:not(.empty) {
+  .set {
     padding-right: 2rem;
+    margin: 0.5rem;
+  }
+  .set.5 {
+    padding-right: 3rem;
+  }
+  .set.6 {
+    padding-right: 3rem;
+  }
+  .set.7 {
+    padding-right: 4rem;
+  }
+  .set.8  {
+    padding-right: 4rem;
+  }
+  .set.9 {
+    padding-right: 4rem;
+  }
+  .set.10  {
+    padding-right: 5rem;
   }
   .set.empty {
+    padding-right: unset;
     border: none;
     display: unset;
   }
@@ -82,7 +100,6 @@ export const styles = css`
     padding: 1rem;
   }
   .other-sets {
-    display: flex;
     padding: 0 1rem 1rem 1rem;
   }
   .other-name {
@@ -102,8 +119,12 @@ export const styles = css`
     transition: grid-template-columns 0.5s;
   }
 
+  .hand .card-wrapper::before {
+    position: absolute;
+  }
+
   .hand .card-wrapper:hover {
-    z-index: 9;
+    transform: translate(0, -1rem);
   }
 
   .winner-overlay {
@@ -138,18 +159,18 @@ export const styles = css`
       flex-direction: column;
     }
 
-    .first-half {
-      margin-right: unset;
-    }
-
     .hand {
       grid-template-columns: repeat(5, 2rem);
       position: absolute;
       left: 0.5rem;
     }
-
-    .hand .card-wrapper:hover {
-      z-index: unset;
+  }
+  @media only screen and (min-width: 752px) {
+    .first-half {
+      margin-right: 5rem;
+    }
+    .first-half, .second-half {
+      width: 50%;
     }
   }
 `;

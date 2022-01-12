@@ -68,9 +68,9 @@ class Rummy extends LitElement {
   render() {
     const classes = { draw: this.isYourTurn() && !this.table.hasDrawn };
     return html`
+      ${this.renderYourTurn()}
       <div class="table-wrapper">
         <div class="first-half">
-          ${this.renderYourTurn()}
           <div class="table ${classMap(classes)}">
             <div class="deck" @click=${this.drawFromDeck}>
               <h3>${this.i18n.t("rummy.deck")}</h3>
@@ -96,7 +96,7 @@ class Rummy extends LitElement {
             ${this.table.players[this.user.value!].sets.map(
               (set) =>
                 html` <div
-                  class="set"
+                  class="set ${set.length}"
                   @click=${() => this.placeSet(set)}
                 >
                   ${set.map(
@@ -131,6 +131,7 @@ class Rummy extends LitElement {
                     this.dragMouseEventHandler(e, "false")}
                 >
                   <game-card
+                    id=${"game-card-"+ card.id}
                     class="hand-card"
                     symbol="${card.symbol}"
                     rank="${card.rank}"
@@ -148,9 +149,8 @@ class Rummy extends LitElement {
 
   renderYourTurn() {
     return this.isYourTurn()
-      ? html`<h4>${this.i18n.t("rummy.you")}</h4>
-          <h5>${this.i18n.t("rummy.discard_end")}</h5>`
-      : "";
+      ? html`<h1>${this.i18n.t("rummy.you")}</h1>`
+      : html`<h1>${this.i18n.t("rummy.them", {user: this.table.playerOrder[0]})}</h1>`;
   }
 
   renderDeck() {
@@ -205,7 +205,7 @@ class Rummy extends LitElement {
               ? this.table.players[other].sets.map(
                   (set) =>
                     html` <div
-                      class="set"
+                      class="set ${set.length}"
                       @click=${() => this.placeOthersSet(set, other)}
                     >
                       ${set.map(
@@ -286,7 +286,7 @@ class Rummy extends LitElement {
   }
 
   rematch() {
-    const table = cardsService.createRummyTable(this.players);
+    const table = cardsService.createRummyTable(this.table.playerOrder);
     this.sendAction(table);
   }
 
@@ -305,7 +305,6 @@ class Rummy extends LitElement {
   }
 
   async toggleSelected(card: Card) {
-    await this.updateComplete;
     if (card.selected) {
       this.selected = this.selected.filter((c) => c.id !== card.id);
     } else {
@@ -320,8 +319,7 @@ class Rummy extends LitElement {
       }
     }
     card.selected = !card.selected;
-    await this.updateComplete;
-    this.requestUpdate();
+    (this.shadowRoot!.querySelector(`#game-card-${card.id}`) as any).selected = card.selected
   }
 
   private dragMouseEventHandler(e: Event, value: string) {
@@ -544,6 +542,7 @@ class Rummy extends LitElement {
       return;
     }
     this.placeSet(cards, otherPlayer);
+    toastService.newToast("rummy.place_other_set", {from: this.user.value!, to: otherPlayer})
   }
 
   placeSet(cards: Card[], otherPlayer?: string) {

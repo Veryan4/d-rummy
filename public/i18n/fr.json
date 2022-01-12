@@ -50,6 +50,7 @@
   },
   "rummy": {
     "you": "C'est votre tour",
+    "them": "C'est le tour de {user}",
     "deck": "Paquets",
     "pile": "Rejets",
     "others": "Les Autres",
@@ -69,6 +70,7 @@
     "empty": "Vide",
     "add_set": "Ajouter",
     "flip_discard": "Renverser au Paquet",
+    "place_other_set": "{from} a placé un carte sur la série de {to}",
     "error": {
       "wait_your_turn": "Il faut attende son tour",
       "need_3_cards": "Il faut au moins 3 cartes pour former une série",
