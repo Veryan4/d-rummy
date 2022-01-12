@@ -63,7 +63,6 @@
     "rematch": "Revanche",
     "return": "Retour a l'acceuil",
     "player": "{player} a {amount} cartes en main",
-    "their_turn": ", et c'est son tour",
     "pile_warning": "Êtes-vous certain de voulir ramasser les {count} cartes rejets?",
     "yes": "Oui",
     "no": "Non",

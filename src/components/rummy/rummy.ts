@@ -66,7 +66,7 @@ class Rummy extends LitElement {
   }
 
   render() {
-    const classes = { draw: this.isYourTurn() && !this.table.hasDrawn };
+    const classes = { draw: this.isYourTurn() && !this.table.hasDrawn, discard: this.isYourTurn() && this.table.hasDrawn };
     return html`
       ${this.renderYourTurn()}
       <div class="table-wrapper">
@@ -79,7 +79,7 @@ class Rummy extends LitElement {
                 <div class="count">${this.table.deck.length}</div>
               </div>
             </div>
-            <div class="pile" @click=${this.touchPile}>
+            <div class="pile ${classMap(classes)}" @click=${this.touchPile}>
               <h3>${this.i18n.t("rummy.pile")}</h3>
               <div class="row">
                 ${this.renderPile()}
@@ -135,7 +135,6 @@ class Rummy extends LitElement {
                     class="hand-card"
                     symbol="${card.symbol}"
                     rank="${card.rank}"
-                    .selected=${card.selected}
                     @click=${() => this.toggleSelected(card)}
                   ></game-card>
                 </div>`
@@ -194,9 +193,7 @@ class Rummy extends LitElement {
               ${this.i18n.t("rummy.player", {
                 player: other,
                 amount: this.table.players[other].hand.length,
-              })}${other == this.table.playerOrder[0]
-                ? this.i18n.t("rummy.their_turn")
-                : ""}
+              })}
             </div>
           </div>
           <div class="other-sets">
@@ -507,6 +504,11 @@ class Rummy extends LitElement {
       this.discardToPile();
     } else {
       if (this.table.pile.length > 1) {
+        if (!this.isYourTurn()) {
+          this.sound.play(errorSound);
+          toastService.newError("rummy.error.wait_your_turn");
+          return;
+        }
         this.showPileWarning = true;
       } else {
         this.drawFromPile();
@@ -697,8 +699,8 @@ class Rummy extends LitElement {
     this.table.pile.push(card);
     this.table.playerOrder.push(this.table.playerOrder.shift()!);
     this.table.hasDrawn = false;
-    this.sendAction(this.table);
     this.selected = [];
+    this.sendAction(this.table);
   }
 
   isGameOver(table: Table): string | null {

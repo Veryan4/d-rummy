@@ -13,11 +13,21 @@ export const styles = css`
   .deck,
   .pile {
     flex-direction: column;
+    padding-bottom: 1rem
   }
   .table.draw {
     border: 2px solid var(--theme-color);
+  }
+  .table{
     border-radius: 1rem;
-    padding: 0 1rem 1rem 1rem;
+    padding: 0 1rem 1rem;
+  }
+  .pile.discard {
+    border: 2px solid var(--theme-color);
+  }
+  .pile {
+    border-radius: 1rem;
+    padding-left: 1rem;
   }
   .count {
     display: flex;
@@ -167,7 +177,10 @@ export const styles = css`
   }
   @media only screen and (min-width: 752px) {
     .first-half {
-      margin-right: 5rem;
+      padding-right: 2rem;
+    }
+    .second-half {
+      padding-left: 2rem;
     }
     .first-half, .second-half {
       width: 50%;
