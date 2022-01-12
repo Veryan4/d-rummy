@@ -74,22 +74,28 @@ export const styles = css`
     padding-right: 2rem;
     margin: 0.5rem;
   }
-  .set.5 {
+  .set.five {
     padding-right: 3rem;
   }
-  .set.6 {
+  .set.six {
     padding-right: 3rem;
   }
-  .set.7 {
+  .set.seven {
     padding-right: 4rem;
   }
-  .set.8  {
+  .set.eight  {
     padding-right: 4rem;
   }
-  .set.9 {
+  .set.nine {
     padding-right: 4rem;
   }
-  .set.10  {
+  .set.ten  {
+    padding-right: 5rem;
+  }
+  .set.eleven  {
+    padding-right: 5rem;
+  }
+  .set.twelve  {
     padding-right: 5rem;
   }
   .set.empty {
@@ -127,14 +133,6 @@ export const styles = css`
     grid-gap: 0.5rem;
     grid-template-columns: repeat(7, 3rem);
     transition: grid-template-columns 0.5s;
-  }
-
-  .hand .card-wrapper::before {
-    position: absolute;
-  }
-
-  .hand .card-wrapper:hover {
-    transform: translate(0, -1rem);
   }
 
   .winner-overlay {
@@ -184,6 +182,12 @@ export const styles = css`
     }
     .first-half, .second-half {
       width: 50%;
+    }
+    .hand .card-wrapper::before {
+      position: absolute;
+    }
+    .hand .card-wrapper:hover {
+      transform: translate(0, -1rem);
     }
   }
 `;

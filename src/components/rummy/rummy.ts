@@ -94,20 +94,31 @@ class Rummy extends LitElement {
           <h3>${this.i18n.t("rummy.sets")}</h3>
           <div class="sets">
             ${this.table.players[this.user.value!].sets.map(
-              (set) =>
-                html` <div
-                  class="set ${set.length}"
-                  @click=${() => this.placeSet(set)}
-                >
-                  ${set.map(
-                    (card) =>
-                      html`<game-card
-                        class="small"
-                        symbol="${card.symbol}"
-                        rank="${card.rank}"
-                      ></game-card>`
-                  )}
-                </div>`
+              (set) =>{
+                const setLength = {
+                  five: set.length === 5,
+                  six: set.length === 6,
+                  seven: set.length === 7,
+                  eight: set.length === 8,
+                  nine: set.length === 8,
+                  ten: set.length === 10,
+                  eleven: set.length === 11,
+                  twelve: set.length === 12,
+                }
+                return html` <div
+                class="set ${classMap(setLength)}"
+                @click=${() => this.placeSet(set)}
+              >
+                ${set.map(
+                  (card) =>
+                    html`<game-card
+                      class="small"
+                      symbol="${card.symbol}"
+                      rank="${card.rank}"
+                    ></game-card>`
+                )}
+              </div>`
+              }
             )}
             <div class="set empty" @click=${() => this.placeNewSet()}>
               <div class="empty-card">${this.i18n.t("rummy.add_set")}</div>
@@ -200,20 +211,33 @@ class Rummy extends LitElement {
             ${this.table.players[other].sets &&
             this.table.players[other].sets.length > 0
               ? this.table.players[other].sets.map(
-                  (set) =>
-                    html` <div
-                      class="set ${set.length}"
-                      @click=${() => this.placeOthersSet(set, other)}
-                    >
-                      ${set.map(
-                        (card) =>
-                          html`<game-card
-                            class="small"
-                            symbol="${card.symbol}"
-                            rank="${card.rank}"
-                          ></game-card>`
-                      )}
-                    </div>`
+                  (set) =>{
+                    const setLength = {
+                      five: set.length === 5,
+                      six: set.length === 6,
+                      seven: set.length === 7,
+                      eight: set.length === 8,
+                      nine: set.length === 8,
+                      ten: set.length === 10,
+                      eleven: set.length === 11,
+                      twelve: set.length === 12,
+                    }
+                    return  html` <div
+                    class="set ${classMap(setLength)}"
+                    @click=${() => this.placeOthersSet(set, other)}
+                  >
+                    ${set.map(
+                      (card) =>
+                        html`<game-card
+                          class="small"
+                          symbol="${card.symbol}"
+                          rank="${card.rank}"
+                        ></game-card>`
+                    )}
+                  </div>`
+
+                  }
+                   
                 )
               : html` <div class="set empty">
                   ${this.i18n.t("rummy.no_set")}
