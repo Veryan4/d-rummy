@@ -18,6 +18,9 @@ const errorSound = new Audio("/sounds/error.mp3");
 class Rummy extends LitElement {
   static styles = [styles, buttonStyles];
 
+  private debounceInterval = 250;
+  private timer: number;
+
   private i18n = new TranslationController(this);
   private user = new UserController(this);
   private sound = new SoundController(this);
@@ -66,6 +69,40 @@ class Rummy extends LitElement {
   }
 
   render() {
+    return this.events.length === 0 ? html` <div class="loader">
+      <svg
+        version="1.1"
+        id="loader-1"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        x="0px"
+        y="0px"
+        width="100px"
+        height="100px"
+        viewBox="0 0 50 50"
+        style="enable-background:new 0 0 50 50;"
+        xml:space="preserve"
+      >
+        <path
+          fill="#000"
+          d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z"
+        >
+          <animateTransform
+            attributeType="xml"
+            attributeName="transform"
+            type="rotate"
+            from="0 25 25"
+            to="360 25 25"
+            dur="0.6s"
+            repeatCount="indefinite"
+          ></animateTransform>
+        </path>
+      </svg>
+    </div>`:
+    this.renderGame()
+  }
+
+  renderGame() {
     const classes = { draw: this.isYourTurn() && !this.table.hasDrawn, discard: this.isYourTurn() && this.table.hasDrawn };
     return html`
       ${this.renderYourTurn()}
@@ -400,42 +437,45 @@ class Rummy extends LitElement {
 
   async _renderEvents(rummyEvents: GunEvent<Table>[]): Promise<void> {
     if (this.events !== rummyEvents) {
-      this.events = rummyEvents;
-      const table = rummyEvents[rummyEvents.length - 1].what;
-      if (this.table !== table) {
-        // Prevents re-ordering of hand by other players
-        const hand = this.table.players[this.user.value!].hand;
-        this.table = table;
-        if (
-          table.playerOrder[0] !== this.user.value &&
-          table.hasDrawn &&
-          hand.length > 0
-        ) {
-          this.table.players[this.user.value!].hand = hand;
-        }
-
-        // Sounds
-        if (!table.hasDrawn) {
-          if (table.playerOrder[0] === this.user.value) {
-            this.sound.play(yourTurnSound);
-          } else {
-            this.sound.play(theirTurnSound);
+      clearTimeout(this.timer);
+      this.timer = setTimeout(async() => {
+        this.events = rummyEvents;
+        const table = rummyEvents[rummyEvents.length - 1].what;
+        if (this.table !== table) {
+          // Prevents re-ordering of hand by other players
+          const hand = this.table.players[this.user.value!].hand;
+          this.table = table;
+          if (
+            table.playerOrder[0] !== this.user.value &&
+            table.hasDrawn &&
+            hand.length > 0
+          ) {
+            this.table.players[this.user.value!].hand = hand;
           }
-        }
 
-        // Checks for EndGame
-        this.winner = this.isGameOver(this.table);
-        if (this.winner) {
-          this.selected = [];
-        }
+          // Sounds
+          if (!table.hasDrawn) {
+            if (table.playerOrder[0] === this.user.value) {
+              this.sound.play(yourTurnSound);
+            } else {
+              this.sound.play(theirTurnSound);
+            }
+          }
 
-        if (this.isYourTurn() && !this.table.hasDrawn) {
-          toastService.newToast("rummy.you");
-        }
+          // Checks for EndGame
+          this.winner = this.isGameOver(this.table);
+          if (this.winner) {
+            this.selected = [];
+          }
 
-        await this.updateComplete;
-        this.requestUpdate();
-      }
+          if (this.isYourTurn() && !this.table.hasDrawn) {
+            toastService.newToast("rummy.you");
+          }
+
+          await this.updateComplete;
+          this.requestUpdate();
+        }
+      }, this.debounceInterval)
     }
   }
 
@@ -446,7 +486,7 @@ class Rummy extends LitElement {
       // lexical queries are kind of like a limited RegEx or Glob.
       ".": {
         // property selector
-        ">": new Date(+new Date() - 1 * 1000 * 60 * 60 * 3).toISOString(), // find any indexed property larger ~3 hours ago
+        ">": new Date(+new Date() - 1 * 1000 * 60 * 60 * 1).toISOString(), // find any indexed property larger ~1 hour ago
       },
       "-": 1, // filter in reverse
     };

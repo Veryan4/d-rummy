@@ -134,7 +134,13 @@ export const styles = css`
     grid-template-columns: repeat(7, 3rem);
     transition: grid-template-columns 0.5s;
   }
-
+  .loader {
+    height: 88vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
   .winner-overlay {
     position: fixed;
     z-index: 1;

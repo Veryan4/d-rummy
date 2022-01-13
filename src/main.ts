@@ -12,9 +12,14 @@ class Truba extends LitElement {
     toastStyles,
     css`
       .main {
-        padding: 1rem;
+        padding: 1rem 10rem;
         display: flex;
         justify-content: center;
+      }
+      @media only screen and (max-width: 752px) {
+        .main {
+          padding: 1rem;
+        }
       }
     `,
   ];
