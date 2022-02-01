@@ -2,17 +2,11 @@ import { ReactiveControllerHost } from "lit";
 
 export class SoundController {
   private host: ReactiveControllerHost;
-  value = localStorage.getItem("sound-on") ? true : false;
+  value = false;
   soundPlaying = false;
 
   _changeSound = (e: CustomEvent) => {
-    if (this.value) {
-      this.value = false;
-      localStorage.removeItem("sound-on");
-    } else {
-      this.value = true;
-      localStorage.setItem("sound-on", "on");
-    }
+    this.value = !this.value;
     this.host.requestUpdate();
   };
 

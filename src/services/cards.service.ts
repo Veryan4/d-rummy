@@ -13,6 +13,7 @@ export const cardsService = {
   moveCards,
   moveCardsFromIndex,
   createRummyTable,
+  isValidRummySet
 };
 
 // for now needs to be called with default values
@@ -129,6 +130,7 @@ function createRummyTable(players: string[]): Table {
     deck: createDeck(),
     pile: [],
     hasDrawn: false,
+    turn: 0
   };
   players.forEach((player) => {
     table.players[player] = new PlayerHand();
@@ -136,4 +138,35 @@ function createRummyTable(players: string[]): Table {
     table.playerOrder.push(player);
   });
   return table;
+}
+
+function isValidRummySet(set: Card[]): boolean {
+  // Can be all matching ranks
+  let values = set.map((card) => card.value);
+  if (values.every((v) => v === values[0])) {
+    return true;
+  }
+
+  // Otherwise can't have duplicate ranks in a straight
+  if (new Set(values).size !== values.length) {
+    return false;
+  }
+
+  // Straight needs to be of the same suit
+  const colors = set.map((card) => card.color);
+  if (new Set(colors).size > 1) {
+    return false;
+  }
+
+  // Needs to be a straight
+  values = values.sort((a, b) => (a > b ? 1 : b > a ? -1 : 0));
+  let valid = true;
+  values.forEach((v, i) => {
+    if (v !== 1 && i !== 0) {
+      if (values[i - 1] !== values[i] - 1) {
+        valid = false;
+      }
+    }
+  });
+  return valid;
 }

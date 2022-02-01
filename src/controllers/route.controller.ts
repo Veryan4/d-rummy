@@ -7,8 +7,9 @@ import {
 } from "lit/directive.js";
 import { AsyncDirective } from "lit/async-directive.js";
 import { Route } from "../models";
-import { routerService, gunService } from "../services";
+import { routerService, userService } from "../services";
 import { UserController } from "./user.controller";
+import "../components/loader/loader";
 
 class RouteDirective extends AsyncDirective {
   private currentRoute: string;
@@ -27,36 +28,7 @@ class RouteDirective extends AsyncDirective {
       // Rendered asynchronously:
       this.setValue(resolvedValue);
     });
-    return html` <div class="loader">
-      <svg
-        version="1.1"
-        id="loader-1"
-        xmlns="http://www.w3.org/2000/svg"
-        xmlns:xlink="http://www.w3.org/1999/xlink"
-        x="0px"
-        y="0px"
-        width="100px"
-        height="100px"
-        viewBox="0 0 50 50"
-        style="enable-background:new 0 0 50 50;"
-        xml:space="preserve"
-      >
-        <path
-          fill="#000"
-          d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z"
-        >
-          <animateTransform
-            attributeType="xml"
-            attributeName="transform"
-            type="rotate"
-            from="0 25 25"
-            to="360 25 25"
-            dur="0.6s"
-            repeatCount="indefinite"
-          ></animateTransform>
-        </path>
-      </svg>
-    </div>`;
+    return html`<app-loader></app-loader>`;
   }
 }
 const routeDirective = directive(RouteDirective);
@@ -64,30 +36,39 @@ const routeDirective = directive(RouteDirective);
 export class RouteController {
   private host: ReactiveControllerHost;
   private user: UserController;
-  canceled = false;
 
   routes: Route[] = [
     {
       name: "home",
       pattern: "",
       component: () =>
-        import("../components/lobby/lobby").then(
-          () => html`<card-lobby></card-lobby>`
+        import("../pages/home/home").then(
+          () => html`<card-home></card-home>`
         ),
     },
     {
-      name: "lobby",
-      pattern: "lobby",
+      name: "private",
+      pattern: "private",
       component: () =>
-        import("../components/lobby/lobby").then(
-          () => html`<card-lobby></card-lobby>`
+        import("../pages/private-lobby/private-lobby").then(
+          () => html`<private-lobby></private-lobby>`
         ),
+      isProtected: true
+    },
+    {
+      name: "public",
+      pattern: "public",
+      component: () =>
+        import("../pages/public-lobby/public-lobby").then(
+          () => html`<public-lobby></public-lobby>`
+        ),
+      isProtected: true
     },
     {
       name: "rummy",
       pattern: "rummy",
       component: () =>
-        import("../components/rummy/rummy").then(
+        import("../pages/rummy/rummy").then(
           () => html`<card-rummy></card-rummy>`
         ),
       isProtected: true,
@@ -104,7 +85,7 @@ export class RouteController {
       name: "not-found",
       pattern: "*",
       component: () =>
-        import("../components/404/404").then(
+        import("../pages/404/404").then(
           () => html`<not-found></not-found>`
         ),
     },
@@ -117,7 +98,6 @@ export class RouteController {
   }
 
   _changeRoute = (e: CustomEvent) => {
-    this.canceled = true;
     const uri = decodeURI(window.location.pathname);
     let nextRoute = this.routes.find(
       (route) =>
@@ -126,20 +106,15 @@ export class RouteController {
     if (nextRoute) {
       if (nextRoute.name !== this.activeRoute.name) {
         if (nextRoute.isProtected && !this.user.value) {
-          this.canceled = false;
           const loginRoute = this.routes.filter(
-            (route) => route.pattern === "lobby"
+            (route) => route.pattern === ""
           )[0];
-          if ((gunService.user as any).is) {
-            gunService.user.get("alias").on((v) => {
-              if (!this.canceled) {
-                this.activeRoute = nextRoute!;
-                this.host.requestUpdate();
-              }
-            });
+          if (userService.getUser()) {
+            this.activeRoute = nextRoute!;
+            this.host.requestUpdate();
           } else {
             this.activeRoute = loginRoute;
-            window.history.pushState({}, "", loginRoute.name);
+            window.history.pushState({}, "", loginRoute.pattern);
             this.host.requestUpdate();
           }
         } else {
@@ -163,6 +138,13 @@ export class RouteController {
     if (homeRoute) {
       this.activeRoute = homeRoute;
     }
+
+    const urlSearchParams = new URLSearchParams(location.search);
+    const params = Object.fromEntries(urlSearchParams.entries());
+    if (params && params.game) {
+      sessionStorage.setItem("game", params.game)
+    }
+
     host.addController(this);
   }
 

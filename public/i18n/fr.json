@@ -46,6 +46,24 @@
       "title": "Choisissez un nom",
       "name": "N'importe lequel",
       "button": "Soumettre"
+    },
+    "join": "",
+    "privacy": {
+      "title": "Rummy",
+      "public": "Play with strangers",
+      "private": "Play with friends"
+    },
+    "public": {
+      "staging": "Game starting",
+      "queue": "Waiting for other players"
+    },
+    "private": {
+      "create_or_join": "Create or Join a Private Game",
+      "join_title": "Join your friend's game",
+      "join_description": "Enter their name",
+      "create": "Create Game",
+      "join": "Join Game",
+      "waiting": "Players Waiting"
     }
   },
   "rummy": {
@@ -63,6 +81,7 @@
     "rematch": "Revanche",
     "return": "Retour a l'acceuil",
     "player": "{player} a {amount} cartes en main",
+    "disconnected": "{player} est présentement déconnecter",
     "pile_warning": "Êtes-vous certain de voulir ramasser les {count} cartes rejets?",
     "yes": "Oui",
     "no": "Non",

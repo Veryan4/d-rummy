@@ -1,6 +1,5 @@
 export { cardsService } from "./cards.service";
 export { formService } from "./form.service";
-export { gunService } from "./gun.service";
 export { routerService } from "./router.service";
 export { themeService } from "./theme.service";
 export { toastService } from "./toast.service";

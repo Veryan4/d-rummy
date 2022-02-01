@@ -26,6 +26,7 @@ function t(
   } catch {
     return record;
   }
+  if (!result) return record;
   if (!placeholders) return result;
   return result.replace(/{\w+}/g, (all: string) => {
     all = all.substring(1).slice(0, -1);

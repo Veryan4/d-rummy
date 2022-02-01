@@ -24,17 +24,6 @@ if (theme === "light") {
 }
 
 function setLightTheme(): void {
-  root.style.setProperty("--primary-color", primaryWhite);
-  root.style.setProperty("--primary-background-color", primaryBlack);
-  root.style.setProperty("--secondary-background-color", secondaryBlack);
-  root.style.setProperty("--image-color", invertedImageColor);
-  root.style.setProperty("--input-fill", invertedInputBackgroundColor);
-  root.style.setProperty("--outline-color", invertedOutlineColor);
-  root.style.setProperty("--toast-background", secondaryBlack);
-  root.style.setProperty("--chip-background", chipBackground);
-}
-
-function setDarkTheme(): void {
   root.style.setProperty("--primary-color", primaryBlack);
   root.style.setProperty("--primary-background-color", primaryWhite);
   root.style.setProperty("--secondary-background-color", secondaryWhite);
@@ -43,6 +32,17 @@ function setDarkTheme(): void {
   root.style.setProperty("--outline-color", outlineColor);
   root.style.setProperty("--toast-background", toastBackground);
   root.style.setProperty("--chip-background", inputBackgroundColor);
+}
+
+function setDarkTheme(): void {
+  root.style.setProperty("--primary-color", primaryWhite);
+  root.style.setProperty("--primary-background-color", primaryBlack);
+  root.style.setProperty("--secondary-background-color", secondaryBlack);
+  root.style.setProperty("--image-color", invertedImageColor);
+  root.style.setProperty("--input-fill", invertedInputBackgroundColor);
+  root.style.setProperty("--outline-color", invertedOutlineColor);
+  root.style.setProperty("--toast-background", secondaryBlack);
+  root.style.setProperty("--chip-background", chipBackground);
 }
 
 function changeTheme(): void {
