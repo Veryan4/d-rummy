@@ -5,7 +5,7 @@ import { SymbolType, RankType } from "../../models/cards.model";
 import { cardStyles } from "./game-card.styles";
 
 @customElement("game-card")
-class GameCard extends LitElement {
+class GameCardComponent extends LitElement {
   static styles = [cardStyles];
 
   static get is() {
@@ -182,7 +182,8 @@ class GameCard extends LitElement {
     super();
   }
 
-  flip() {
+  flip(e: Event) {
+    e.preventDefault();
     if (this.flippable) {
       this.unrevealed = !this.unrevealed;
     }
@@ -194,21 +195,21 @@ class GameCard extends LitElement {
 
   _computePositionClass(index: number, suffix: string, rank: RankType) {
     const klass =
-      GameCard.CLASS_MATRIX[rank.toLowerCase() === "a" ? 0 : Number(rank) - 1];
+      GameCardComponent.CLASS_MATRIX[rank.toLowerCase() === "a" ? 0 : Number(rank) - 1];
     const subKlass = klass && klass[index];
 
     return `${subKlass ? subKlass : "hidden"} ${suffix}`;
   }
 
   _computeColorClass(symbol: SymbolType) {
-    return GameCard.COLOR_CLASSES[symbol];
+    return GameCardComponent.COLOR_CLASSES[symbol];
   }
 
   _computeFigureImage(rank: RankType, symbol: SymbolType) {
     const rankName =
-        GameCard.FIGURES.indexOf(rank.toLowerCase()) != -1 &&
-        GameCard.RANKS[rank.toLowerCase() as RankType],
-      symbolName = GameCard.SYMBOLS[symbol];
+      GameCardComponent.FIGURES.indexOf(rank.toLowerCase()) != -1 &&
+      GameCardComponent.RANKS[rank.toLowerCase() as RankType],
+      symbolName = GameCardComponent.SYMBOLS[symbol];
 
     return rankName && symbolName
       ? `./cards/${rankName}_of_${symbolName}s_fr.svg`
@@ -291,6 +292,7 @@ class GameCard extends LitElement {
           >
           <img
             class="figure"
+            @click=${(e: Event) => e.preventDefault()}
             src="${this._computeFigureImage(this.rank, this.symbol)}"
           />
         </div>
@@ -301,3 +303,5 @@ class GameCard extends LitElement {
     `;
   }
 }
+
+export class GameCard extends GameCardComponent{}

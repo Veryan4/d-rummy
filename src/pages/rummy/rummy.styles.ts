@@ -61,7 +61,7 @@ export const styles = css`
   }
   .set {
     display: grid;
-    grid-gap: 0.5rem;
+    grid-gap: 0.8rem;
     grid-template-columns: repeat(auto-fill, minmax(0, max-content));
     transition: grid-template-columns 0.5s;
     border: 1px dotted var(--primary-color);
@@ -111,6 +111,9 @@ export const styles = css`
     border: 2px solid var(--theme-color);
     border-radius: 1rem;
   }
+  .other.active.error {
+    border: 2px solid var(--error-color);
+  }
   .other-info {
     display: flex;
     padding: 1rem;
@@ -123,23 +126,13 @@ export const styles = css`
     align-items: center;
     padding: 0 1rem;
   }
+  .other-name.error {
+    color: var(--error-color);
+  }
   .player-image {
     width: 2rem;
     height: 2rem;
     border-radius: 2rem;
-  }
-  .hand {
-    display: grid;
-    grid-gap: 0.5rem;
-    grid-template-columns: repeat(7, 3rem);
-    transition: grid-template-columns 0.5s;
-  }
-  .loader {
-    height: 88vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
   }
   .winner-overlay {
     position: fixed;
@@ -172,11 +165,9 @@ export const styles = css`
     .table-wrapper {
       flex-direction: column;
     }
-
-    .hand {
-      grid-template-columns: repeat(5, 2rem);
-      position: absolute;
-      left: 0.5rem;
+    .first-half{
+      display: flex;
+      flex-direction: column-reverse;
     }
   }
   @media only screen and (min-width: 752px) {
@@ -187,13 +178,7 @@ export const styles = css`
       padding-left: 2rem;
     }
     .first-half, .second-half {
-      width: 50%;
-    }
-    .hand .card-wrapper::before {
-      position: absolute;
-    }
-    .hand .card-wrapper:hover {
-      transform: translate(0, -1rem);
+      width: 30vw;
     }
   }
 `;

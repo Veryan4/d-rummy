@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { TranslationController, DeviceController, SoundController, UserController } from "../../controllers";
-import { userService, themeService, translateService } from "../../services";
+import { userService, themeService, translateService, routerService } from "../../services";
 import { topAppBarStyles, iconButtonStyles, menuStyles } from "../../styles";
 import { styles } from "./top-bar.styles";
 
@@ -31,7 +31,7 @@ class TopBar extends LitElement {
         <section
           class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start"
         >
-          <a href="/lobby" class="logo"></a>
+          <a href="/" class="logo"></a>
         </section>
         <section
           class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end"
@@ -63,12 +63,10 @@ class TopBar extends LitElement {
         .corner=${this.device.isMobile ? "TOP_RIGHT" : "TOP_LEFT"}
         .menuCorner=${this.device.isMobile ? "END" : "START"}
       >
-        <mwc-list-item
-          ><a href="/about"
-            ><i class="material-icons mdc-icon-button__icon">info</i
-            >${this.i18n.t("header.about")}</a
-          ></mwc-list-item
-        >
+        <mwc-list-item @click=${() => routerService.navigate("about")}>
+          <i class="material-icons mdc-icon-button__icon">info</i>
+          ${this.i18n.t("header.about")}
+        </mwc-list-item>
         <mwc-list-item @click=${themeService.changeTheme}>
           <i class="material-icons mdc-icon-button__icon">invert_colors</i>
           ${this.i18n.t("header.dark_mode")}
@@ -108,7 +106,7 @@ class TopBar extends LitElement {
 
   async logout(): Promise<void> {
     this.user.value = null;
-    await userService.signOut();
+    await userService.removeUser();
   }
 
   language(lang: string): void {

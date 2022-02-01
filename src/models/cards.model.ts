@@ -38,6 +38,7 @@ export class Card {
   color: number;
   value: number;
   selected = false;
+  isdragging = false;
 
   constructor(color: number, value: number) {
     this.symbol = symbols[color - 1];
@@ -55,6 +56,7 @@ export class Card {
 export class PlayerHand {
   hand: Card[] = [];
   sets: Card[][] = [];
+  connected = true;
 }
 
 export class Table {
@@ -63,4 +65,5 @@ export class Table {
   deck: Card[];
   pile: Card[];
   hasDrawn = false;
+  turn = 0;
 }

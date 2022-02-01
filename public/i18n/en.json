@@ -46,6 +46,24 @@
       "title": "Pick a username",
       "name": "Any name",
       "button": "Submit"
+    },
+    "join": "",
+    "privacy": {
+      "title": "Rummy",
+      "public": "Play with strangers",
+      "private": "Play with friends"
+    },
+    "public": {
+      "staging": "Game starting",
+      "queue": "Waiting for other players"
+    },
+    "private": {
+      "create_or_join": "Create or Join a Private Game",
+      "join_title": "Join your friend's game",
+      "join_description": "Enter their name",
+      "create": "Create Game",
+      "join": "Join Game",
+      "waiting": "Players Waiting"
     }
   },
   "rummy": {
@@ -63,6 +81,7 @@
     "rematch": "Rematch",
     "return": "Return to Lobby",
     "player": "{player} has {amount} cards in hand",
+    "disconnected": "{player} is currently disconnected",
     "pile_warning": "Are you sure you want to pick up all {count} cards from the discard pile?",
     "yes": "Yes",
     "no": "No",
