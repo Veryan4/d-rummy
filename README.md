@@ -6,7 +6,6 @@ This is a decentralized implementation of a rummy card game. This means that dat
 
 ## WIP
 
-- Public vs Private session creations with a lobby of lobbies in order to join a strangers game.
 - A solid anti-cheat system.
 
 ### Helpful projects
@@ -15,6 +14,6 @@ These projects were either directly used or served as inspiration to help with t
 
 - [Web component card deck](https://www.webcomponents.org/element/vpusher/game-card)
 - [Card handling service](https://marianpekar.github.io/Cardamom.js/)
-- [Decentralized database](https://gun.eco/)
+- [WebRTC library](https://peerjs.com/)
 - [Library for building fast, lightweight web components](https://lit.dev/)
 - [Material web components](https://github.com/material-components/material-web)

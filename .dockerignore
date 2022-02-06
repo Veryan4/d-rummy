@@ -1,0 +1,9 @@
+.git/
+node_modules/
+dist/
+.idea/
+.history/
+.vscode/
+LICENSE
+README.md
+.gitignore
