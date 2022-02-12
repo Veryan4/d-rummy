@@ -162,7 +162,7 @@ class Rummy extends LitElement {
             </div> 
           </div>
           <h3>${this.i18n.t("rummy.hand")}</h3>
-          <card-hand></card-hand>
+          <card-hand @reordered=${(e: CustomEvent) => this.table.players[this.user.value!].hand = e.detail.hand}></card-hand>
         </div>
       </div>
       ${this.renderGameWinner()} ${this.renderPileWarning()}
@@ -431,7 +431,7 @@ class Rummy extends LitElement {
     if (this.table !== table) {
       clearTimeout(this.timer);
       this.timer = setTimeout(async() => {
-        await this.updateTable(table)
+        await this.updateTable(table, true)
       }, this.debounceInterval)
     }
   }
@@ -442,8 +442,8 @@ class Rummy extends LitElement {
   }
 
   async sendAction(what: Table): Promise<void> {
+    this.updateTable(what)
     if (this.connections.length > 0) {
-      this.updateTable(what)
       this.connections.forEach((connection) => {
         if (connection.open) {
           connection.send(what)
@@ -452,7 +452,7 @@ class Rummy extends LitElement {
     }
   }
 
-  async updateTable(table: Table) {
+  async updateTable(table: Table, updateByOther?: boolean) {
     // prevent page refresh + click to turn back time
     if (table.turn < this.table.turn && table.turn !== 0) {
       return
@@ -461,10 +461,9 @@ class Rummy extends LitElement {
     // Prevents hand being modified if it' s not your turn
     const hand = this.table.players[this.user.value!].hand;
     if (
-      table.playerOrder[0] !== this.user.value &&
-      table.hasDrawn &&
-      hand.length > 0
-    ) {
+        updateByOther &&
+        this.table.playerOrder.length !== 0
+      ) {
       table.players[this.user.value!].hand = hand;
     }
     
@@ -556,7 +555,6 @@ class Rummy extends LitElement {
       "top",
       "bottom"
     );
-    this.updateTable(table)
     this.sendAction(table);
   }
 
@@ -600,7 +598,6 @@ class Rummy extends LitElement {
       table.pile.length
     );
 
-    this.updateTable(table)
     this.sendAction(table);
     this.showPileWarning = false;
   }
@@ -611,8 +608,10 @@ class Rummy extends LitElement {
       toastService.newError("rummy.error.place_set_first");
       return;
     }
-    this.placeSet(cards, otherPlayer);
-    toastService.newToast("rummy.place_other_set", {from: this.user.value!, to: otherPlayer})
+    const placedSet = this.placeSet(cards, otherPlayer);
+    if (placedSet) {
+      toastService.newToast("rummy.place_other_set", {from: this.user.value!, to: otherPlayer})
+    }
   }
 
   placeSet(cards: Card[], otherPlayer?: string) {
@@ -628,6 +627,11 @@ class Rummy extends LitElement {
     if (!this.isYourTurn()) {
       this.sound.play(errorSound);
       toastService.newError("rummy.error.wait_your_turn");
+      return;
+    }
+    if (!this.hasDrawn) {
+      this.sound.play(errorSound);
+      toastService.newError("rummy.error.draw_to_start");
       return;
     }
     if (set.length < 3) {
@@ -664,8 +668,8 @@ class Rummy extends LitElement {
       ...this.table,
       players
     }
-    this.updateTable(table)
     this.sendAction(table);
+    return true;
   }
 
   placeNewSet() {
@@ -709,7 +713,6 @@ class Rummy extends LitElement {
       players
     }
     this.cardHand.unselectAll();
-    this.updateTable(table)
     this.sendAction(table);
   }
 
@@ -758,7 +761,6 @@ class Rummy extends LitElement {
       turn: this.table.turn + 1
     }
 
-    this.updateTable(table)
     this.sendAction(table);
   }
 
@@ -774,7 +776,6 @@ class Rummy extends LitElement {
 
   rematch() {
     const table = cardsService.createRummyTable(this.table.playerOrder);
-    this.updateTable(table);
     this.sendAction(table);
   }
 
@@ -793,7 +794,6 @@ class Rummy extends LitElement {
       deck: this.table.pile.reverse(),
       pile: []
     }
-    this.updateTable(table);
     this.sendAction(table);
   }
 

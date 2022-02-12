@@ -95,7 +95,8 @@
       "need_valid_set": "This set is not valid",
       "place_set_first": "You need to place your own Set before adding to others",
       "only_discard_1": "You may only discard 1 card",
-      "select_discard": "You must select a card to discard"
+      "select_discard": "You must select a card to discard",
+      "draw_to_start": "You must start by drawing a card"
     }
   }
 }

@@ -8,6 +8,7 @@ export const cardStyles = css`
     width: 186px; /* 62 * 3 */
     min-width: 186px; /* 62 * 3 */
 
+    cursor: pointer;
     -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Chrome/Safari/Opera */
     -khtml-user-select: none; /* Konqueror */
@@ -122,20 +123,25 @@ export const cardStyles = css`
     bottom: 12px;
   }
 
+  .rank-symbol {
+    font-size: 0.7em;
+  }
+
   :host(.small) .rank {
-    top: 6px;
-    left: 6px;
+    top: 4px;
+    left: 4px;
+    font-size: 0.4em;
+    line-height: 1.5em;
   }
 
   :host(.small) .rank.reversed {
-    right: 6px;
-    bottom: 6px;
+    right: 4px;
+    bottom: 4px;
     top: unset;
     left: unset;
   }
-
-  .rank-symbol {
-    font-size: 0.7em;
+  :host(.small) .rank-symbol {
+    font-size: 0.4em;
   }
 
   .reversed {

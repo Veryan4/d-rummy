@@ -77,9 +77,9 @@
     "no_set": "Ce joueur n'a pas encore de série",
     "discard": "Jeter",
     "discard_end": "Il faut jeter une carte pour terminer son tour",
-    "win": "a gagner le jeu!",
+    "win": "a gagné le jeu!",
     "rematch": "Revanche",
-    "return": "Retour a l'acceuil",
+    "return": "Retour a l'accueil",
     "player": "{player} a {amount} cartes en main",
     "disconnected": "{player} est présentement déconnecter",
     "pile_warning": "Êtes-vous certain de voulir ramasser les {count} cartes rejets?",
@@ -90,12 +90,13 @@
     "flip_discard": "Renverser au Paquet",
     "place_other_set": "{from} a placé un carte sur la série de {to}",
     "error": {
-      "wait_your_turn": "Il faut attende son tour",
+      "wait_your_turn": "Il faut attende ton tour",
       "need_3_cards": "Il faut au moins 3 cartes pour former une série",
       "need_valid_set": "Ceci n'est pas une série valide",
       "place_set_first": "Il faut placer au moins une série avant de contribuer aux autres",
       "only_discard_1": "On peux seulement jeter une carte",
-      "select_discard": "Il faut sélectionner une carte à jeter"
+      "select_discard": "Il faut sélectionner une carte à jeter",
+      "draw_to_start": "Il faut commencer par piger une carte"
     }
   }
 }

@@ -73,20 +73,27 @@ class CardHandComponent extends LitElement {
   }
 
   private async reOrderHand(): Promise<void> {
-    const hand: Card[] = [];
-    if (this.renderRoot) {
-        this.renderRoot.querySelectorAll("game-card").forEach((el: Element) => {
-        const id = el.getAttribute("id")!.replace("game-card-", "");
-        const card = this.cards.find(
-            (c) => c.id == id
-        );
-        if (card) {
-            card.isdragging = false
-            hand.push(card);
-        }
-        });
-        this.cards = hand;
+    if (!this.renderRoot) {
+      return
     }
+    const hand: Card[] = [];
+    this.renderRoot.querySelectorAll("game-card").forEach((el: Element) => {
+      const id = el.getAttribute("id")!.replace("game-card-", "");
+      const card = this.cards.find(
+          (c) => c.id == id
+      );
+      if (card) {
+          card.isdragging = false
+          hand.push(card);
+      }
+    });
+    this.cards = hand;
+    const options = {
+      detail: {hand},
+      bubbles: true,
+      composed: true
+    };
+    this.dispatchEvent(new CustomEvent('reordered', options));
   }
 
   unselectAll() {
