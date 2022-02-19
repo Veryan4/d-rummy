@@ -1,8 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { routerService, translateService, toastService } from "./services";
+import { routerService, translateService } from "./services";
 import { RouteController, ToastController } from "./controllers";
-import { toastStyles } from "./styles";
 import "./components/top-bar/top-bar";
 
 @customElement("my-app")

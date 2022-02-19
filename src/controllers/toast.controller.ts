@@ -7,6 +7,7 @@ import {
   DirectiveResult,
 } from "lit/directive.js";
 import { toastService } from "../services";
+import { Toast } from "../models";
 import "../components/toast/toast";
 
 class ToastDirective extends Directive {
