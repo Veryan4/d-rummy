@@ -1,7 +1,17 @@
 import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
-import { TranslationController, DeviceController, SoundController, UserController } from "../../controllers";
-import { userService, themeService, translateService, routerService } from "../../services";
+import {
+  TranslationController,
+  DeviceController,
+  SoundController,
+  UserController,
+} from "../../controllers";
+import {
+  userService,
+  themeService,
+  translateService,
+  routerService,
+} from "../../services";
 import { topAppBarStyles, iconButtonStyles, menuStyles } from "../../styles";
 import { styles } from "./top-bar.styles";
 
@@ -27,35 +37,38 @@ class TopBar extends LitElement {
 
   render() {
     return html` <header class="mdc-top-app-bar top-bar">
-      <div class="mdc-top-app-bar__row">
-        <section
-          class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start"
-        >
-          <a href="/" class="logo"></a>
-        </section>
-        <section
-          class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end"
-          role="toolbar"
-        >
-          <div style="position: relative;">
-            <div style="cursor:pointer" @click=${() => (this.menu.open = true)}>
-              ${this.i18n.t("header.menu")}
-              <button
-                id="anchor"
-                aria-label="Options"
-                class="material-icons mdc-top-app-bar__action-item mdc-icon-button hamburger toolbar mdc-menu-surface--anchor"
+        <div class="mdc-top-app-bar__row">
+          <section
+            class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start"
+          >
+            <a href="/" class="logo"></a>
+          </section>
+          <section
+            class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end"
+            role="toolbar"
+          >
+            <div style="position: relative;">
+              <div
+                style="cursor:pointer"
+                @click=${() => (this.menu.open = true)}
               >
-                view_headline
-              </button>
+                ${this.i18n.t("header.menu")}
+                <button
+                  id="anchor"
+                  aria-label="Options"
+                  class="material-icons mdc-top-app-bar__action-item mdc-icon-button hamburger toolbar mdc-menu-surface--anchor"
+                >
+                  view_headline
+                </button>
+              </div>
+              ${this.renderMenu()}
             </div>
-            ${this.renderMenu()}
-          </div>
-        </section>
-      </div>
-    </header>
-    <main class="mdc-top-app-bar--fixed-adjust">
-      <slot></slot>
-    </main>`;
+          </section>
+        </div>
+      </header>
+      <main class="mdc-top-app-bar--fixed-adjust">
+        <slot></slot>
+      </main>`;
   }
 
   renderMenu() {

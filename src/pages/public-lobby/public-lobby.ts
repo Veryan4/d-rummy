@@ -1,8 +1,8 @@
 import { LitElement, html } from "lit";
-import { customElement, state} from "lit/decorators.js";
+import { customElement, state } from "lit/decorators.js";
 import { TranslationController, UserController } from "../../controllers";
 import { routerService } from "../../services";
-import { config } from "../../app.config"
+import { config } from "../../app.config";
 import Peer, { DataConnection } from "peerjs";
 import { buttonStyles, textFieldStyles } from "../../styles";
 import { styles } from "./public-lobby.styles";
@@ -17,15 +17,15 @@ const PLAYERS_PER_GAME = 3;
 const UPDATE_INTERVAL = 5 * 1000;
 
 function setExpiryTime(milliseconds: number): Date {
-  const expiryTime = new Date()
-  expiryTime.setMilliseconds(new Date().getMilliseconds() + milliseconds) 
-  return expiryTime
+  const expiryTime = new Date();
+  expiryTime.setMilliseconds(new Date().getMilliseconds() + milliseconds);
+  return expiryTime;
 }
 
 class PlayerInQueue {
-  name: string
+  name: string;
   peerId: string;
-  expiresAt: Date
+  expiresAt: Date;
 }
 
 class GameQueue {
@@ -67,9 +67,9 @@ class PublicLobbyComponent extends LitElement {
   }
 
   renderWaitingText() {
-    return this.playerInStaging() ?
-      html`<h1>${this.i18n.t("lobby.public.staging")}</h1>` :
-      html`<h1>${this.i18n.t("lobby.public.queue")}</h1>`;
+    return this.playerInStaging()
+      ? html`<h1>${this.i18n.t("lobby.public.staging")}</h1>`
+      : html`<h1>${this.i18n.t("lobby.public.queue")}</h1>`;
   }
 
   async connectedCallback(): Promise<void> {
@@ -77,7 +77,7 @@ class PublicLobbyComponent extends LitElement {
 
     this.connectAsPeer();
 
-    window.onbeforeunload =  () => {
+    window.onbeforeunload = () => {
       this.disconnect();
     };
 
@@ -85,102 +85,102 @@ class PublicLobbyComponent extends LitElement {
   }
 
   disconnect() {
-    this.connections.forEach(conn => conn.close())
+    this.connections.forEach((conn) => conn.close());
     this.peer.disconnect();
   }
 
   connectAsPeer() {
-    this.peer = new Peer(`public-rummy-${this.user.value}`, config.peerjs)
-    this.peer.on('open', async () => {
-      console.log("peer opened")
+    this.peer = new Peer(`public-rummy-${this.user.value}`, config.peerjs);
+    this.peer.on("open", async () => {
+      console.log("peer opened");
       const connection = this.peer.connect(`public-rummy-host`);
-      connection.on('open', async () => {
-        console.log("peer connection opened")
+      connection.on("open", async () => {
+        console.log("peer connection opened");
         this.connections.push(connection);
-        await this.playerQueued()
+        await this.playerQueued();
       });
-      connection.on('close', async () => {
-        console.log("peer connection closed")
+      connection.on("close", async () => {
+        console.log("peer connection closed");
       });
-      connection.on('error', async (err) => {
-        console.log("peer connection error")
-        console.log(err)
+      connection.on("error", async (err) => {
+        console.log("peer connection error");
+        console.log(err);
       });
     });
-    this.peer.on('close', async () => {
-      console.log("peer closed")
+    this.peer.on("close", async () => {
+      console.log("peer closed");
     });
-    this.peer.on('disconnection', async () => {
-      console.log("peer disconnection")
+    this.peer.on("disconnection", async () => {
+      console.log("peer disconnection");
     });
-    this.peer.on('error', async (err) => {
-      console.log("peer error")
-      console.log(err)
+    this.peer.on("error", async (err) => {
+      console.log("peer error");
+      console.log(err);
       this.becomeHostPeer();
     });
-    this.peer.on('connection', async (connection) => {
-      console.log('peer connection')
-      if (!this.connections.some(conn => conn.peer === connection.peer)) {
-        connection.on('open', async () => {
-          console.log("peer queue opened")
-          connection.on('data', async (data) => {
-            console.log('peer data received')
+    this.peer.on("connection", async (connection) => {
+      console.log("peer connection");
+      if (!this.connections.some((conn) => conn.peer === connection.peer)) {
+        connection.on("open", async () => {
+          console.log("peer queue opened");
+          connection.on("data", async (data) => {
+            console.log("peer data received");
             await this.handlePeerData(data);
           });
-          connection.on('close', async () => {
-            console.log("peer queued closed")
+          connection.on("close", async () => {
+            console.log("peer queued closed");
           });
-          connection.on('error', async (err) => {
-            console.log(err)
+          connection.on("error", async (err) => {
+            console.log(err);
           });
         });
       }
     });
   }
 
-  becomeHostPeer(){
-    this.peer.disconnect()
-    this.peer = new Peer(`public-rummy-host`, config.peerjs)
-    this.peer.on('open', async () => {
+  becomeHostPeer() {
+    this.peer.disconnect();
+    this.peer = new Peer(`public-rummy-host`, config.peerjs);
+    this.peer.on("open", async () => {
       this.queue.push({
         name: this.user.value!,
         peerId: this.peer.id,
-        expiresAt: setExpiryTime(this.interval * 5)
-      })
+        expiresAt: setExpiryTime(this.interval * 5),
+      });
       console.log("host open");
     });
-    this.peer.on('close', async () => {
-      console.log("host closed")
+    this.peer.on("close", async () => {
+      console.log("host closed");
     });
-    this.peer.on('disconnection', async () => {
-      console.log("host disconnection")
+    this.peer.on("disconnection", async () => {
+      console.log("host disconnection");
     });
-    this.peer.on('error', async (err) => {
-      console.log("host error")
-      console.log(err)
-      this.connectAsPeer()
+    this.peer.on("error", async (err) => {
+      console.log("host error");
+      console.log(err);
+      this.connectAsPeer();
     });
-    this.peer.on('connection', async (connection) => {
-      console.log('host connection')
-      if (!this.connections.some(conn => conn.peer === connection.peer)) {
-        const conn = this.peer.connect(connection.peer)
-        conn.on('open', async () => {
-          console.log("queued opened")
+    this.peer.on("connection", async (connection) => {
+      console.log("host connection");
+      if (!this.connections.some((conn) => conn.peer === connection.peer)) {
+        const conn = this.peer.connect(connection.peer);
+        conn.on("open", async () => {
+          console.log("queued opened");
           this.connections.push(conn);
-          await this.playerQueued()
-        })
-        connection.on('open', async () => {
-          console.log("queued opened")
-          connection.on('data', async (data) => {
-            console.log('host data received')
+          await this.playerQueued();
+        });
+        connection.on("open", async () => {
+          console.log("queued opened");
+          connection.on("data", async (data) => {
+            console.log("host data received");
             await this.handlePeerData(data);
           });
         });
-        connection.on('close', async () => {
-          console.log("queued closed")
+        connection.on("close", async () => {
+          console.log("queued closed");
         });
-        connection.on('error', async (err) => {
-          console.log(err)
+        connection.on("error", async (err) => {
+          console.log(err);
         });
       }
     });
@@ -195,40 +195,42 @@ class PublicLobbyComponent extends LitElement {
 
   private async handlePeerData(gameQueue: GameQueue) {
     if (gameQueue.staging) {
-      this.staging = gameQueue.staging
+      this.staging = gameQueue.staging;
     }
     if (this.playerInStaging()) {
-      this.playerJoinGame()
+      this.playerJoinGame();
     }
     if (gameQueue.queue) {
       if (gameQueue.queue.length === 1) {
-        if (this.queue.some(player => player.name === gameQueue.queue![0].name)) {
-          this.queue = this.queue.map(player => {
+        if (
+          this.queue.some((player) => player.name === gameQueue.queue![0].name)
+        ) {
+          this.queue = this.queue.map((player) => {
             if (player.name === gameQueue.queue![0].name) {
-              return gameQueue.queue![0]
+              return gameQueue.queue![0];
             }
-            return player
-          })
+            return player;
+          });
         } else {
-          this.queue.push(gameQueue.queue[0])
+          this.queue.push(gameQueue.queue[0]);
         }
       } else {
         this.queue = gameQueue.queue;
       }
       this.queue.forEach(async (player) => {
-        if (!this.connections.some(conn => conn.peer === player.peerId)) {
+        if (!this.connections.some((conn) => conn.peer === player.peerId)) {
           if (player.name !== this.user.value!) {
             const connection = this.peer.connect(player.peerId);
-            connection.on('open', async () => {
-              console.log("queued connection opened")
+            connection.on("open", async () => {
+              console.log("queued connection opened");
               this.connections.push(connection);
             });
-            connection.on('close', async () => {
-              console.log("queued connection closed")
+            connection.on("close", async () => {
+              console.log("queued connection closed");
             });
           }
         }
-      })
+      });
     }
     await this.updateComplete;
     this.requestUpdate();
@@ -237,66 +239,70 @@ class PublicLobbyComponent extends LitElement {
   async _updateQueue(): Promise<void> {
     if (this.queue[0] && this.queue[0].name === this.user.value!) {
       if (this.peer.id !== `public-rummy-host`) {
-        this.becomeHostPeer()
+        this.becomeHostPeer();
       }
-      const now = new Date()
-      const queue = this.queue.filter(player => new Date(player.expiresAt) > now || player.name === this.user.value!)
+      const now = new Date();
+      const queue = this.queue.filter(
+        (player) =>
+          new Date(player.expiresAt) > now || player.name === this.user.value!
+      );
       if (queue.length >= PLAYERS_PER_GAME && this.staging.length === 0) {
-        const staging = queue.splice(0,3).map(player => player.name)
+        const staging = queue.splice(0, 3).map((player) => player.name);
         await this.sendAction({
           queue,
-          staging
-        })
+          staging,
+        });
         this.queue = queue;
         this.staging = staging;
       } else {
         this.queue = queue;
         await this.sendAction({
-          queue
-        })
+          queue,
+        });
       }
     }
     if (!this.playerInStaging()) {
       await this.playerQueued();
     } else {
-      this.playerJoinGame()
+      this.playerJoinGame();
     }
   }
 
   playerInStaging(): boolean {
-    return this.staging.some(player => player === this.user.value)
+    return this.staging.some((player) => player === this.user.value);
   }
 
   async sendAction(what: GameQueue): Promise<void> {
     if (this.connections.length > 0) {
       this.connections.forEach((connection) => {
         if (connection.open) {
-          connection.send(what)
+          connection.send(what);
         }
-      })
+      });
     }
   }
 
   async playerQueued(): Promise<void> {
     await this.sendAction({
-      queue: [{
-        name: this.user.value!,
-        peerId: this.peer.id,
-        expiresAt: setExpiryTime(this.interval * 5)
-      }]
-    })
+      queue: [
+        {
+          name: this.user.value!,
+          peerId: this.peer.id,
+          expiresAt: setExpiryTime(this.interval * 5),
+        },
+      ],
+    });
   }
 
   async playerJoinGame(): Promise<void> {
     sessionStorage.setItem("players", JSON.stringify(this.staging));
     if (this.staging[0] === this.user.value!) {
       await this.sendAction({
-        staging: []
+        staging: [],
       });
     }
     setTimeout(() => {
       routerService.navigate("rummy");
-    }, 1000)
+    }, 1000);
   }
-
 }

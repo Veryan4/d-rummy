@@ -1,7 +1,8 @@
 import { css } from "lit";
 
 export const styles = css`
-  .table-wrapper, h1 {
+  .table-wrapper,
+  h1 {
     display: flex;
     font-family: var(--font-family);
   }
@@ -13,12 +14,12 @@ export const styles = css`
   .deck,
   .pile {
     flex-direction: column;
-    padding-bottom: 1rem
+    padding-bottom: 1rem;
   }
   .table.draw {
     border: 2px solid var(--theme-color);
   }
-  .table{
+  .table {
     border-radius: 1rem;
     padding: 0 1rem 1rem;
   }
@@ -55,7 +56,8 @@ export const styles = css`
   .pile {
     cursor: pointer;
   }
-  .sets, .other-sets {
+  .sets,
+  .other-sets {
     display: flex;
     flex-wrap: wrap;
   }
@@ -83,19 +85,19 @@ export const styles = css`
   .set.seven {
     padding-right: 4rem;
   }
-  .set.eight  {
+  .set.eight {
     padding-right: 4rem;
   }
   .set.nine {
     padding-right: 4rem;
   }
-  .set.ten  {
+  .set.ten {
     padding-right: 5rem;
   }
-  .set.eleven  {
+  .set.eleven {
     padding-right: 5rem;
   }
-  .set.twelve  {
+  .set.twelve {
     padding-right: 5rem;
   }
   .set.empty {
@@ -165,7 +167,7 @@ export const styles = css`
     .table-wrapper {
       flex-direction: column;
     }
-    .first-half{
+    .first-half {
       display: flex;
       flex-direction: column-reverse;
     }
@@ -177,7 +179,8 @@ export const styles = css`
     .second-half {
       padding-left: 2rem;
     }
-    .first-half, .second-half {
+    .first-half,
+    .second-half {
       width: 30vw;
     }
   }

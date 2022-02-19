@@ -52,10 +52,16 @@ export class ToastController {
   }
 
   hostConnected(): void {
-    window.addEventListener(toastService.TOAST_EVENT, this._newToast as EventListener);
+    window.addEventListener(
+      toastService.TOAST_EVENT,
+      this._newToast as EventListener
+    );
   }
 
   hostDisconnected(): void {
-    window.removeEventListener(toastService.TOAST_EVENT, this._newToast as EventListener);
+    window.removeEventListener(
+      toastService.TOAST_EVENT,
+      this._newToast as EventListener
+    );
   }
 }

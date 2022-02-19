@@ -39,11 +39,7 @@ class HomeComponent extends LitElement {
   }
 
   render() {
-    return html`
-      <div class="lobby">
-        ${this.renderCreateUser()}
-      </div>
-    `;
+    return html` <div class="lobby">${this.renderCreateUser()}</div> `;
   }
 
   renderCreateUser() {
@@ -76,24 +72,23 @@ class HomeComponent extends LitElement {
   }
 
   renderPublicOrPrivate() {
-    return html`
-      <div class="card">
-        <h1 class="card-title">${this.i18n.t("lobby.privacy.title")}</h1>
-        <div class="form-buttons">
-          <mwc-button
-            dense
-            unelevated
-            @click=${this.public}
-            label=${this.i18n.t("lobby.privacy.public")}
-          ></mwc-button>
-          <mwc-button
-            dense
-            unelevated
-            @click=${this.private}
-            label=${this.i18n.t("lobby.privacy.private")}
-          ></mwc-button>
-        </div>
-      </div>`;
+    return html` <div class="card">
+      <h1 class="card-title">${this.i18n.t("lobby.privacy.title")}</h1>
+      <div class="form-buttons">
+        <mwc-button
+          dense
+          unelevated
+          @click=${this.public}
+          label=${this.i18n.t("lobby.privacy.public")}
+        ></mwc-button>
+        <mwc-button
+          dense
+          unelevated
+          @click=${this.private}
+          label=${this.i18n.t("lobby.privacy.private")}
+        ></mwc-button>
+      </div>
+    </div>`;
   }
 
   checkFormValidity() {
@@ -112,12 +107,12 @@ class HomeComponent extends LitElement {
 
   async login() {
     userService.setUser(this.usernameInput.value);
-    setTimeout(()=>{
+    setTimeout(() => {
       if (this.game) {
         sessionStorage.setItem("game", this.game);
         routerService.navigate("private");
       }
-    }, 300)
+    }, 300);
   }
 
   public() {
@@ -127,5 +122,4 @@ class HomeComponent extends LitElement {
   private() {
     routerService.navigate("private");
   }
-  
 }

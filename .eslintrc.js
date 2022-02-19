@@ -4,11 +4,11 @@ module.exports = {
   },
   root: true,
   parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint"],
+  plugins: ["wc", "lit", "@typescript-eslint"],
   extends: [
-    "eslint:recommended",
+    "plugin:wc/recommended",
+    "plugin:lit/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended",
   ],
   ignorePatterns: ["**/*.js"],
   rules: {

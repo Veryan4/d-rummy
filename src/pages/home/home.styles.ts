@@ -5,7 +5,7 @@ export const styles = css`
     font-family: var(--font-family);
   }
 
-  mwc-button{
+  mwc-button {
     margin-bottom: 1rem;
   }
 

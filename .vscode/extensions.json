@@ -1,9 +1,9 @@
 {
-	"recommendations": [
-                "esbenp.prettier-vscode",
-                "dbaeumer.vscode-eslint",
-                "msjsdiag.debugger-for-chrome",
-                "runem.lit-plugin",
-                "streetsidesoftware.code-spell-checker"
-	]
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "msjsdiag.debugger-for-chrome",
+    "runem.lit-plugin",
+    "streetsidesoftware.code-spell-checker"
+  ]
 }

@@ -5,27 +5,23 @@ export const userService = {
   getUser,
   setUser,
   removeUser,
-  USER_EVENT
+  USER_EVENT,
 };
 
-function getUser(): string |  null {
-  return sessionStorage.getItem(USER_KEY)
+function getUser(): string | null {
+  return sessionStorage.getItem(USER_KEY);
 }
 
 function setUser(nextUser: string | null): void {
   if (nextUser) {
-    sessionStorage.setItem(USER_KEY, nextUser)
+    sessionStorage.setItem(USER_KEY, nextUser);
   } else {
-    sessionStorage.removeItem(USER_KEY)
+    sessionStorage.removeItem(USER_KEY);
   }
-  window.dispatchEvent(
-    new Event(USER_EVENT)
-  );
+  window.dispatchEvent(new Event(USER_EVENT));
 }
 
 function removeUser(): void {
-  sessionStorage.removeItem(USER_KEY)
-  window.dispatchEvent(
-    new Event(USER_EVENT)
-  );
+  sessionStorage.removeItem(USER_KEY);
+  window.dispatchEvent(new Event(USER_EVENT));
 }

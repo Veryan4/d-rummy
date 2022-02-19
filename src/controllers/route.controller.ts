@@ -42,9 +42,7 @@ export class RouteController {
       name: "home",
       pattern: "",
       component: () =>
-        import("../pages/home/home").then(
-          () => html`<card-home></card-home>`
-        ),
+        import("../pages/home/home").then(() => html`<card-home></card-home>`),
     },
     {
       name: "private",
@@ -53,7 +51,7 @@ export class RouteController {
         import("../pages/private-lobby/private-lobby").then(
           () => html`<private-lobby></private-lobby>`
         ),
-      isProtected: true
+      isProtected: true,
     },
     {
       name: "public",
@@ -62,7 +60,7 @@ export class RouteController {
         import("../pages/public-lobby/public-lobby").then(
           () => html`<public-lobby></public-lobby>`
         ),
-      isProtected: true
+      isProtected: true,
     },
     {
       name: "rummy",
@@ -85,9 +83,7 @@ export class RouteController {
       name: "not-found",
       pattern: "*",
       component: () =>
-        import("../pages/404/404").then(
-          () => html`<not-found></not-found>`
-        ),
+        import("../pages/404/404").then(() => html`<not-found></not-found>`),
     },
   ];
 
@@ -142,14 +138,17 @@ export class RouteController {
     const urlSearchParams = new URLSearchParams(location.search);
     const params = Object.fromEntries(urlSearchParams.entries());
     if (params && params.game) {
-      sessionStorage.setItem("game", params.game)
+      sessionStorage.setItem("game", params.game);
     }
 
     host.addController(this);
   }
 
   hostConnected(): void {
-    window.addEventListener(routerService.ROUTE_EVENT, this._changeRoute as EventListener);
+    window.addEventListener(
+      routerService.ROUTE_EVENT,
+      this._changeRoute as EventListener
+    );
   }
 
   hostDisconnected(): void {

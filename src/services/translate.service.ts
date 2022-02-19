@@ -4,7 +4,13 @@ const LANGUAGE_EVENT = "lang-update";
 let translations: any;
 let currentLang: string;
 
-export const translateService = { useLanguage, t, initTranslateLanguage, getLanguage, LANGUAGE_EVENT };
+export const translateService = {
+  useLanguage,
+  t,
+  initTranslateLanguage,
+  getLanguage,
+  LANGUAGE_EVENT,
+};
 
 async function useLanguage(lang: string): Promise<any> {
   if (currentLang === lang) return;

@@ -35,9 +35,7 @@ class Truba extends LitElement {
   render() {
     return html`
       <top-bar>
-        <div class="main">
-          ${this.router.navigation()}
-        </div>
+        <div class="main">${this.router.navigation()}</div>
         ${this.toaster.wait()}
       </top-bar>
     `;
@@ -57,7 +55,8 @@ class Truba extends LitElement {
       window.dispatchEvent(new CustomEvent(routerService.ROUTE_EVENT));
     };
 
-    !this.hasLoadedTranslations && (await translateService.initTranslateLanguage());
+    !this.hasLoadedTranslations &&
+      (await translateService.initTranslateLanguage());
     this.hasLoadedTranslations = true;
   }
 }

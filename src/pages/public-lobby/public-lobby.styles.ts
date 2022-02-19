@@ -9,5 +9,4 @@ export const styles = css`
     align-items: center;
     height: 80vh;
   }
-
 `;

@@ -195,7 +195,9 @@ class GameCardComponent extends LitElement {
 
   _computePositionClass(index: number, suffix: string, rank: RankType) {
     const klass =
-      GameCardComponent.CLASS_MATRIX[rank.toLowerCase() === "a" ? 0 : Number(rank) - 1];
+      GameCardComponent.CLASS_MATRIX[
+        rank.toLowerCase() === "a" ? 0 : Number(rank) - 1
+      ];
     const subKlass = klass && klass[index];
 
     return `${subKlass ? subKlass : "hidden"} ${suffix}`;
@@ -207,8 +209,8 @@ class GameCardComponent extends LitElement {
 
   _computeFigureImage(rank: RankType, symbol: SymbolType) {
     const rankName =
-      GameCardComponent.FIGURES.indexOf(rank.toLowerCase()) != -1 &&
-      GameCardComponent.RANKS[rank.toLowerCase() as RankType],
+        GameCardComponent.FIGURES.indexOf(rank.toLowerCase()) != -1 &&
+        GameCardComponent.RANKS[rank.toLowerCase() as RankType],
       symbolName = GameCardComponent.SYMBOLS[symbol];
 
     return rankName && symbolName
@@ -304,4 +306,4 @@ class GameCardComponent extends LitElement {
   }
 }
 
-export class GameCard extends GameCardComponent{}
+export class GameCard extends GameCardComponent {}

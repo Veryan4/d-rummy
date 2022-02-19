@@ -18,7 +18,10 @@ export class UserController {
   }
 
   hostConnected(): void {
-    window.addEventListener(userService.USER_EVENT, this._changeUser as EventListener);
+    window.addEventListener(
+      userService.USER_EVENT,
+      this._changeUser as EventListener
+    );
   }
 
   hostDisconnected(): void {

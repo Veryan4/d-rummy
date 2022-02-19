@@ -1,10 +1,19 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { classMap } from "lit-html/directives/class-map.js";
-import { TranslationController, UserController, SoundController } from "../../controllers";
-import { cardsService, toastService, routerService, userService } from "../../services";
+import {
+  TranslationController,
+  UserController,
+  SoundController,
+} from "../../controllers";
+import {
+  cardsService,
+  toastService,
+  routerService,
+  userService,
+} from "../../services";
 import { Card, Table, PlayerHand } from "../../models";
-import { config } from "../../app.config"
+import { config } from "../../app.config";
 import Peer, { DataConnection } from "peerjs";
 import { CardHand } from "../../components/hand/hand";
 import { buttonStyles } from "../../styles";
@@ -14,7 +23,6 @@ import "@material/mwc-button";
 import "../../components/game-card/game-card";
 import "../../components/hand/hand";
 import "../../components/loader/loader";
-
 
 const yourTurnSound = new Audio("/sounds/your_turn.mp3");
 const theirTurnSound = new Audio("/sounds/their_turn.mp3");
@@ -52,7 +60,7 @@ class Rummy extends LitElement {
     deck: cardsService.createDeck(),
     pile: [],
     hasDrawn: false,
-    turn: 0
+    turn: 0,
   };
 
   @state()
@@ -71,7 +79,7 @@ class Rummy extends LitElement {
   private yourSets: Card[][] = [];
 
   @state()
-  private others: {[playerName: string]: PlayerHand} = {};
+  private others: { [playerName: string]: PlayerHand } = {};
 
   constructor() {
     super();
@@ -89,17 +97,21 @@ class Rummy extends LitElement {
     }
 
     if (table) {
-      this.updateTable(table)
+      this.updateTable(table);
     }
   }
 
   render() {
-    return Object.keys(this.table.players).length > 1 ? this.renderGame() :
-      html`<app-loader></app-loader>`
+    return Object.keys(this.table.players).length > 1
+      ? this.renderGame()
+      : html`<app-loader></app-loader>`;
   }
 
   renderGame() {
-    const classes = { draw: this.isYourTurn() && !this.table.hasDrawn, discard: this.isYourTurn() && this.table.hasDrawn };
+    const classes = {
+      draw: this.isYourTurn() && !this.table.hasDrawn,
+      discard: this.isYourTurn() && this.table.hasDrawn,
+    };
     return html`
       ${this.renderYourTurn()}
       <div class="table-wrapper">
@@ -107,19 +119,18 @@ class Rummy extends LitElement {
           <div>
             <h3>${this.i18n.t("rummy.sets")}</h3>
             <div class="sets">
-              ${this.table.players[this.user.value!].sets.map(
-                (set) =>{
-                  const setLength = {
-                    five: set.length === 5,
-                    six: set.length === 6,
-                    seven: set.length === 7,
-                    eight: set.length === 8,
-                    nine: set.length === 8,
-                    ten: set.length === 10,
-                    eleven: set.length === 11,
-                    twelve: set.length === 12,
-                  }
-                  return html` <div
+              ${this.table.players[this.user.value!].sets.map((set) => {
+                const setLength = {
+                  five: set.length === 5,
+                  six: set.length === 6,
+                  seven: set.length === 7,
+                  eight: set.length === 8,
+                  nine: set.length === 8,
+                  ten: set.length === 10,
+                  eleven: set.length === 11,
+                  twelve: set.length === 12,
+                };
+                return html` <div
                   class="set ${classMap(setLength)}"
                   @click=${() => this.placeSet(set)}
                 >
@@ -131,9 +142,8 @@ class Rummy extends LitElement {
                         rank="${card.rank}"
                       ></game-card>`
                   )}
-                </div>`
-                }
-              )}
+                </div>`;
+              })}
               <div class="set empty" @click=${() => this.placeNewSet()}>
                 <div class="empty-card">${this.i18n.t("rummy.add_set")}</div>
               </div>
@@ -159,10 +169,13 @@ class Rummy extends LitElement {
                 ${this.renderPile()}
                 <div class="count">${this.table.pile.length}</div>
               </div>
-            </div> 
+            </div>
           </div>
           <h3>${this.i18n.t("rummy.hand")}</h3>
-          <card-hand @reordered=${(e: CustomEvent) => this.table.players[this.user.value!].hand = e.detail.hand}></card-hand>
+          <card-hand
+            @reordered=${(e: CustomEvent) =>
+              (this.table.players[this.user.value!].hand = e.detail.hand)}
+          ></card-hand>
         </div>
       </div>
       ${this.renderGameWinner()} ${this.renderPileWarning()}
@@ -172,7 +185,9 @@ class Rummy extends LitElement {
   renderYourTurn() {
     return this.isYourTurn()
       ? html`<h1>${this.i18n.t("rummy.you")}</h1>`
-      : html`<h1>${this.i18n.t("rummy.them", {user: this.table.playerOrder[0]})}</h1>`;
+      : html`<h1>
+          ${this.i18n.t("rummy.them", { user: this.table.playerOrder[0] })}
+        </h1>`;
   }
 
   renderDeck() {
@@ -207,38 +222,40 @@ class Rummy extends LitElement {
     const others = players.filter((player) => player != this.user.value);
     return others.map((other) => {
       const src = "https://avatars.dicebear.com/api/initials/" + other + ".svg";
-      const classes = { active: other == this.table.playerOrder[0], error: !this.table.players[other].connected };
+      const classes = {
+        active: other == this.table.playerOrder[0],
+        error: !this.table.players[other].connected,
+      };
       return html`
         <div class="other ${classMap(classes)}">
           <div class="other-info">
             <img class="player-image" src=${src} alt="avatar" />
             <div class="other-name ${classMap(classes)}">
-              ${this.table.players[other].connected ? 
-                html`${this.i18n.t("rummy.player", {
-                  player: other,
-                  amount: this.table.players[other].hand.length,
-                })}`:
-                html`${this.i18n.t("rummy.disconnected", {
-                  player: other,
-                })}`}
+              ${this.table.players[other].connected
+                ? html`${this.i18n.t("rummy.player", {
+                    player: other,
+                    amount: this.table.players[other].hand.length,
+                  })}`
+                : html`${this.i18n.t("rummy.disconnected", {
+                    player: other,
+                  })}`}
             </div>
           </div>
           <div class="other-sets">
             ${this.table.players[other].sets &&
             this.table.players[other].sets.length > 0
-              ? this.table.players[other].sets.map(
-                  (set) =>{
-                    const setLength = {
-                      five: set.length === 5,
-                      six: set.length === 6,
-                      seven: set.length === 7,
-                      eight: set.length === 8,
-                      nine: set.length === 8,
-                      ten: set.length === 10,
-                      eleven: set.length === 11,
-                      twelve: set.length === 12,
-                    }
-                    return  html` <div
+              ? this.table.players[other].sets.map((set) => {
+                  const setLength = {
+                    five: set.length === 5,
+                    six: set.length === 6,
+                    seven: set.length === 7,
+                    eight: set.length === 8,
+                    nine: set.length === 8,
+                    ten: set.length === 10,
+                    eleven: set.length === 11,
+                    twelve: set.length === 12,
+                  };
+                  return html` <div
                     class="set ${classMap(setLength)}"
                     @click=${() => this.placeOthersSet(set, other)}
                   >
@@ -250,11 +267,8 @@ class Rummy extends LitElement {
                           rank="${card.rank}"
                         ></game-card>`
                     )}
-                  </div>`
-
-                  }
-                   
-                )
+                  </div>`;
+                })
               : html` <div class="set empty">
                   ${this.i18n.t("rummy.no_set")}
                 </div>`}
@@ -326,81 +340,89 @@ class Rummy extends LitElement {
     super.connectedCallback();
 
     if (this.players.length > 0) {
-      this.peer = new Peer(`${this.user.value}-rummy-game`, config.peerjs)
-      this.peer.on('close', async () => {
-        console.log(`${this.user.value} peer closed`)
+      this.peer = new Peer(`${this.user.value}-rummy-game`, config.peerjs);
+      this.peer.on("close", async () => {
+        console.log(`${this.user.value} peer closed`);
       });
-      this.peer.on('disconnection', async () => {
-        console.log(`${this.user.value} peer disconnected`)
+      this.peer.on("disconnection", async () => {
+        console.log(`${this.user.value} peer disconnected`);
       });
-      this.peer.on('error', async (err) => {
-        console.log(`${this.user.value} peer error`)
-        console.log(err)
+      this.peer.on("error", async (err) => {
+        console.log(`${this.user.value} peer error`);
+        console.log(err);
       });
-      this.peer.on('connection', (connection) => {
-        if (!this.connections.some(conn => conn.peer === connection.peer)) {
+      this.peer.on("connection", (connection) => {
+        if (!this.connections.some((conn) => conn.peer === connection.peer)) {
           const conn = this.peer.connect(connection.peer);
           const player = conn.peer.split("-")[0];
-          conn.on('open', async () => {
-            console.log("queued opened")
+          conn.on("open", async () => {
+            console.log("queued opened");
             await this.playerConnection(player, true);
-            if (!this.connections.some(c => c.peer === conn.peer)) {
+            if (!this.connections.some((c) => c.peer === conn.peer)) {
               this.connections.push(conn);
             }
-          })
-          conn.on('close', async () => {
-            console.log(`${this.user.value} queue closed`)
-            this.connections = this.connections.filter(c => c.peer !== conn.peer);
+          });
+          conn.on("close", async () => {
+            console.log(`${this.user.value} queue closed`);
+            this.connections = this.connections.filter(
+              (c) => c.peer !== conn.peer
+            );
             await this.playerConnection(player, false);
           });
-          connection.on('open', async () => {
-            console.log(`${this.user.value} connection opened`)
+          connection.on("open", async () => {
+            console.log(`${this.user.value} connection opened`);
             await this.playerConnection(player, true);
-            connection.on('data', async (data) => {
+            connection.on("data", async (data) => {
               await this.handlePeerData(data);
             });
-          })
-          connection.on('close', async () => {
-            console.log(`${this.user.value} connection closed`)
-            this.connections = this.connections.filter(conn => conn.peer !== connection.peer);
+          });
+          connection.on("close", async () => {
+            console.log(`${this.user.value} connection closed`);
+            this.connections = this.connections.filter(
+              (conn) => conn.peer !== connection.peer
+            );
             await this.playerConnection(player, false);
           });
-          connection.on('error', async (err) => {
-            console.log(`${this.user.value} connection error`)
-            console.log(err)
+          connection.on("error", async (err) => {
+            console.log(`${this.user.value} connection error`);
+            console.log(err);
           });
         }
       });
-      
-      this.peer.on('open', async () => {
-        console.log(`${this.user.value} peer open`)
-        this.players.forEach(player => {
-          if (player !== this.user.value){
+
+      this.peer.on("open", async () => {
+        console.log(`${this.user.value} peer open`);
+        this.players.forEach((player) => {
+          if (player !== this.user.value) {
             const connection = this.peer.connect(`${player}-rummy-game`);
-            if (!this.connections.some(conn => conn.peer === connection.peer)) {
-              connection.on('open', async () => {
-                console.log(`${player} connection opened`)
+            if (
+              !this.connections.some((conn) => conn.peer === connection.peer)
+            ) {
+              connection.on("open", async () => {
+                console.log(`${player} connection opened`);
                 await this.playerConnection(player, true);
                 if (this.players[0] === this.user.value!) {
                   connection.send(this.table);
                 }
-                connection.on('data', async (data) => {
+                connection.on("data", async (data) => {
                   await this.handlePeerData(data);
                 });
                 this.connections.push(connection);
-              })
-              connection.on('close', async () => {
-                console.log(`${player} connection closed`)
-                this.connections = this.connections.filter(conn => conn.peer !== connection.peer);
+              });
+              connection.on("close", async () => {
+                console.log(`${player} connection closed`);
+                this.connections = this.connections.filter(
+                  (conn) => conn.peer !== connection.peer
+                );
                 await this.playerConnection(player, false);
               });
-              connection.on('error', async (err) => {
-                console.log(`${player} connection error`)
-                console.log(err)
+              connection.on("error", async (err) => {
+                console.log(`${player} connection error`);
+                console.log(err);
               });
             }
           }
-        })
+        });
       });
     }
 
@@ -412,11 +434,11 @@ class Rummy extends LitElement {
   async playerConnection(playerName: string, isConnected: boolean) {
     if (!isConnected) {
       if (this.isGameOver(this.table)) {
-        this.returnToLobby()
+        this.returnToLobby();
       }
     }
-    if (this.table.players[playerName]){
-      this.table.players[playerName].connected = isConnected
+    if (this.table.players[playerName]) {
+      this.table.players[playerName].connected = isConnected;
       await this.throtteledRequestUpdate();
     }
   }
@@ -430,44 +452,41 @@ class Rummy extends LitElement {
   private async handlePeerData(table: Table) {
     if (this.table !== table) {
       clearTimeout(this.timer);
-      this.timer = setTimeout(async() => {
-        await this.updateTable(table, true)
-      }, this.debounceInterval)
+      this.timer = setTimeout(async () => {
+        await this.updateTable(table, true);
+      }, this.debounceInterval);
     }
   }
 
   disconnect() {
-    this.connections.forEach(conn => conn.close())
+    this.connections.forEach((conn) => conn.close());
     this.peer.disconnect();
   }
 
   async sendAction(what: Table): Promise<void> {
-    this.updateTable(what)
+    this.updateTable(what);
     if (this.connections.length > 0) {
       this.connections.forEach((connection) => {
         if (connection.open) {
-          connection.send(what)
+          connection.send(what);
         }
-      })
+      });
     }
   }
 
   async updateTable(table: Table, updateByOther?: boolean) {
     // prevent page refresh + click to turn back time
     if (table.turn < this.table.turn && table.turn !== 0) {
-      return
+      return;
     }
 
     // Prevents hand being modified if it' s not your turn
     const hand = this.table.players[this.user.value!].hand;
-    if (
-        updateByOther &&
-        this.table.playerOrder.length !== 0
-      ) {
+    if (updateByOther && this.table.playerOrder.length !== 0) {
       table.players[this.user.value!].hand = hand;
     }
-    
-    this.tableToStates(table); 
+
+    this.tableToStates(table);
     sessionStorage.setItem("table", JSON.stringify(table));
 
     // Sounds
@@ -493,37 +512,42 @@ class Rummy extends LitElement {
   }
 
   async tableToStates(table: Table) {
-    this.table = table
+    this.table = table;
 
     if (this.playerOrder !== table.playerOrder) {
-      this.playerOrder = table.playerOrder
+      this.playerOrder = table.playerOrder;
     }
 
     if (this.deck !== table.deck) {
-      this.deck = table.deck
+      this.deck = table.deck;
     }
 
     if (this.pile !== table.pile) {
-      this.pile = table.pile
+      this.pile = table.pile;
     }
 
     if (this.yourSets !== table.players[this.user.value!].sets) {
-      this.yourSets = table.players[this.user.value!].sets
+      this.yourSets = table.players[this.user.value!].sets;
     }
 
-    const otherPlayers = this.players.filter(player => player !== this.user.value)
-    otherPlayers.forEach(other => {
-      if(this.others[other] !== table.players[other]) {
-        this.others[other] = table.players[other]
+    const otherPlayers = this.players.filter(
+      (player) => player !== this.user.value
+    );
+    otherPlayers.forEach((other) => {
+      if (this.others[other] !== table.players[other]) {
+        this.others[other] = table.players[other];
       }
-    })
+    });
 
-    if (this.hasDrawn !== table.hasDrawn && table.playerOrder[0] === this.user.value) {
-      this.hasDrawn = table.hasDrawn
+    if (
+      this.hasDrawn !== table.hasDrawn &&
+      table.playerOrder[0] === this.user.value
+    ) {
+      this.hasDrawn = table.hasDrawn;
     }
 
     await this.updateComplete;
-    this.cardHand.setCards(table.players[this.user.value!].hand)
+    this.cardHand.setCards(table.players[this.user.value!].hand);
   }
 
   async throtteledRequestUpdate() {
@@ -547,8 +571,8 @@ class Rummy extends LitElement {
     const table = {
       ...this.table,
       hasDrawn: true,
-      deck: cardsService.shuffle(this.table.deck)
-    }
+      deck: cardsService.shuffle(this.table.deck),
+    };
     cardsService.moveCard(
       table.deck,
       table.players[this.user.value!].hand,
@@ -586,8 +610,8 @@ class Rummy extends LitElement {
     }
     const table = {
       ...this.table,
-      hasDrawn: true
-    }
+      hasDrawn: true,
+    };
     this.table.hasDrawn = true;
 
     cardsService.moveCards(
@@ -610,7 +634,10 @@ class Rummy extends LitElement {
     }
     const placedSet = this.placeSet(cards, otherPlayer);
     if (placedSet) {
-      toastService.newToast("rummy.place_other_set", {from: this.user.value!, to: otherPlayer})
+      toastService.newToast("rummy.place_other_set", {
+        from: this.user.value!,
+        to: otherPlayer,
+      });
     }
   }
 
@@ -648,26 +675,24 @@ class Rummy extends LitElement {
     const user = this.user.value!;
     const player = otherPlayer ? otherPlayer : user;
     const players = {
-      ...this.table.players
-    }
-  
-    players[player].sets = this.table.players[player].sets.map(
-      (s) => {
-        if (set.some((c) => s[0].id === c.id)) {
-          return set;
-        }
-        return s;
+      ...this.table.players,
+    };
+
+    players[player].sets = this.table.players[player].sets.map((s) => {
+      if (set.some((c) => s[0].id === c.id)) {
+        return set;
       }
-    );
+      return s;
+    });
 
     players[user].hand = this.table.players[user].hand.filter(
       (c) => !set.some((card) => card.id === c.id)
     );
-    
+
     const table = {
       ...this.table,
-      players
-    }
+      players,
+    };
     this.sendAction(table);
     return true;
   }
@@ -700,8 +725,8 @@ class Rummy extends LitElement {
 
     const user = this.user.value!;
     const players = {
-      ...this.table.players
-    }
+      ...this.table.players,
+    };
 
     players[user].sets.push(set);
     players[user].hand = this.table.players[user].hand.filter(
@@ -710,8 +735,8 @@ class Rummy extends LitElement {
 
     const table = {
       ...this.table,
-      players
-    }
+      players,
+    };
     this.cardHand.unselectAll();
     this.sendAction(table);
   }
@@ -745,12 +770,14 @@ class Rummy extends LitElement {
     this.cardHand.unselectAll();
 
     const players = {
-      ...this.table.players
-    }
-    players[this.user.value!].hand = players[this.user.value!].hand.filter((c) => card.id !== c.id)
-    
-    const playerOrder = [...this.table.playerOrder]
-    playerOrder.push(playerOrder.shift()!)
+      ...this.table.players,
+    };
+    players[this.user.value!].hand = players[this.user.value!].hand.filter(
+      (c) => card.id !== c.id
+    );
+
+    const playerOrder = [...this.table.playerOrder];
+    playerOrder.push(playerOrder.shift()!);
 
     const table = {
       ...this.table,
@@ -758,8 +785,8 @@ class Rummy extends LitElement {
       pile: [...this.table.pile, card],
       playerOrder,
       hasDrawn: false,
-      turn: this.table.turn + 1
-    }
+      turn: this.table.turn + 1,
+    };
 
     this.sendAction(table);
   }
@@ -792,9 +819,8 @@ class Rummy extends LitElement {
     const table = {
       ...this.table,
       deck: this.table.pile.reverse(),
-      pile: []
-    }
+      pile: [],
+    };
     this.sendAction(table);
   }
-
 }

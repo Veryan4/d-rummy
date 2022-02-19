@@ -1,6 +1,6 @@
 export const themeService = { changeTheme };
 
-const THEME_KEY = "rummy-theme"
+const THEME_KEY = "rummy-theme";
 const storedTheme = localStorage.getItem(THEME_KEY);
 const root = document.querySelector(":root") as HTMLElement;
 const primaryWhite = "#fafafa";

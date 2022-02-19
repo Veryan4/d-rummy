@@ -1,4 +1,4 @@
-const ROUTE_EVENT = "route-update"
+const ROUTE_EVENT = "route-update";
 
 export const routerService = {
   parseQuery,
@@ -6,7 +6,7 @@ export const routerService = {
   patternToRegExp,
   testRoute,
   navigate,
-  ROUTE_EVENT
+  ROUTE_EVENT,
 };
 
 function navigate(href: string): void {

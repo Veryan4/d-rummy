@@ -13,7 +13,7 @@ export const cardsService = {
   moveCards,
   moveCardsFromIndex,
   createRummyTable,
-  isValidRummySet
+  isValidRummySet,
 };
 
 // for now needs to be called with default values
@@ -130,7 +130,7 @@ function createRummyTable(players: string[]): Table {
     deck: createDeck(),
     pile: [],
     hasDrawn: false,
-    turn: 0
+    turn: 0,
   };
   players.forEach((player) => {
     table.players[player] = new PlayerHand();
