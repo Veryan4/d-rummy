@@ -9,8 +9,8 @@ export const styles = css`
     /* Tooltip text */
     .tooltip .tooltiptext {
         visibility: hidden;
-        background-color: black;
-        color: #fff;
+        background: var(--toast-background);
+        color: var(--toast-color);
         text-align: center;
         width: fit-content;
         height: fit-content;
@@ -48,7 +48,7 @@ export const styles = css`
         margin-top: -5px;
         border-width: 5px;
         border-style: solid;
-        border-color: transparent black transparent transparent;
+        border-color: transparent var(--toast-background) transparent transparent;
     }
 
     .tooltip .tooltiptext.left {
@@ -67,7 +67,7 @@ export const styles = css`
         margin-top: -5px;
         border-width: 5px;
         border-style: solid;
-        border-color: transparent transparent transparent black;
+        border-color: transparent transparent transparent var(--toast-background);
     }
 
     .tooltip .tooltiptext.top {
@@ -86,7 +86,7 @@ export const styles = css`
         margin-left: -5px;
         border-width: 5px;
         border-style: solid;
-        border-color: black transparent transparent transparent;
+        border-color: var(--toast-background) transparent transparent transparent;
     }
 
     .tooltip .tooltiptext.bottom {
@@ -105,6 +105,6 @@ export const styles = css`
         margin-left: -5px;
         border-width: 5px;
         border-style: solid;
-        border-color: transparent transparent black transparent;
+        border-color: transparent transparent var(--toast-background) transparent;
     }
 `;

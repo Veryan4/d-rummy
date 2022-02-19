@@ -1,6 +1,6 @@
 import { css } from "lit";
 
-export const toastStyles = css`
+export const styles = css`
   .toast-container {
     position: fixed;
     bottom: 10rem;

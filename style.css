@@ -27,6 +27,8 @@ body {
   margin: unset;
   color: var(--primary-color, #2c2c2c);
   background-color: var(--primary-background-color, #fafafa);
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 *:focus {

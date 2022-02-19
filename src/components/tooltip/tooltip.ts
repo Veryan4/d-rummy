@@ -3,7 +3,7 @@ import { customElement, property} from "lit/decorators.js";
 import { styles } from "./tooltip.styles";
 
 @customElement("tool-tip")
-class LoaderComponent extends LitElement {
+class ToolTipComponent extends LitElement {
   static styles = [styles];
 
   @property({type: String})

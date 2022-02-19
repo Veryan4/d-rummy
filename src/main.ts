@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { routerService, translateService } from "./services";
+import { routerService, translateService, toastService } from "./services";
 import { RouteController, ToastController } from "./controllers";
 import { toastStyles } from "./styles";
 import "./components/top-bar/top-bar";
@@ -8,7 +8,6 @@ import "./components/top-bar/top-bar";
 @customElement("my-app")
 class Truba extends LitElement {
   static styles = [
-    toastStyles,
     css`
       .main {
         padding: 1rem 10rem;
@@ -36,7 +35,9 @@ class Truba extends LitElement {
   render() {
     return html`
       <top-bar>
-        <div class="main">${this.router.navigation()}</div>
+        <div class="main">
+          ${this.router.navigation()}
+        </div>
         ${this.toaster.wait()}
       </top-bar>
     `;

@@ -6,10 +6,8 @@ import {
   directive,
   DirectiveResult,
 } from "lit/directive.js";
-import { classMap } from "lit-html/directives/class-map.js";
-import { until } from "lit/directives/until.js";
-import { Toast } from "../models";
-import { toastService, translateService } from "../services";
+import { toastService } from "../services";
+import "../components/toast/toast";
 
 class ToastDirective extends Directive {
   private toast: Toast;
@@ -27,18 +25,7 @@ class ToastDirective extends Directive {
       return "";
     }
     this.toast = toast;
-    const wait = new Promise((res) =>
-      setTimeout(() => res(""), toast.duration)
-    );
-    const classes = { error: toast.type === "error" };
-    return until(
-      wait,
-      html` <div class="toast-container">
-        <div class="toast ${classMap(classes)}">
-          <div class="toast-wrap">${translateService.t(toast.key, toast.properties)}</div>
-        </div>
-      </div>`
-    );
+    return html`<app-toast .toast=${toast}></app-toast>`;
   }
 }
 const toastDirective = directive(ToastDirective);

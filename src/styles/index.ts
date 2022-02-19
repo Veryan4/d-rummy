@@ -2,7 +2,6 @@ export { buttonStyles } from "./button.styles";
 export { menuStyles } from "./menu.styles";
 export { topAppBarStyles } from "./top-app-bar.styles";
 export { iconButtonStyles } from "./icon-button.styles";
-export { toastStyles } from "./toast.styles";
 export { chipStyles } from "./chip.styles";
 export { textFieldStyles } from "./text-field.styles";
 export { checkBoxStyles } from "./check-box.styles";
