@@ -2,13 +2,12 @@ import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { routerService, translateService } from "./services";
 import { RouteController, ToastController } from "./controllers";
-import { topAppBarStyles, toastStyles } from "./styles";
+import { toastStyles } from "./styles";
 import "./components/top-bar/top-bar";
 
 @customElement("my-app")
 class Truba extends LitElement {
   static styles = [
-    topAppBarStyles,
     toastStyles,
     css`
       .main {
@@ -36,11 +35,10 @@ class Truba extends LitElement {
 
   render() {
     return html`
-      <top-bar></top-bar>
-      <main class="mdc-top-app-bar--fixed-adjust">
+      <top-bar>
         <div class="main">${this.router.navigation()}</div>
         ${this.toaster.wait()}
-      </main>
+      </top-bar>
     `;
   }
 

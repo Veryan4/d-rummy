@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement } from "lit/decorators.js";
 import { TranslationController } from "../../controllers";
 import { styles } from "./about.styles";
+import "../../components/tooltip/tooltip";
 
 @customElement("app-about")
 class About extends LitElement {

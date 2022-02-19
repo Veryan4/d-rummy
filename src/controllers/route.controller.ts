@@ -77,7 +77,7 @@ export class RouteController {
       name: "about",
       pattern: "about",
       component: () =>
-        import("../components/about/about").then(
+        import("../pages/about/about").then(
           () => html`<app-about></app-about>`
         ),
     },

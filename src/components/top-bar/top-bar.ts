@@ -52,7 +52,10 @@ class TopBar extends LitElement {
           </div>
         </section>
       </div>
-    </header>`;
+    </header>
+    <main class="mdc-top-app-bar--fixed-adjust">
+      <slot></slot>
+    </main>`;
   }
 
   renderMenu() {
