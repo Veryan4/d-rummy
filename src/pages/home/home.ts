@@ -56,7 +56,7 @@ class HomeComponent extends LitElement {
               name="username"
               required
               validationMessage="A valid username must be submitted"
-              @keydown=${this.checkFormValidity}
+              @input=${this.checkFormValidity}
             ></mwc-textfield>
           </form>
           <div class="form-buttons">

@@ -9,13 +9,15 @@ export const styles = css`
   /* Tooltip text */
   .tooltip .tooltiptext {
     visibility: hidden;
+    font-family: var(--font-family);
     background: var(--toast-background);
     color: var(--toast-color);
     text-align: center;
     width: fit-content;
     height: fit-content;
+    white-space: nowrap;
     border-radius: 6px;
-    padding: 0 1rem;
+    padding: 0.25rem 1rem;
 
     /* Position the tooltip text - see examples below! */
     position: absolute;
@@ -23,7 +25,7 @@ export const styles = css`
 
     /* fade-in */
     opacity: 0;
-    transition: opacity 1s;
+    transition: opacity 400ms linear 400ms;
   }
 
   .tooltip:hover .tooltiptext {
@@ -38,6 +40,7 @@ export const styles = css`
     bottom: 0;
     margin-top: auto;
     margin-bottom: auto;
+    font-size: 0.75rem;
   }
 
   .tooltip .tooltiptext.right::after {
@@ -57,6 +60,7 @@ export const styles = css`
     bottom: 0;
     margin-top: auto;
     margin-bottom: auto;
+    font-size: 0.75rem;
   }
 
   .tooltip .tooltiptext.left::after {
@@ -72,10 +76,9 @@ export const styles = css`
 
   .tooltip .tooltiptext.top {
     bottom: 100%;
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
   }
 
   .tooltip .tooltiptext.top::after {
@@ -91,10 +94,9 @@ export const styles = css`
 
   .tooltip .tooltiptext.bottom {
     top: 100%;
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
   }
 
   .tooltip .tooltiptext.bottom::after {

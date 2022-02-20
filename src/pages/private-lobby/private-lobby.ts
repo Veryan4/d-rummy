@@ -128,7 +128,7 @@ class PrivateLobbyComponent extends LitElement {
             name="lobby"
             required
             validationMessage="Can't find a lobby with that name"
-            @keydown=${this.checkFormValidity}
+            @input=${this.checkFormValidity}
           ></mwc-textfield>
         </form>
         <div class="form-buttons">

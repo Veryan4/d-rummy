@@ -1,7 +1,8 @@
-export const themeService = { changeTheme };
-
+const THEME_EVENT = "theme-update";
 const THEME_KEY = "rummy-theme";
-const storedTheme = localStorage.getItem(THEME_KEY);
+
+export const themeService = { getTheme, changeTheme, THEME_EVENT };
+
 const root = document.querySelector(":root") as HTMLElement;
 const primaryWhite = "#fafafa";
 const secondaryWhite = "white";
@@ -16,7 +17,7 @@ const invertedOutlineColor = "#2c2c2c";
 const toastBackground = "#313131";
 const chipBackground = "#696969";
 
-let theme = storedTheme ? storedTheme : "light";
+let theme = getTheme();
 if (theme === "light") {
   setLightTheme();
 } else {
@@ -45,6 +46,12 @@ function setDarkTheme(): void {
   root.style.setProperty("--chip-background", chipBackground);
 }
 
+
+function getTheme(): string {
+  const storedTheme = localStorage.getItem(THEME_KEY);
+  return storedTheme ? storedTheme : "light";
+}
+
 function changeTheme(): void {
   if (theme === "light") {
     theme = "dark";
@@ -54,4 +61,5 @@ function changeTheme(): void {
     setLightTheme();
   }
   localStorage.setItem(THEME_KEY, theme);
+  window.dispatchEvent(new CustomEvent(THEME_EVENT));
 }
