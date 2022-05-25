@@ -110,8 +110,8 @@ class PublicLobbyComponent extends LitElement {
     this.peer.on("close", async () => {
       console.log("peer closed");
     });
-    this.peer.on("disconnection", async () => {
-      console.log("peer disconnection");
+    this.peer.on("disconnected", async () => {
+      console.log("peer disconnected");
     });
     this.peer.on("error", async (err) => {
       console.log("peer error");
@@ -152,8 +152,8 @@ class PublicLobbyComponent extends LitElement {
     this.peer.on("close", async () => {
       console.log("host closed");
     });
-    this.peer.on("disconnection", async () => {
-      console.log("host disconnection");
+    this.peer.on("disconnected", async () => {
+      console.log("host disconnected");
     });
     this.peer.on("error", async (err) => {
       console.log("host error");

@@ -344,7 +344,7 @@ class Rummy extends LitElement {
       this.peer.on("close", async () => {
         console.log(`${this.user.value} peer closed`);
       });
-      this.peer.on("disconnection", async () => {
+      this.peer.on("disconnected", async () => {
         console.log(`${this.user.value} peer disconnected`);
       });
       this.peer.on("error", async (err) => {
