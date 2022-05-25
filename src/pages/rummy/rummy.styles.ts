@@ -6,6 +6,9 @@ export const styles = css`
     display: flex;
     font-family: var(--font-family);
   }
+  .winner-overlay {
+    font-family: var(--font-family);
+  }
   .table,
   .deck,
   .pile {

@@ -482,7 +482,7 @@ class Rummy extends LitElement {
 
     // Prevents hand being modified if it' s not your turn
     const hand = this.table.players[this.user.value!].hand;
-    if (updateByOther && this.table.playerOrder.length !== 0) {
+    if (updateByOther && this.table.playerOrder.length !== 0 && !this.winner) {
       table.players[this.user.value!].hand = hand;
     }
 
@@ -618,7 +618,7 @@ class Rummy extends LitElement {
       table.pile,
       table.players[this.user.value!].hand,
       "top",
-      "top",
+      "bottom",
       table.pile.length
     );
 
