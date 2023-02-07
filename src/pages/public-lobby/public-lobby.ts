@@ -1,13 +1,13 @@
 import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { TranslationController, UserController } from "../../controllers";
-import { routerService } from "../../services";
+import { UserController } from "../../controllers";
+import { TranslationController, routerService } from "@veryan/lit-spa";
 import { config } from "../../app.config";
 import Peer, { DataConnection } from "peerjs";
 import { buttonStyles, textFieldStyles } from "../../styles";
 import { styles } from "./public-lobby.styles";
 
-import "../../components/loader/loader";
+import "@veryan/lit-spa";
 
 import "@material/mwc-button";
 import "@material/mwc-formfield";
@@ -61,7 +61,7 @@ class PublicLobbyComponent extends LitElement {
     return html`
       <div class="lobby">
         ${this.renderWaitingText()}
-        ${html`<app-loader class="small"></app-loader>`}
+        ${html`<lit-spa-loader class="small"></lit-spa-loader>`}
       </div>
     `;
   }

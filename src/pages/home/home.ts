@@ -1,7 +1,8 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
-import { TranslationController, UserController } from "../../controllers";
-import { routerService, userService } from "../../services";
+import { UserController } from "../../controllers";
+import { userService } from "../../services";
+import { TranslationController, routerService } from "@veryan/lit-spa";
 import { buttonStyles, textFieldStyles } from "../../styles";
 import { styles } from "./home.styles";
 

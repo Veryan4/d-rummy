@@ -1,7 +1,11 @@
-import { LitElement, html, css } from "lit";
-import { customElement, property } from "lit/decorators.js";
-import { routerService, translateService } from "./services";
-import { RouteController, ToastController } from "./controllers";
+import { LitElement, html, css, PropertyValueMap } from "lit";
+import { customElement } from "lit/decorators.js";
+import { 
+  RouteController,
+  ToastController,
+  TranslationController,
+  themeService } from "@veryan/lit-spa";
+import { routes } from "./app.routes";
 import "./components/top-bar/top-bar";
 
 @customElement("my-app")
@@ -21,15 +25,9 @@ class Truba extends LitElement {
     `,
   ];
 
-  private router = new RouteController(this);
+  private router = new RouteController(this, routes);
   private toaster = new ToastController(this);
-
-  @property({ type: Boolean })
-  hasLoadedTranslations: boolean;
-
-  constructor() {
-    super();
-  }
+  private i18n = new TranslationController(this);
 
   render() {
     return html`
@@ -40,22 +38,56 @@ class Truba extends LitElement {
     `;
   }
 
-  shouldUpdate(
-    changedProperties: Map<string | number | symbol, unknown>
-  ): boolean {
-    return this.hasLoadedTranslations && super.shouldUpdate(changedProperties);
+  protected shouldUpdate(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): boolean {
+    return this.i18n.hasLoadedTranslations;
   }
 
-  async connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
-
-    window.dispatchEvent(new CustomEvent(routerService.ROUTE_EVENT));
-    window.onpopstate = () => {
-      window.dispatchEvent(new CustomEvent(routerService.ROUTE_EVENT));
-    };
-
-    !this.hasLoadedTranslations &&
-      (await translateService.initTranslateLanguage());
-    this.hasLoadedTranslations = true;
+    this.registerThemes();
+    const urlSearchParams = new URLSearchParams(location.search);
+    const params = Object.fromEntries(urlSearchParams.entries());
+    if (params && params.game) {
+      sessionStorage.setItem("game", params.game);
+    }
   }
+
+  registerThemes() {
+    const root = document.querySelector(":root") as HTMLElement;
+    const primaryWhite = "#fafafa";
+    const secondaryWhite = "white";
+    const primaryBlack = "#2c2c2c";
+    const secondaryBlack = "black";
+    const imageColor = "unset";
+    const invertedImageColor = "invert(100%)";
+    const inputBackgroundColor = "#E8E8E8";
+    const invertedInputBackgroundColor = "#696969";
+    const outlineColor = "#b0bec5";
+    const invertedOutlineColor = "#2c2c2c";
+    const toastBackground = "#313131";
+    const chipBackground = "#696969";
+    themeService.registerThemes(root, {
+      'light': {
+        '--primary-color': primaryBlack,
+        '--primary-background-color': primaryWhite,
+        '--secondary-background-color': secondaryWhite,
+        '--image-color': imageColor,
+        '--input-fill': inputBackgroundColor,
+        '--outline-color': outlineColor,
+        '--toast-background': toastBackground,
+        '--chip-background': inputBackgroundColor
+      },
+      'dark': {
+        '--primary-color': primaryWhite,
+        '--primary-background-color': primaryBlack,
+        '--secondary-background-color': secondaryBlack,
+        '--image-color': invertedImageColor,
+        '--input-fill': invertedInputBackgroundColor,
+        '--outline-color': invertedOutlineColor,
+        '--toast-background': secondaryBlack,
+        '--chip-background': chipBackground
+      }
+    } as any);
+  }
+ 
 }

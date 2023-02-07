@@ -1,17 +1,21 @@
 import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import {
-  TranslationController,
-  DeviceController,
-  SoundController,
   UserController,
 } from "../../controllers";
 import {
   userService,
+} from "../../services";
+import { 
+  SoundController,
+  TranslationController,
+  DeviceController,
+  ThemeController,
   themeService,
   translateService,
   routerService,
-} from "../../services";
+  soundService
+} from "@veryan/lit-spa";
 import { topAppBarStyles, iconButtonStyles, menuStyles } from "../../styles";
 import { styles } from "./top-bar.styles";
 
@@ -28,6 +32,7 @@ class TopBar extends LitElement {
   private user = new UserController(this);
   private device = new DeviceController(this);
   private sound = new SoundController(this);
+  private theme = new ThemeController(this);
 
   @query("#anchor")
   anchor: HTMLElement;
@@ -83,11 +88,11 @@ class TopBar extends LitElement {
           <i class="material-icons mdc-icon-button__icon">info</i>
           ${this.i18n.t("header.about")}
         </mwc-list-item>
-        <mwc-list-item @click=${themeService.changeTheme}>
+        <mwc-list-item @click=${this.changeTheme}>
           <i class="material-icons mdc-icon-button__icon">invert_colors</i>
           ${this.i18n.t("header.dark_mode")}
         </mwc-list-item>
-        <mwc-list-item @click=${this.toggleSound}>
+        <mwc-list-item @click=${soundService.toggleSound}>
           <i class="material-icons mdc-icon-button__icon"
             >${this.sound.value
               ? "notifications_active"
@@ -116,10 +121,6 @@ class TopBar extends LitElement {
     `;
   }
 
-  toggleSound() {
-    window.dispatchEvent(new Event("sound-update"));
-  }
-
   async logout(): Promise<void> {
     this.user.value = null;
     await userService.removeUser();
@@ -127,5 +128,13 @@ class TopBar extends LitElement {
 
   language(lang: string): void {
     translateService.useLanguage(lang);
+  }
+
+  changeTheme() {
+    if (this.theme.value == "light") {
+      themeService.changeTheme("dark");
+    } else {
+      themeService.changeTheme("light")
+    }
   }
 }

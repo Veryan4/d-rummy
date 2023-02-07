@@ -1,6 +1,5 @@
 import { LitElement, html, css } from "lit";
 import { customElement } from "lit/decorators.js";
-import { TranslationController } from "../../controllers";
 
 @customElement("not-found")
 class NotFound extends LitElement {
@@ -39,8 +38,6 @@ class NotFound extends LitElement {
       }
     `,
   ];
-
-  private i18n = new TranslationController(this);
 
   render() {
     return html`

@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
-import { TranslationController, UserController } from "../../controllers";
-import { routerService } from "../../services";
+import { UserController } from "../../controllers";
+import { TranslationController, routerService} from "@veryan/lit-spa";
 import { Lobby } from "../../models";
 import { config } from "../../app.config";
 import Peer, { DataConnection } from "peerjs";

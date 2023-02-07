@@ -2,16 +2,18 @@ import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { classMap } from "lit-html/directives/class-map.js";
 import {
-  TranslationController,
   UserController,
-  SoundController,
 } from "../../controllers";
 import {
   cardsService,
-  toastService,
-  routerService,
   userService,
 } from "../../services";
+import { 
+  TranslationController,
+  SoundController,
+  routerService,
+  toastService
+} from "@veryan/lit-spa";
 import { Card, Table, PlayerHand } from "../../models";
 import { config } from "../../app.config";
 import Peer, { DataConnection } from "peerjs";
@@ -22,7 +24,7 @@ import { styles } from "./rummy.styles";
 import "@material/mwc-button";
 import "../../components/game-card/game-card";
 import "../../components/hand/hand";
-import "../../components/loader/loader";
+import "@veryan/lit-spa";
 
 const yourTurnSound = new Audio("/sounds/your_turn.mp3");
 const theirTurnSound = new Audio("/sounds/their_turn.mp3");
@@ -104,7 +106,7 @@ class Rummy extends LitElement {
   render() {
     return Object.keys(this.table.players).length > 1
       ? this.renderGame()
-      : html`<app-loader></app-loader>`;
+      : html`<lit-spa></lit-spa>`;
   }
 
   renderGame() {
