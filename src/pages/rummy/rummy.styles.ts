@@ -17,7 +17,9 @@ export const styles = css`
   .deck,
   .pile {
     flex-direction: column;
-    padding-bottom: 1rem;
+  }
+  .deck game-card, .pile game-card{
+    height: 8dvw;
   }
   .table.draw {
     border: 2px solid var(--theme-color);
@@ -44,8 +46,8 @@ export const styles = css`
     display: flex;
   }
   .empty-card {
-    height: 86px;
-    width: 60px;
+    height: calc(8dvw - 6px);
+    aspect-ratio: 2.5/3.5;
     border-radius: 10px;
     border: 3px dotted var(--primary-color);
     font-size: 0.8rem;
@@ -174,6 +176,12 @@ export const styles = css`
       display: flex;
       flex-direction: column-reverse;
     }
+    .deck game-card, .pile game-card{
+      height: 26dvw;
+    }
+    .empty-card {
+      height: calc(26dvw - 6px);
+    }
   }
   @media only screen and (min-width: 752px) {
     .first-half {
@@ -184,7 +192,7 @@ export const styles = css`
     }
     .first-half,
     .second-half {
-      width: 30vw;
+      width: 30dvw;
     }
   }
 `;

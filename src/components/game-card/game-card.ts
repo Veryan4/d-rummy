@@ -1,5 +1,5 @@
-import { LitElement, html } from "lit";
-import { customElement, property, query } from "lit/decorators.js";
+import { LitElement, html, svg } from "lit";
+import { customElement, property } from "lit/decorators.js";
 import { classMap } from "lit-html/directives/class-map.js";
 import { SymbolType, RankType } from "../../models/cards.model";
 import { cardStyles } from "./game-card.styles";
@@ -8,75 +8,80 @@ import { cardStyles } from "./game-card.styles";
 class GameCardComponent extends LitElement {
   static styles = [cardStyles];
 
-  static get is() {
-    return "game-card";
+  faces: RankType[] = ["j", "q", "k"];
+
+  @property({ type: String, reflect: true })
+  symbol: SymbolType = "♠";
+
+  @property({ type: String, reflect: true })
+  rank: RankType = "a";
+
+  @property({ type: Boolean, reflect: true })
+  unrevealed = false;
+
+  @property({ type: Boolean, reflect: true })
+  flippable = false;
+
+  @property({ type: Boolean, reflect: true })
+  selected = false;
+
+  flip(e: Event) {
+    e.preventDefault();
+    if (this.flippable) {
+      this.unrevealed = !this.unrevealed;
+    }
   }
 
-  /* Spade character ♠ */
-  static get SPADE() {
-    return "♠";
-  }
-
-  /* Heart character ♥ */
-  static get HEART() {
-    return "♥";
-  }
-
-  /* Club character ♣ */
-  static get CLUB() {
-    return "♣";
-  }
-
-  /* Diamond character ♦ */
-  static get DIAMOND() {
-    return "♦";
-  }
-
-  /* Symbols names indexed by `symbol` (character) */
-  static get SYMBOLS() {
-    return {
-      "♠": "spade",
-      "♥": "heart",
-      "♣": "club",
-      "♦": "diamond",
+  render() {
+    const classes = { 
+      selected: this.selected,
+      red: this.symbol =="♥" || this.symbol == "♦",
+      black: this.symbol == "♠" || this.symbol == "♣",
     };
+    return html`
+      <div
+        class="container ${classMap(classes)}"
+        @click=${this.flip}
+      >
+        <div id="front" class="${classMap(classes)}">
+          ${this.renderAlphaNumRank()}
+          ${this.renderAlphaNumRank(true)}
+          ${this.renderRank()}
+          <img
+            class="figure"
+            @click=${(e: Event) => e.preventDefault()}
+            src="${this.getFigureImage()}"
+          />
+        </div>
+        <div id="back" class="${classMap(classes)}">
+          <div id="back-draw"></div>
+        </div>
+      </div>
+    `;
   }
 
-  /* Rank names indexed by `rank` */
-  static get RANKS() {
-    return {
-      a: "ace",
-      "2": "two",
-      "3": "three",
-      "4": "four",
-      "5": "five",
-      "6": "six",
-      "7": "seven",
-      "8": "height",
-      "9": "nine",
-      "10": "ten",
-      j: "jack",
-      q: "queen",
-      k: "king",
-    };
+  renderAlphaNumRank(reversed = false) {
+    const classes = { reversed };
+    return html`
+    <span class="rank ${classMap(classes)}">
+      ${this.renderTextSVG(this.rank?.toUpperCase(), 20)}
+      ${this.renderTextSVG(this.symbol, 20)}
+    </span>`;
   }
 
-  /* List of figures among ranks */
-  static get FIGURES() {
-    return ["j", "q", "k"];
+
+  renderTextSVG(content: string, size: number) {
+    return svg`
+    <svg viewBox="0 0 ${size} ${size}">
+      <text x="50%" y="95%" font-size=${size} text-anchor="middle">${content}</text>
+    </svg>`;
   }
 
-  static get COLOR_CLASSES() {
-    return {
-      "♠": "black",
-      "♥": "red",
-      "♣": "black",
-      "♦": "red",
-    };
-  }
-
-  static get CLASS_MATRIX() {
-    return [
+  renderRank() {
+    if (this.faces.includes(this.rank)) {
+      return ""
+    }
+    const rankClassMap =[
       ["h-centered v-centered"],
       ["h-centered top", null, null, null, null, "h-centered bottom"],
       [
@@ -157,152 +162,56 @@ class GameCardComponent extends LitElement {
         "bottom right",
         "h-centered near-bottom",
       ],
-    ];
+    ]
+
+    return [...Array(10).keys()].map((i) => {
+      const rankClasses =
+        rankClassMap[
+          this.rank.toLowerCase() === "a" ? 0 : Number(this.rank) - 1
+        ];
+      const indexClass = rankClasses && rankClasses[i];
+      const classes = {
+        reversed: i >= 5,
+        [indexClass ?? "hidden"]: true
+      }
+      return html`
+        <span class="symbol ${classMap(classes)}">
+          ${this.renderTextSVG(this.symbol, 12)}
+        </span>`
+    });
   }
 
-  @property({ type: String, reflect: true })
-  symbol: SymbolType = "♠";
-
-  @property({ type: String, reflect: true })
-  rank: RankType = "a";
-
-  @property({ type: Boolean, reflect: true })
-  unrevealed = false;
-
-  @property({ type: Boolean, reflect: true })
-  flippable = false;
-
-  @property({ type: Boolean, reflect: true })
-  selected = false;
-
-  @query("#container")
-  container: HTMLElement;
-
-  constructor() {
-    super();
-  }
-
-  flip(e: Event) {
-    e.preventDefault();
-    if (this.flippable) {
-      this.unrevealed = !this.unrevealed;
+  getFigureImage() {
+    if (!this.faces.includes(this.rank)) {
+      return ""
     }
-  }
-
-  upper(token: string) {
-    return token ? token.toUpperCase() : "";
-  }
-
-  _computePositionClass(index: number, suffix: string, rank: RankType) {
-    const klass =
-      GameCardComponent.CLASS_MATRIX[
-        rank.toLowerCase() === "a" ? 0 : Number(rank) - 1
-      ];
-    const subKlass = klass && klass[index];
-
-    return `${subKlass ? subKlass : "hidden"} ${suffix}`;
-  }
-
-  _computeColorClass(symbol: SymbolType) {
-    return GameCardComponent.COLOR_CLASSES[symbol];
-  }
-
-  _computeFigureImage(rank: RankType, symbol: SymbolType) {
-    const rankName =
-        GameCardComponent.FIGURES.indexOf(rank.toLowerCase()) != -1 &&
-        GameCardComponent.RANKS[rank.toLowerCase() as RankType],
-      symbolName = GameCardComponent.SYMBOLS[symbol];
+    const symbolNames = {
+      "♠": "spade",
+      "♥": "heart",
+      "♣": "club",
+      "♦": "diamond"
+    }
+    const rankNames = {
+      a: "ace",
+      "2": "two",
+      "3": "three",
+      "4": "four",
+      "5": "five",
+      "6": "six",
+      "7": "seven",
+      "8": "height",
+      "9": "nine",
+      "10": "ten",
+      j: "jack",
+      q: "queen",
+      k: "king"
+    }
+    const rankName = rankNames[this.rank.toLowerCase() as RankType];
+    const symbolName = symbolNames[this.symbol];
 
     return rankName && symbolName
-      ? `./cards/${rankName}_of_${symbolName}s_fr.svg`
+      ? `./cards/${rankName}_of_${symbolName}s.svg`
       : "";
-  }
-
-  render() {
-    const classes = { selected: this.selected };
-    return html`
-      <div
-        id="container"
-        class="${this._computeColorClass(this.symbol)}"
-        @click=${this.flip}
-      >
-        <div id="front" class="${classMap(classes)}">
-          <span class="rank"
-            >${this.upper(this.rank)}<br /><span class="rank-symbol"
-              >${this.symbol}</span
-            ></span
-          >
-          <span class="rank reversed"
-            >${this.upper(this.rank)}<br /><span class="rank-symbol"
-              >${this.symbol}</span
-            ></span
-          >
-          <span class="${this._computePositionClass(0, "symbol", this.rank)}"
-            >${this.symbol}</span
-          >
-          <span class="${this._computePositionClass(1, "symbol", this.rank)}"
-            >${this.symbol}</span
-          >
-          <span class="${this._computePositionClass(2, "symbol", this.rank)}"
-            >${this.symbol}</span
-          >
-          <span class="${this._computePositionClass(3, "symbol", this.rank)}"
-            >${this.symbol}</span
-          >
-          <span class="${this._computePositionClass(4, "symbol", this.rank)}"
-            >${this.symbol}</span
-          >
-          <span
-            class="${this._computePositionClass(
-              5,
-              "reversed symbol",
-              this.rank
-            )}"
-            >${this.symbol}</span
-          >
-          <span
-            class="${this._computePositionClass(
-              6,
-              "reversed symbol",
-              this.rank
-            )}"
-            >${this.symbol}</span
-          >
-          <span
-            class="${this._computePositionClass(
-              7,
-              "reversed symbol",
-              this.rank
-            )}"
-            >${this.symbol}</span
-          >
-          <span
-            class="${this._computePositionClass(
-              8,
-              "reversed symbol",
-              this.rank
-            )}"
-            >${this.symbol}</span
-          >
-          <span
-            class="${this._computePositionClass(
-              9,
-              "reversed symbol",
-              this.rank
-            )}"
-            >${this.symbol}</span
-          >
-          <img
-            class="figure"
-            @click=${(e: Event) => e.preventDefault()}
-            src="${this._computeFigureImage(this.rank, this.symbol)}"
-          />
-        </div>
-        <div id="back" class="${classMap(classes)}">
-          <div id="back-draw"></div>
-        </div>
-      </div>
-    `;
   }
 }
 

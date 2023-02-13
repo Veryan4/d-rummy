@@ -7,22 +7,19 @@ class NotFound extends LitElement {
     css`
       html,
       body {
-        background-color: #222526;
-        color: #fff;
+        background-color: var(--primary-background-color);
+        color: var(--primary-color);
         font-family: var(--font-family);
         font-weight: 100;
-        height: 100vh;
+        height: 100dvh;
         margin: 0;
       }
-      .full-height {
-        height: 100vh;
-      }
-      .flex-center {
+      .wrap {
+        background-color: var(--primary-background-color);
+        height: 100dvh;
         align-items: center;
         display: flex;
         justify-content: center;
-      }
-      .position-ref {
         position: relative;
       }
       .code {
@@ -30,18 +27,21 @@ class NotFound extends LitElement {
         font-size: 26px;
         padding: 0 10px 0 15px;
         text-align: center;
+        color: var(--primary-color);
+        border-color: var(--primary-color)
       }
       .message {
         font-size: 18px;
         text-align: center;
         padding: 10px;
+        color: var(--primary-color);
       }
     `,
   ];
 
   render() {
     return html`
-      <div class="flex-center position-ref full-height">
+      <div class="wrap">
         <div class="code">404</div>
         <div class="message">Not Found</div>
       </div>

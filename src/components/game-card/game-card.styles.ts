@@ -3,10 +3,8 @@ import { css } from "lit";
 export const cardStyles = css`
   :host {
     display: inline-block;
-    font-size: 3em;
-    height: 264px; /* 88 * 3 */
-    width: 186px; /* 62 * 3 */
-    min-width: 186px; /* 62 * 3 */
+    width: 100%; /* 62 * 3 */
+    aspect-ratio: 2.5 / 3.5;
 
     cursor: pointer;
     -webkit-touch-callout: none; /* iOS Safari */
@@ -16,18 +14,12 @@ export const cardStyles = css`
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none; /* Non-prefixed version, currently not supported by any browser */
   }
-  :host(.small) {
-    font-size: 1em;
-    height: 88px;
-    width: 62px;
-    min-width: 62px;
-  }
 
   :host * {
     box-sizing: border-box;
   }
 
-  #container {
+  .container {
     position: relative;
     height: 100%;
     width: 100%;
@@ -108,40 +100,25 @@ export const cardStyles = css`
     position: absolute;
   }
 
+  .symbol {
+    width: 15%;
+  }
+
   .rank {
-    top: 12px;
-    left: 12px;
+    left: 3%;
     text-align: center;
-    font-size: 0.8em;
-    line-height: 0.8em;
+    width: 15%;
   }
 
   .rank.reversed {
     top: auto;
     left: auto;
-    right: 12px;
-    bottom: 12px;
+    right: 3%;
+    bottom: 0;
   }
 
   .rank-symbol {
-    font-size: 0.7em;
-  }
-
-  :host(.small) .rank {
-    top: 4px;
-    left: 4px;
-    font-size: 0.4em;
-    line-height: 1.5em;
-  }
-
-  :host(.small) .rank.reversed {
-    right: 4px;
-    bottom: 4px;
-    top: unset;
-    left: unset;
-  }
-  :host(.small) .rank-symbol {
-    font-size: 0.4em;
+    position: relative;
   }
 
   .reversed {
@@ -212,10 +189,12 @@ export const cardStyles = css`
 
   .red {
     color: red;
+    fill: red;
   }
 
   .black {
     color: var(--primary-color);
+    fill: var(--primary-color);
   }
 
   .figure {

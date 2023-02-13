@@ -4,7 +4,7 @@ export const styles = css`
   .about-container {
     display: flex;
     justify-content: center;
-    width: 100vw;
+    width: 100dvw;
     line-height: 1.8;
     font-family: var(--font-family);
   }

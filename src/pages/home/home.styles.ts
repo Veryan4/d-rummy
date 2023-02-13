@@ -68,6 +68,9 @@ export const styles = css`
   }
   .form-buttons {
     padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   @media only screen and (max-width: 752px) {
