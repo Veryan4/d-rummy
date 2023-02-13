@@ -5,18 +5,15 @@ import { TranslationController, routerService} from "@veryan/lit-spa";
 import { Lobby } from "../../models";
 import { config } from "../../app.config";
 import Peer, { DataConnection } from "peerjs";
-import { buttonStyles, textFieldStyles } from "../../styles";
 import { styles } from "./private-lobby.styles";
 
-import "@material/mwc-button";
-import "@material/mwc-formfield";
-import "@material/mwc-textfield";
+import "../../material-web";
 
 const MIN_PLAYERS = 3;
 
 @customElement("private-lobby")
 class PrivateLobbyComponent extends LitElement {
-  static styles = [styles, buttonStyles, textFieldStyles];
+  static styles = [styles];
 
   private i18n = new TranslationController(this);
   private user = new UserController(this);
@@ -84,8 +81,7 @@ class PrivateLobbyComponent extends LitElement {
       <div class="players-waiting">
         <p>${this.i18n.t("lobby.private.waiting")}</p>
         ${this.lobby.players.map((player) => {
-          const src =
-            "https://avatars.dicebear.com/api/initials/" + player + ".svg";
+          const src = "https://api.dicebear.com/7.x/pixel-art/svg?seed=" + player;
           return html` <div class="player">
             <img class="player-image" src=${src} alt="avatar" />
             <div class="player-name">${player}</div>
@@ -100,17 +96,12 @@ class PrivateLobbyComponent extends LitElement {
     return html` <div class="card">
       <h1 class="card-title">${this.i18n.t("lobby.private.create_or_join")}</h1>
       <div class="form-buttons">
-        <mwc-button
-          dense
-          unelevated
+        <md-filled-button
           @click=${this.createLobby}
-          label=${this.i18n.t("lobby.private.create")}
-        ></mwc-button>
-        <mwc-button
-          dense
+        >${this.i18n.t("lobby.private.create")}</md-filled-button>
+        <md-outlined-button
           @click=${() => (this.createOrJoin = "join")}
-          label=${this.i18n.t("lobby.private.join")}
-        ></mwc-button>
+        >${this.i18n.t("lobby.private.join")}</md-outlined-button>
       </div>
     </div>`;
   }
@@ -120,7 +111,7 @@ class PrivateLobbyComponent extends LitElement {
       <div class="card">
         <h1 class="card-title">${this.i18n.t("lobby.private.join_title")}</h1>
         <form class="card-form">
-          <mwc-textfield
+          <md-filled-text-field
             class="form-field"
             label="${this.i18n.t("lobby.private.join_description")}"
             id="lobby"
@@ -129,16 +120,13 @@ class PrivateLobbyComponent extends LitElement {
             required
             validationMessage="Can't find a lobby with that name"
             @input=${this.checkFormValidity}
-          ></mwc-textfield>
+          ></md-filled-text-field>
         </form>
         <div class="form-buttons">
-          <mwc-button
-            dense
-            unelevated
+          <md-filled-button
             ?disabled=${!this.isFormValid}
             @click=${this.join}
-            label=${this.i18n.t("lobby.private.join")}
-          ></mwc-button>
+          >${this.i18n.t("lobby.private.join")}</md-filled-button>
         </div>
       </div>
     `;
@@ -158,12 +146,9 @@ class PrivateLobbyComponent extends LitElement {
 
   renderStartGame(players: string[]) {
     return players.length >= MIN_PLAYERS
-      ? html`<mwc-button
-          dense
-          unelevated
+      ? html`<md-filled-button
           @click=${this.startGame}
-          label=${this.i18n.t("lobby.start")}
-        ></mwc-button>`
+        >${this.i18n.t("lobby.start")}</md-filled-button>`
       : html`
           ${this.renderMissingPlayers(players)}
           <div class="host">

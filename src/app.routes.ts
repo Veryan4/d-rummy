@@ -4,7 +4,10 @@ import { Route } from "@veryan/lit-spa";
 
 
 export function authGuard() {
-  return new Promise(()=> userService.getUser()).then((user) => user ? true : "")
+  if (userService.getUser()) {
+    return Promise.resolve(true);
+  }
+  return Promise.reject("");
 }
 
 export const routes: Route[] = [

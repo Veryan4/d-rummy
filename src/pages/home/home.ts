@@ -3,16 +3,13 @@ import { customElement, state, query } from "lit/decorators.js";
 import { UserController } from "../../controllers";
 import { userService } from "../../services";
 import { TranslationController, routerService } from "@veryan/lit-spa";
-import { buttonStyles, textFieldStyles } from "../../styles";
 import { styles } from "./home.styles";
 
-import "@material/mwc-button";
-import "@material/mwc-formfield";
-import "@material/mwc-textfield";
+import "../../material-web";
 
 @customElement("card-home")
 class HomeComponent extends LitElement {
-  static styles = [styles, buttonStyles, textFieldStyles];
+  static styles = [styles];
 
   private i18n = new TranslationController(this);
   private user = new UserController(this);
@@ -49,7 +46,7 @@ class HomeComponent extends LitElement {
       : html` <div class="card">
           <h1 class="card-title">${this.i18n.t("lobby.login.title")}</h1>
           <form class="card-form">
-            <mwc-textfield
+            <md-filled-text-field
               class="form-field"
               label="${this.i18n.t("lobby.login.name")}"
               id="username"
@@ -58,16 +55,13 @@ class HomeComponent extends LitElement {
               required
               validationMessage="A valid username must be submitted"
               @input=${this.checkFormValidity}
-            ></mwc-textfield>
+            ></md-filled-text-field>
           </form>
           <div class="form-buttons">
-            <mwc-button
-              dense
-              unelevated
+            <md-filled-button
               ?disabled=${!this.isFormValid}
               @click=${this.login}
-              label=${this.i18n.t("lobby.login.button")}
-            ></mwc-button>
+            >${this.i18n.t("lobby.login.button")}</md-filled-button>
           </div>
         </div>`;
   }
@@ -76,18 +70,12 @@ class HomeComponent extends LitElement {
     return html` <div class="card">
       <h1 class="card-title">${this.i18n.t("lobby.privacy.title")}</h1>
       <div class="form-buttons">
-        <mwc-button
-          dense
-          unelevated
+        <md-filled-button
           @click=${this.public}
-          label=${this.i18n.t("lobby.privacy.public")}
-        ></mwc-button>
-        <mwc-button
-          dense
-          unelevated
+        >${this.i18n.t("lobby.privacy.public")}</md-filled-button>
+        <md-outlined-button
           @click=${this.private}
-          label=${this.i18n.t("lobby.privacy.private")}
-        ></mwc-button>
+        >${this.i18n.t("lobby.privacy.private")}</md-outlined-button>
       </div>
     </div>`;
   }

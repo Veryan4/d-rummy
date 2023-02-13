@@ -4,14 +4,9 @@ import { UserController } from "../../controllers";
 import { TranslationController, routerService } from "@veryan/lit-spa";
 import { config } from "../../app.config";
 import Peer, { DataConnection } from "peerjs";
-import { buttonStyles, textFieldStyles } from "../../styles";
 import { styles } from "./public-lobby.styles";
 
 import "@veryan/lit-spa";
-
-import "@material/mwc-button";
-import "@material/mwc-formfield";
-import "@material/mwc-textfield";
 
 const PLAYERS_PER_GAME = 3;
 const UPDATE_INTERVAL = 5 * 1000;
@@ -35,7 +30,7 @@ class GameQueue {
 
 @customElement("public-lobby")
 class PublicLobbyComponent extends LitElement {
-  static styles = [styles, buttonStyles, textFieldStyles];
+  static styles = [styles];
 
   private i18n = new TranslationController(this);
   private user = new UserController(this);

@@ -18,10 +18,9 @@ import { Card, Table, PlayerHand } from "../../models";
 import { config } from "../../app.config";
 import Peer, { DataConnection } from "peerjs";
 import { CardHand } from "../../components/hand/hand";
-import { buttonStyles } from "../../styles";
 import { styles } from "./rummy.styles";
 
-import "@material/mwc-button";
+import "../../material-web";
 import "../../components/game-card/game-card";
 import "../../components/hand/hand";
 import "@veryan/lit-spa";
@@ -32,7 +31,7 @@ const errorSound = new Audio("/sounds/error.mp3");
 
 @customElement("card-rummy")
 class Rummy extends LitElement {
-  static styles = [styles, buttonStyles];
+  static styles = [styles];
 
   private i18n = new TranslationController(this);
   private user = new UserController(this);
@@ -223,7 +222,7 @@ class Rummy extends LitElement {
     const players = Object.keys(this.table.players);
     const others = players.filter((player) => player != this.user.value);
     return others.map((other) => {
-      const src = "https://avatars.dicebear.com/api/initials/" + other + ".svg";
+      const src = "https://api.dicebear.com/7.x/pixel-art/svg?seed=" + other;
       const classes = {
         active: other == this.table.playerOrder[0],
         error: !this.table.players[other].connected,
@@ -292,18 +291,13 @@ class Rummy extends LitElement {
               <b>${this.winner}</b> ${this.i18n.t("rummy.win")}
             </div>
             <div class="winner-buttons">
-              <mwc-button
+              <md-filled-button
                 style="margin-right:1rem;"
-                dense
-                unelevated
                 @click=${this.rematch}
-                label=${this.i18n.t("rummy.rematch")}
-              ></mwc-button>
-              <mwc-button
-                dense
+              >${this.i18n.t("rummy.rematch")}</md-filled-button>
+              <md-filled-button
                 @click=${this.returnToLobby}
-                label=${this.i18n.t("rummy.return")}
-              ></mwc-button>
+              >${this.i18n.t("rummy.return")}</md-filled-button>
             </div>
           </div>
         </div>`
@@ -320,18 +314,13 @@ class Rummy extends LitElement {
               })}
             </div>
             <div class="winner-buttons">
-              <mwc-button
+              <md-filled-button
                 style="margin-right:1rem;"
-                dense
-                unelevated
                 @click=${this.drawFromPile}
-                label=${this.i18n.t("rummy.yes")}
-              ></mwc-button>
-              <mwc-button
-                dense
+              >${this.i18n.t("rummy.yes")}</md-filled-button>
+              <md-filled-button
                 @click=${() => (this.showPileWarning = false)}
-                label=${this.i18n.t("rummy.no")}
-              ></mwc-button>
+              >${this.i18n.t("rummy.no")}</md-filled-button>
             </div>
           </div>
         </div>`

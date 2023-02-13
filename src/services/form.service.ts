@@ -1,6 +1,8 @@
-import { Checkbox } from "@material/mwc-checkbox";
+import { MdCheckbox } from "@material/web/checkbox/checkbox";
 
-export const formService = { checkFormValidity, collectFormData };
+export const formService = { checkFormValidity, checkInputValidity, collectFormData };
+
+let debounceTimer = 0;
 
 function checkFormValidity(shadowRoot: ShadowRoot): boolean {
   const requiredFields = shadowRoot.querySelectorAll(
@@ -9,37 +11,43 @@ function checkFormValidity(shadowRoot: ShadowRoot): boolean {
 
   const validFields: boolean[] = [];
 
-  requiredFields.forEach((field) => {
+  requiredFields?.forEach((field) => {
     validFields.push(field.validity.valid);
   });
 
   const checkboxFields = shadowRoot.querySelectorAll(
-    "mwc-checkbox"
-  ) as NodeListOf<Checkbox>;
-  checkboxFields.forEach((field) => {
+    "md-checkbox"
+  ) as NodeListOf<MdCheckbox>;
+  checkboxFields?.forEach((field) => {
     validFields.push(field.checked);
   });
 
   return !validFields.includes(false);
 }
 
+function checkInputValidity(e: Event) {
+  const input = e.target as HTMLInputElement;
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => input.reportValidity(), 300);
+}
+
 function collectFormData(shadowRoot: ShadowRoot): Record<string, any> {
   const payload: Record<string, any> = {};
   const fields = shadowRoot.querySelectorAll(
-    "mwc-textfield, mwc-select, mwc-checkbox, mwc-radio"
+    "md-filled-select, md-checkbox, md-radio, md-filled-text-field"
   ) as NodeListOf<HTMLInputElement>;
 
   fields.forEach((field) => {
-    if (field.tagName === "MWC-TEXTFIELD" || field.tagName === "MWC-SELECT") {
+    if (field.tagName === "MD-FILLED-TEXT-FIELD" || field.tagName === "MD-FILLED-SELECT" || "MD-FILLED-TEXT-FIELD") {
       payload[field.name] = field.value;
     }
 
-    if (field.tagName === "MWC-CHECKBOX") {
+    if (field.tagName === "MD-CHECKBOX") {
       console.log(field);
       payload[field.name] = field.checked;
     }
 
-    if (field.tagName === "MWC-RADIO" && field.checked) {
+    if (field.tagName === "MD-RADIO" && field.checked) {
       payload[field.name] = field.value;
     }
   });

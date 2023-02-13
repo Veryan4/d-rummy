@@ -2,11 +2,11 @@ import { LitElement, html, css, PropertyValueMap } from "lit";
 import { customElement } from "lit/decorators.js";
 import { 
   RouteController,
-  ToastController,
   TranslationController,
   themeService } from "@veryan/lit-spa";
 import { routes } from "./app.routes";
 import "./components/top-bar/top-bar";
+import "@veryan/lit-spa"
 
 @customElement("my-app")
 class Truba extends LitElement {
@@ -26,14 +26,13 @@ class Truba extends LitElement {
   ];
 
   private router = new RouteController(this, routes);
-  private toaster = new ToastController(this);
   private i18n = new TranslationController(this);
 
   render() {
     return html`
       <top-bar>
         <div class="main">${this.router.navigation()}</div>
-        ${this.toaster.wait()}
+        <lit-spa-toast></lit-spa-toast>
       </top-bar>
     `;
   }
@@ -53,7 +52,6 @@ class Truba extends LitElement {
   }
 
   registerThemes() {
-    const root = document.querySelector(":root") as HTMLElement;
     const primaryWhite = "#fafafa";
     const secondaryWhite = "white";
     const primaryBlack = "#2c2c2c";
@@ -66,7 +64,7 @@ class Truba extends LitElement {
     const invertedOutlineColor = "#2c2c2c";
     const toastBackground = "#313131";
     const chipBackground = "#696969";
-    themeService.registerThemes(root, {
+    themeService.registerThemes({
       'light': {
         '--primary-color': primaryBlack,
         '--primary-background-color': primaryWhite,
