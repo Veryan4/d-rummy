@@ -25,8 +25,7 @@ function createDeck(colors = 4, values = 13): Card[] {
       deck.push(new Card(col, val));
     }
   }
-  const firstShuffle = shuffle(deck);
-  return shuffle(firstShuffle);
+  return shuffle(deck);
 }
 
 function createDeckWithOffset(
@@ -58,7 +57,7 @@ function merge(obj: Card[], objs: Card[][]): void {
   }
 }
 
-function shuffle(obj: Card[]): Card[] {
+function shuffle<T>(obj: T[]): T[] {
   const shuffled = [];
   let n = obj.length,
     i;
