@@ -1,3 +1,5 @@
+import { EncryptedCard } from "./encrypted-card.model";
+
 export type SymbolType = "♠" | "♥" | "♣" | "♦";
 export type RankType =
   | "a"
@@ -54,7 +56,8 @@ export class Card {
 }
 
 export class PlayerHand {
-  hand: Card[] = [];
+  encryptedCards: EncryptedCard[] = [];
+  cards: Card[] = [];
   sets: Card[][] = [];
   connected = true;
 }
@@ -62,7 +65,8 @@ export class PlayerHand {
 export class Table {
   players: { [username: string]: PlayerHand } = {};
   playerOrder: string[] = [];
-  deck: Card[];
+  whoseTurn: string;
+  deck: EncryptedCard[];
   pile: Card[];
   hasDrawn = false;
   turn = 0;

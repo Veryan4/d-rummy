@@ -33,19 +33,15 @@ class GameCardComponent extends LitElement {
   }
 
   render() {
-    const classes = { 
+    const classes = {
       selected: this.selected,
-      red: this.symbol =="♥" || this.symbol == "♦",
+      red: this.symbol == "♥" || this.symbol == "♦",
       black: this.symbol == "♠" || this.symbol == "♣",
     };
     return html`
-      <div
-        class="container ${classMap(classes)}"
-        @click=${this.flip}
-      >
+      <div class="container ${classMap(classes)}" @click=${this.flip}>
         <div id="front" class="${classMap(classes)}">
-          ${this.renderAlphaNumRank()}
-          ${this.renderAlphaNumRank(true)}
+          ${this.renderAlphaNumRank()} ${this.renderAlphaNumRank(true)}
           ${this.renderRank()}
           <img
             class="figure"
@@ -62,13 +58,11 @@ class GameCardComponent extends LitElement {
 
   renderAlphaNumRank(reversed = false) {
     const classes = { reversed };
-    return html`
-    <span class="rank ${classMap(classes)}">
+    return html` <span class="rank ${classMap(classes)}">
       ${this.renderTextSVG(this.rank?.toUpperCase(), 20)}
       ${this.renderTextSVG(this.symbol, 20)}
     </span>`;
   }
-
 
   renderTextSVG(content: string, size: number) {
     return svg`
@@ -79,9 +73,9 @@ class GameCardComponent extends LitElement {
 
   renderRank() {
     if (this.faces.includes(this.rank)) {
-      return ""
+      return "";
     }
-    const rankClassMap =[
+    const rankClassMap = [
       ["h-centered v-centered"],
       ["h-centered top", null, null, null, null, "h-centered bottom"],
       [
@@ -162,7 +156,7 @@ class GameCardComponent extends LitElement {
         "bottom right",
         "h-centered near-bottom",
       ],
-    ]
+    ];
 
     return [...Array(10).keys()].map((i) => {
       const rankClasses =
@@ -170,27 +164,28 @@ class GameCardComponent extends LitElement {
           this.rank.toLowerCase() === "a" ? 0 : Number(this.rank) - 1
         ];
       const indexClass = rankClasses && rankClasses[i];
-      const classes = {
-        reversed: i >= 5,
-        [indexClass ?? "hidden"]: true
+      const classes: Record<string, boolean> = { reversed: i >= 5 };
+      if (!indexClass) {
+        classes["hidden"] = true;
+      } else {
+        indexClass.split(" ").forEach((c) => (classes[c] = true));
       }
-      return html`
-        <span class="symbol ${classMap(classes)}">
-          ${this.renderTextSVG(this.symbol, 12)}
-        </span>`
+      return html` <span class="symbol ${classMap(classes)}">
+        ${this.renderTextSVG(this.symbol, 12)}
+      </span>`;
     });
   }
 
   getFigureImage() {
     if (!this.faces.includes(this.rank)) {
-      return ""
+      return "";
     }
     const symbolNames = {
       "♠": "spade",
       "♥": "heart",
       "♣": "club",
-      "♦": "diamond"
-    }
+      "♦": "diamond",
+    };
     const rankNames = {
       a: "ace",
       "2": "two",
@@ -204,8 +199,8 @@ class GameCardComponent extends LitElement {
       "10": "ten",
       j: "jack",
       q: "queen",
-      k: "king"
-    }
+      k: "king",
+    };
     const rankName = rankNames[this.rank.toLowerCase() as RankType];
     const symbolName = symbolNames[this.symbol];
 

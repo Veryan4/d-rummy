@@ -4,13 +4,13 @@ export const styles = css`
   .hand {
     display: grid;
     width: 10%;
-    grid-gap: 5%;
+    grid-gap: 1% 5%;
     grid-template-columns: repeat(7, 100%);
     transition: grid-template-columns 0.5s;
   }
 
   game-card {
-    width: 14dvw;
+    width: 12dvw;
   }
 
   .card-wrapper {

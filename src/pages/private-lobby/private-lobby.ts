@@ -9,7 +9,7 @@ import { styles } from "./private-lobby.styles";
 
 import "../../material-web";
 
-const MIN_PLAYERS = 3;
+const MIN_PLAYERS = 2;
 
 @customElement("private-lobby")
 class PrivateLobbyComponent extends LitElement {
@@ -227,7 +227,7 @@ class PrivateLobbyComponent extends LitElement {
           }
           this.requestUpdate();
           connection.on("data", async (data) => {
-            await this.handlePeerData(data);
+            await this.handlePeerData(data as any);
             this.requestUpdate();
           });
         });
@@ -266,7 +266,7 @@ class PrivateLobbyComponent extends LitElement {
           console.log("peer queue opened");
           connection.on("data", async (data) => {
             console.log("peer data received");
-            await this.handlePeerData(data);
+            await this.handlePeerData(data as any);
           });
           connection.on("close", async () => {
             console.log("peer queued closed");

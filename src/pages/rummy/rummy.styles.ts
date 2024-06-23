@@ -19,14 +19,14 @@ export const styles = css`
     flex-direction: column;
   }
   .deck game-card, .pile game-card{
-    height: 8dvw;
+    width: 6dvw;
   }
   .table.draw {
     border: 2px solid var(--theme-color);
   }
   .table {
     border-radius: 1rem;
-    padding: 0 1rem 1rem;
+    padding-left: 1rem;
   }
   .pile.discard {
     border: 2px solid var(--theme-color);
@@ -34,6 +34,7 @@ export const styles = css`
   .pile {
     border-radius: 1rem;
     padding-left: 1rem;
+    padding-bottom: 1rem;
   }
   .count {
     display: flex;
@@ -78,32 +79,17 @@ export const styles = css`
     margin-right: 0.5rem;
   }
   .set {
-    padding-right: 2rem;
+    padding-right: 2.5rem;
     margin: 0.5rem;
   }
-  .set.five {
-    padding-right: 3rem;
+  .set game-card {
+    width: 6dvw;
   }
-  .set.six {
-    padding-right: 3rem;
+  .set-4 {
+    padding-right: 3.5rem;
   }
-  .set.seven {
-    padding-right: 4rem;
-  }
-  .set.eight {
-    padding-right: 4rem;
-  }
-  .set.nine {
-    padding-right: 4rem;
-  }
-  .set.ten {
-    padding-right: 5rem;
-  }
-  .set.eleven {
-    padding-right: 5rem;
-  }
-  .set.twelve {
-    padding-right: 5rem;
+  .set-5, .set-6, .set-7, .set-8, .set-9, .set-10, .set-11, .set-12 {
+    padding-right: 4.5rem;
   }
   .set.empty {
     padding-right: unset;

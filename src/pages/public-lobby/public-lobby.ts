@@ -8,7 +8,7 @@ import { styles } from "./public-lobby.styles";
 
 import "@veryan/lit-spa";
 
-const PLAYERS_PER_GAME = 3;
+const PLAYERS_PER_GAME = 2;
 const UPDATE_INTERVAL = 5 * 1000;
 
 function setExpiryTime(milliseconds: number): Date {
@@ -120,7 +120,7 @@ class PublicLobbyComponent extends LitElement {
           console.log("peer queue opened");
           connection.on("data", async (data) => {
             console.log("peer data received");
-            await this.handlePeerData(data);
+            await this.handlePeerData(data as any);
           });
           connection.on("close", async () => {
             console.log("peer queued closed");
@@ -168,7 +168,7 @@ class PublicLobbyComponent extends LitElement {
           console.log("queued opened");
           connection.on("data", async (data) => {
             console.log("host data received");
-            await this.handlePeerData(data);
+            await this.handlePeerData(data as any);
           });
         });
         connection.on("close", async () => {
@@ -242,7 +242,7 @@ class PublicLobbyComponent extends LitElement {
           new Date(player.expiresAt) > now || player.name === this.user.value!
       );
       if (queue.length >= PLAYERS_PER_GAME && this.staging.length === 0) {
-        const staging = queue.splice(0, 3).map((player) => player.name);
+        const staging = queue.splice(0, PLAYERS_PER_GAME).map((player) => player.name);
         await this.sendAction({
           queue,
           staging,

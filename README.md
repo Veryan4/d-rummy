@@ -1,4 +1,4 @@
-![Image of d rummy](https://d-rummy.com/d-rummy-logo.png)
+![Image of d rummy](https://rummy.veryan.ca/d-rummy-logo.png)
 
 # Decentralized Rummy
 

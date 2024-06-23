@@ -122,9 +122,16 @@ class TopBar extends LitElement {
     `;
   }
 
-  async logout(): Promise<void> {
+  logout() {
     this.user.value = null;
-    await userService.removeUser();
+    sessionStorage.removeItem("game");
+    sessionStorage.removeItem("players");
+    sessionStorage.removeItem("table");
+    sessionStorage.removeItem("hand");
+    sessionStorage.removeItem("secretMap");
+    sessionStorage.removeItem("decryptedMap");
+    userService.removeUser();
+    routerService.navigate("");
   }
 
   language(lang: string): void {

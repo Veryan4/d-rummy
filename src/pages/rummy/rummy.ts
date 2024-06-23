@@ -1,22 +1,15 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { classMap } from "lit-html/directives/class-map.js";
+import { UserController, PeerController } from "../../controllers";
+import { cardsService, userService } from "../../services";
 import {
-  UserController,
-} from "../../controllers";
-import {
-  cardsService,
-  userService,
-} from "../../services";
-import { 
   TranslationController,
   SoundController,
   routerService,
-  toastService
+  toastService,
 } from "@veryan/lit-spa";
-import { Card, Table, PlayerHand } from "../../models";
-import { config } from "../../app.config";
-import Peer, { DataConnection } from "peerjs";
+import { Card, Table, PlayerHand, EncryptedCard } from "../../models";
 import { CardHand } from "../../components/hand/hand";
 import { styles } from "./rummy.styles";
 
@@ -36,13 +29,14 @@ class Rummy extends LitElement {
   private i18n = new TranslationController(this);
   private user = new UserController(this);
   private sound = new SoundController(this);
+  private peerController: PeerController;
 
-  private debounceInterval = 250;
+  private debounceInterval = 150;
   private timer: number;
   private players: string[] = [];
-
-  private peer: Peer;
-  private connections: DataConnection[] = [];
+  private others: string[] = [];
+  private myHand: Card[] = [];
+  private decryptedMap: Record<string, string> = {};
 
   @query("card-hand")
   cardHand: CardHand;
@@ -57,55 +51,37 @@ class Rummy extends LitElement {
     players: {
       [userService.getUser()!]: new PlayerHand(),
     },
+    whoseTurn: "",
     playerOrder: [],
-    deck: cardsService.createDeck(),
+    deck: [],
     pile: [],
     hasDrawn: false,
     turn: 0,
   };
 
-  @state()
-  private playerOrder: string[] = [];
-
-  @state()
-  private deck: Card[] = [];
-
-  @state()
-  private pile: Card[] = [];
-
-  @state()
-  private hasDrawn: boolean;
-
-  @state()
-  private yourSets: Card[][] = [];
-
-  @state()
-  private others: { [playerName: string]: PlayerHand } = {};
-
   constructor() {
     super();
-
-    const tableString = sessionStorage.getItem("table");
-    const table = tableString ? JSON.parse(tableString) : null;
-
     const players = sessionStorage.getItem("players");
     if (players) {
       this.players = JSON.parse(players);
-      if (this.players[0] === this.user.value! && !table) {
-        const table = cardsService.createRummyTable(this.players);
-        this.updateTable(table);
+      this.others = this.players.filter((player) => player != this.user.value);
+      const table = sessionStorage.getItem("table");
+      if (table) {
+        this.table = JSON.parse(table);
+        const hand = sessionStorage.getItem("hand");
+        this.myHand = hand ? JSON.parse(hand) : [];
+        const decryptedMap = sessionStorage.getItem("decryptedMap");
+        this.decryptedMap = decryptedMap ? JSON.parse(decryptedMap): {};
+        this.restoreTable();
       }
-    }
-
-    if (table) {
-      this.updateTable(table);
+      this.initializePeerConnections();
     }
   }
 
   render() {
-    return Object.keys(this.table.players).length > 1
-      ? this.renderGame()
-      : html`<lit-spa></lit-spa>`;
+    return !this.table.whoseTurn
+      ? html`<lit-spa-loader></lit-spa-loader>`
+      : this.renderGame();
   }
 
   renderGame() {
@@ -120,31 +96,22 @@ class Rummy extends LitElement {
           <div>
             <h3>${this.i18n.t("rummy.sets")}</h3>
             <div class="sets">
-              ${this.table.players[this.user.value!].sets.map((set) => {
-                const setLength = {
-                  five: set.length === 5,
-                  six: set.length === 6,
-                  seven: set.length === 7,
-                  eight: set.length === 8,
-                  nine: set.length === 8,
-                  ten: set.length === 10,
-                  eleven: set.length === 11,
-                  twelve: set.length === 12,
-                };
-                return html` <div
-                  class="set ${classMap(setLength)}"
-                  @click=${() => this.placeSet(set)}
-                >
-                  ${set.map(
-                    (card) =>
-                      html`<game-card
-                        class="small"
-                        symbol="${card.symbol}"
-                        rank="${card.rank}"
-                      ></game-card>`
-                  )}
-                </div>`;
-              })}
+              ${this.table.players[this.user.value!].sets.map(
+                (set) =>
+                  html` <div
+                    class="set ${classMap({ ["set-" + set.length]: true })}"
+                    @click=${() => this.placeSet(set)}
+                  >
+                    ${set.map(
+                      (card) =>
+                        html` <game-card
+                          class="small"
+                          symbol="${card.symbol}"
+                          rank="${card.rank}"
+                        ></game-card>`
+                    )}
+                  </div>`
+              )}
               <div class="set empty" @click=${() => this.placeNewSet()}>
                 <div class="empty-card">${this.i18n.t("rummy.add_set")}</div>
               </div>
@@ -174,8 +141,7 @@ class Rummy extends LitElement {
           </div>
           <h3>${this.i18n.t("rummy.hand")}</h3>
           <card-hand
-            @reordered=${(e: CustomEvent) =>
-              (this.table.players[this.user.value!].hand = e.detail.hand)}
+            @reordered=${(e: CustomEvent) => this.reorderHand(e.detail.hand)}
           ></card-hand>
         </div>
       </div>
@@ -187,7 +153,7 @@ class Rummy extends LitElement {
     return this.isYourTurn()
       ? html`<h1>${this.i18n.t("rummy.you")}</h1>`
       : html`<h1>
-          ${this.i18n.t("rummy.them", { user: this.table.playerOrder[0] })}
+          ${this.i18n.t("rummy.them", { user: this.table.whoseTurn })}
         </h1>`;
   }
 
@@ -219,12 +185,10 @@ class Rummy extends LitElement {
   }
 
   renderOthers() {
-    const players = Object.keys(this.table.players);
-    const others = players.filter((player) => player != this.user.value);
-    return others.map((other) => {
+    return this.others.map((other) => {
       const src = "https://api.dicebear.com/7.x/pixel-art/svg?seed=" + other;
       const classes = {
-        active: other == this.table.playerOrder[0],
+        active: other == this.table.whoseTurn,
         error: !this.table.players[other].connected,
       };
       return html`
@@ -235,7 +199,9 @@ class Rummy extends LitElement {
               ${this.table.players[other].connected
                 ? html`${this.i18n.t("rummy.player", {
                     player: other,
-                    amount: this.table.players[other].hand.length,
+                    amount:
+                      this.table.players[other].encryptedCards.length +
+                      this.table.players[other].cards.length,
                   })}`
                 : html`${this.i18n.t("rummy.disconnected", {
                     player: other,
@@ -245,38 +211,29 @@ class Rummy extends LitElement {
           <div class="other-sets">
             ${this.table.players[other].sets &&
             this.table.players[other].sets.length > 0
-              ? this.table.players[other].sets.map((set) => {
-                  const setLength = {
-                    five: set.length === 5,
-                    six: set.length === 6,
-                    seven: set.length === 7,
-                    eight: set.length === 8,
-                    nine: set.length === 8,
-                    ten: set.length === 10,
-                    eleven: set.length === 11,
-                    twelve: set.length === 12,
-                  };
-                  return html` <div
-                    class="set ${classMap(setLength)}"
-                    @click=${() => this.placeOthersSet(set, other)}
-                  >
-                    ${set.map(
-                      (card) =>
-                        html`<game-card
-                          class="small"
-                          symbol="${card.symbol}"
-                          rank="${card.rank}"
-                        ></game-card>`
-                    )}
-                  </div>`;
-                })
+              ? this.table.players[other].sets.map(
+                  (set) =>
+                    html` <div
+                      class="set ${classMap({ ["set-" + set.length]: true })}"
+                      @click=${() => this.placeOthersSet(set, other)}
+                    >
+                      ${set.map(
+                        (card) =>
+                          html`<game-card
+                            class="small"
+                            symbol="${card.symbol}"
+                            rank="${card.rank}"
+                          ></game-card>`
+                      )}
+                    </div>`
+                )
               : html` <div class="set empty">
                   ${this.i18n.t("rummy.no_set")}
                 </div>`}
           </div>
         </div>
-        ${other !== this.table.playerOrder[0] &&
-        other !== others[others.length - 1]
+        ${other !== this.table.whoseTurn &&
+        other !== this.others[this.others.length - 1]
           ? html`<hr />`
           : ""}
       `;
@@ -294,10 +251,11 @@ class Rummy extends LitElement {
               <md-filled-button
                 style="margin-right:1rem;"
                 @click=${this.rematch}
-              >${this.i18n.t("rummy.rematch")}</md-filled-button>
-              <md-filled-button
-                @click=${this.returnToLobby}
-              >${this.i18n.t("rummy.return")}</md-filled-button>
+                >${this.i18n.t("rummy.rematch")}</md-filled-button
+              >
+              <md-filled-button @click=${this.returnToLobby}
+                >${this.i18n.t("rummy.return")}</md-filled-button
+              >
             </div>
           </div>
         </div>`
@@ -317,112 +275,64 @@ class Rummy extends LitElement {
               <md-filled-button
                 style="margin-right:1rem;"
                 @click=${this.drawFromPile}
-              >${this.i18n.t("rummy.yes")}</md-filled-button>
-              <md-filled-button
-                @click=${() => (this.showPileWarning = false)}
-              >${this.i18n.t("rummy.no")}</md-filled-button>
+                >${this.i18n.t("rummy.yes")}</md-filled-button
+              >
+              <md-filled-button @click=${() => (this.showPileWarning = false)}
+                >${this.i18n.t("rummy.no")}</md-filled-button
+              >
             </div>
           </div>
         </div>`
       : "";
   }
 
+  initializePeerConnections() {
+    this.peerController = new PeerController(this.players, this.table);
+    this.peerController.events.addEventListener("tableUpdated", (e) =>
+      this.handlePeerTable(e as any)
+    );
+    this.peerController.events.addEventListener("playerConnection", (e) =>
+      this.playerConnection(e as any)
+    );
+    this.peerController.events.addEventListener("decryptedCards", (e) =>
+      this.decryptCards(e as any)
+    );
+  }
+
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
-
-    if (this.players.length > 0) {
-      this.peer = new Peer(`${this.user.value}-rummy-game`, config.peerjs);
-      this.peer.on("close", async () => {
-        console.log(`${this.user.value} peer closed`);
-      });
-      this.peer.on("disconnected", async () => {
-        console.log(`${this.user.value} peer disconnected`);
-      });
-      this.peer.on("error", async (err) => {
-        console.log(`${this.user.value} peer error`);
-        console.log(err);
-      });
-      this.peer.on("connection", (connection) => {
-        if (!this.connections.some((conn) => conn.peer === connection.peer)) {
-          const conn = this.peer.connect(connection.peer);
-          const player = conn.peer.split("-")[0];
-          conn.on("open", async () => {
-            console.log("queued opened");
-            await this.playerConnection(player, true);
-            if (!this.connections.some((c) => c.peer === conn.peer)) {
-              this.connections.push(conn);
-            }
-          });
-          conn.on("close", async () => {
-            console.log(`${this.user.value} queue closed`);
-            this.connections = this.connections.filter(
-              (c) => c.peer !== conn.peer
-            );
-            await this.playerConnection(player, false);
-          });
-          connection.on("open", async () => {
-            console.log(`${this.user.value} connection opened`);
-            await this.playerConnection(player, true);
-            connection.on("data", async (data) => {
-              await this.handlePeerData(data);
-            });
-          });
-          connection.on("close", async () => {
-            console.log(`${this.user.value} connection closed`);
-            this.connections = this.connections.filter(
-              (conn) => conn.peer !== connection.peer
-            );
-            await this.playerConnection(player, false);
-          });
-          connection.on("error", async (err) => {
-            console.log(`${this.user.value} connection error`);
-            console.log(err);
-          });
-        }
-      });
-
-      this.peer.on("open", async () => {
-        console.log(`${this.user.value} peer open`);
-        this.players.forEach((player) => {
-          if (player !== this.user.value) {
-            const connection = this.peer.connect(`${player}-rummy-game`);
-            if (
-              !this.connections.some((conn) => conn.peer === connection.peer)
-            ) {
-              connection.on("open", async () => {
-                console.log(`${player} connection opened`);
-                await this.playerConnection(player, true);
-                if (this.players[0] === this.user.value!) {
-                  connection.send(this.table);
-                }
-                connection.on("data", async (data) => {
-                  await this.handlePeerData(data);
-                });
-                this.connections.push(connection);
-              });
-              connection.on("close", async () => {
-                console.log(`${player} connection closed`);
-                this.connections = this.connections.filter(
-                  (conn) => conn.peer !== connection.peer
-                );
-                await this.playerConnection(player, false);
-              });
-              connection.on("error", async (err) => {
-                console.log(`${player} connection error`);
-                console.log(err);
-              });
-            }
-          }
-        });
-      });
-    }
-
     window.onbeforeunload = () => {
-      this.disconnect();
+      this.peerController.disconnect();
     };
   }
 
-  async playerConnection(playerName: string, isConnected: boolean) {
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.peerController.events.removeEventListener("tableUpdated", (e) =>
+      this.handlePeerTable(e as any)
+    );
+    this.peerController.events.removeEventListener("playerConnection", (e) =>
+      this.playerConnection(e as any)
+    );
+    this.peerController.events.removeEventListener("decryptedCards", (e) =>
+      this.decryptCards(e as any)
+    );
+    this.peerController.disconnect();
+  }
+
+  private async handlePeerTable(e: CustomEvent) {
+    clearTimeout(this.timer);
+    this.timer = setTimeout(async () => {
+      const table: Table = e.detail.table;
+      if (!cardsService.areTablesEqual(this.table, table)) {
+        await this.updateTable(table, true);
+      }
+    }, this.debounceInterval);
+  }
+
+  async playerConnection(e: CustomEvent) {
+    const playerName: string = e.detail.playerName;
+    const isConnected: boolean = e.detail.isConnected;
     if (!isConnected) {
       if (this.isGameOver(this.table)) {
         this.returnToLobby();
@@ -430,39 +340,23 @@ class Rummy extends LitElement {
     }
     if (this.table.players[playerName]) {
       this.table.players[playerName].connected = isConnected;
-      await this.throtteledRequestUpdate();
+      this.requestUpdate();
     }
   }
 
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-
-    this.disconnect();
+  async restoreTable(): Promise<void> {
+    this.updateTable(this.table);
+    this.requestUpdate();
+    await this.updateComplete;
+    this.cardHand.setCards(this.myHand);
   }
 
-  private async handlePeerData(table: Table) {
-    if (this.table !== table) {
-      clearTimeout(this.timer);
-      this.timer = setTimeout(async () => {
-        await this.updateTable(table, true);
-      }, this.debounceInterval);
-    }
-  }
-
-  disconnect() {
-    this.connections.forEach((conn) => conn.close());
-    this.peer.disconnect();
-  }
-
-  async sendAction(what: Table): Promise<void> {
-    this.updateTable(what);
-    if (this.connections.length > 0) {
-      this.connections.forEach((connection) => {
-        if (connection.open) {
-          connection.send(what);
-        }
-      });
-    }
+  async sendTableUpdate(): Promise<void> {
+    this.updateTable(this.table);
+    this.requestUpdate();
+    await this.updateComplete;
+    this.cardHand.setCards(this.myHand);
+    this.peerController.sendTableUpdate(this.table);
   }
 
   async updateTable(table: Table, updateByOther?: boolean) {
@@ -471,25 +365,46 @@ class Rummy extends LitElement {
       return;
     }
 
-    // Prevents hand being modified if it' s not your turn
-    const hand = this.table.players[this.user.value!].hand;
-    if (updateByOther && this.table.playerOrder.length !== 0 && !this.winner) {
-      table.players[this.user.value!].hand = hand;
+    if (table.turn == 0 && !table.hasDrawn) {
+      this.table = table;
+      if (!this.playerHasCards(this.user.value!)) {
+        table.playerOrder.some((player, i) => {
+          if (
+            (i == 0 ||
+              table.players[table.playerOrder[i - 1]].encryptedCards.length) &&
+            player === this.user.value
+          ) {
+            this.myHand = [];
+            const cardsToDecrypt: EncryptedCard[] = [];
+            cardsService.moveCards(
+              table.deck,
+              cardsToDecrypt,
+              "top",
+              "bottom",
+              7
+            );
+            this.peerController.decryptCards(cardsToDecrypt);
+            return true;
+          }
+          return false;
+        });
+      }
     }
 
-    this.tableToStates(table);
+    if (updateByOther) {
+      this.table = table;
+      this.requestUpdate();
+    }
     sessionStorage.setItem("table", JSON.stringify(table));
 
-    // Sounds
     if (!table.hasDrawn) {
-      if (table.playerOrder[0] === this.user.value) {
+      if (table.whoseTurn === this.user.value) {
         this.sound.play(yourTurnSound);
       } else {
         this.sound.play(theirTurnSound);
       }
     }
 
-    // Checks for EndGame
     this.winner = this.isGameOver(this.table);
     if (this.winner) {
       this.cardHand.unselectAll();
@@ -498,60 +413,13 @@ class Rummy extends LitElement {
     if (this.isYourTurn() && !this.table.hasDrawn) {
       toastService.newToast("rummy.you");
     }
-
-    await this.throtteledRequestUpdate();
-  }
-
-  async tableToStates(table: Table) {
-    this.table = table;
-
-    if (this.playerOrder !== table.playerOrder) {
-      this.playerOrder = table.playerOrder;
-    }
-
-    if (this.deck !== table.deck) {
-      this.deck = table.deck;
-    }
-
-    if (this.pile !== table.pile) {
-      this.pile = table.pile;
-    }
-
-    if (this.yourSets !== table.players[this.user.value!].sets) {
-      this.yourSets = table.players[this.user.value!].sets;
-    }
-
-    const otherPlayers = this.players.filter(
-      (player) => player !== this.user.value
-    );
-    otherPlayers.forEach((other) => {
-      if (this.others[other] !== table.players[other]) {
-        this.others[other] = table.players[other];
-      }
-    });
-
-    if (
-      this.hasDrawn !== table.hasDrawn &&
-      table.playerOrder[0] === this.user.value
-    ) {
-      this.hasDrawn = table.hasDrawn;
-    }
-
-    await this.updateComplete;
-    this.cardHand.setCards(table.players[this.user.value!].hand);
-  }
-
-  async throtteledRequestUpdate() {
-    await this.updateComplete;
-    this.requestUpdate();
-  }
-
-  isYourTurn(): boolean {
-    return this.table.playerOrder[0] === this.user.value;
   }
 
   drawFromDeck(): void {
-    if (this.table.hasDrawn) {
+    if (
+      this.table.hasDrawn ||
+      this.table.playerOrder.some((player) => !this.playerHasCards(player))
+    ) {
       return;
     }
     if (!this.isYourTurn()) {
@@ -559,18 +427,10 @@ class Rummy extends LitElement {
       toastService.newError("rummy.error.wait_your_turn");
       return;
     }
-    const table = {
-      ...this.table,
-      hasDrawn: true,
-      deck: cardsService.shuffle(this.table.deck),
-    };
-    cardsService.moveCard(
-      table.deck,
-      table.players[this.user.value!].hand,
-      "top",
-      "bottom"
-    );
-    this.sendAction(table);
+    this.table.hasDrawn = true;
+    const cardsToDecrypt: EncryptedCard[] = [];
+    cardsService.moveCard(this.table.deck, cardsToDecrypt, "top", "bottom");
+    this.peerController.decryptCards(cardsToDecrypt);
   }
 
   touchPile() {
@@ -599,21 +459,10 @@ class Rummy extends LitElement {
       toastService.newError("rummy.error.wait_your_turn");
       return;
     }
-    const table = {
-      ...this.table,
-      hasDrawn: true,
-    };
+    this.addCardsToHand(this.table.pile);
+    this.table.pile = [];
     this.table.hasDrawn = true;
-
-    cardsService.moveCards(
-      table.pile,
-      table.players[this.user.value!].hand,
-      "top",
-      "bottom",
-      table.pile.length
-    );
-
-    this.sendAction(table);
+    this.sendTableUpdate();
     this.showPileWarning = false;
   }
 
@@ -647,7 +496,7 @@ class Rummy extends LitElement {
       toastService.newError("rummy.error.wait_your_turn");
       return;
     }
-    if (!this.hasDrawn) {
+    if (!this.table.hasDrawn) {
       this.sound.play(errorSound);
       toastService.newError("rummy.error.draw_to_start");
       return;
@@ -665,26 +514,17 @@ class Rummy extends LitElement {
 
     const user = this.user.value!;
     const player = otherPlayer ? otherPlayer : user;
-    const players = {
-      ...this.table.players,
-    };
-
-    players[player].sets = this.table.players[player].sets.map((s) => {
-      if (set.some((c) => s[0].id === c.id)) {
-        return set;
+    this.table.players[player].sets = this.table.players[player].sets.map(
+      (s) => {
+        if (set.some((c) => s[0].id === c.id)) {
+          return set;
+        }
+        return s;
       }
-      return s;
-    });
-
-    players[user].hand = this.table.players[user].hand.filter(
-      (c) => !set.some((card) => card.id === c.id)
     );
+    this.removeCardsFromHand(set);
+    this.sendTableUpdate();
 
-    const table = {
-      ...this.table,
-      players,
-    };
-    this.sendAction(table);
     return true;
   }
 
@@ -714,25 +554,12 @@ class Rummy extends LitElement {
       return;
     }
 
-    const user = this.user.value!;
-    const players = {
-      ...this.table.players,
-    };
-
-    players[user].sets.push(set);
-    players[user].hand = this.table.players[user].hand.filter(
-      (c) => !set.some((card) => card.id === c.id)
-    );
-
-    const table = {
-      ...this.table,
-      players,
-    };
+    this.table.players[this.user.value!].sets.push(set);
     this.cardHand.unselectAll();
-    this.sendAction(table);
+    this.removeCardsFromHand(set);
+    this.sendTableUpdate();
   }
 
-  //ends turn
   discardToPile(): void {
     if (!this.table.hasDrawn) {
       return;
@@ -759,33 +586,30 @@ class Rummy extends LitElement {
     const card = selected[0];
     card.selected = false;
     this.cardHand.unselectAll();
+    this.removeCardsFromHand([card]);
 
-    const players = {
-      ...this.table.players,
-    };
-    players[this.user.value!].hand = players[this.user.value!].hand.filter(
-      (c) => card.id !== c.id
-    );
-
-    const playerOrder = [...this.table.playerOrder];
-    playerOrder.push(playerOrder.shift()!);
-
-    const table = {
+    let next = this.table.playerOrder.indexOf(this.table.whoseTurn);
+    if (next === this.table.playerOrder.length - 1) {
+      next = 0;
+    } else {
+      next++;
+    }
+    this.table = {
       ...this.table,
-      players,
       pile: [...this.table.pile, card],
-      playerOrder,
+      whoseTurn: this.table.playerOrder[next],
       hasDrawn: false,
       turn: this.table.turn + 1,
     };
 
-    this.sendAction(table);
+    this.sendTableUpdate();
   }
 
   isGameOver(table: Table): string | null {
+    if (!table?.turn) return null;
     let gameOver = null;
     table.playerOrder.forEach((player) => {
-      if (table.players[player].hand.length === 0) {
+      if (!this.playerHasCards(player)) {
         gameOver = player;
       }
     });
@@ -793,13 +617,20 @@ class Rummy extends LitElement {
   }
 
   rematch() {
-    const table = cardsService.createRummyTable(this.table.playerOrder);
-    this.sendAction(table);
+    this.decryptedMap = {};
+    this.myHand = [];
+    const playerOrder = [...this.table.playerOrder];
+    playerOrder.push(playerOrder.shift()!);
+    this.peerController.initializeDeck(playerOrder);
   }
 
   returnToLobby() {
     sessionStorage.removeItem("game");
+    sessionStorage.removeItem("players");
     sessionStorage.removeItem("table");
+    sessionStorage.removeItem("hand");
+    sessionStorage.removeItem("secretMap");
+    sessionStorage.removeItem("decryptedMap");
     routerService.navigate("");
   }
 
@@ -807,11 +638,63 @@ class Rummy extends LitElement {
     if (this.table.hasDrawn || !this.isYourTurn()) {
       return;
     }
-    const table = {
-      ...this.table,
-      deck: this.table.pile.reverse(),
-      pile: [],
-    };
-    this.sendAction(table);
+    this.peerController.initializeDeck(this.table.playerOrder, this.table.pile);
+  }
+
+  isYourTurn(): boolean {
+    return this.table.whoseTurn === this.user.value;
+  }
+
+  playerHasCards(player: string) {
+    return Boolean(
+      this.table.players[player].cards.length +
+        this.table.players[player].encryptedCards.length
+    );
+  }
+
+  decryptCards(e: CustomEvent) {
+    const decryptedCards: Card[] = e.detail.decryptedCards;
+    const encryptedCards: EncryptedCard[] = e.detail.encryptedCards;
+    this.addEncryptedCardsToHand(encryptedCards, decryptedCards);
+    this.sendTableUpdate();
+  }
+
+  reorderHand(hand: Card[]) {
+    this.myHand = hand;
+    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
+  }
+
+  addEncryptedCardsToHand(encryptedCards: EncryptedCard[], cards: Card[]) {
+    encryptedCards.forEach((encryptedCard, i) => {
+      const card = cards[i];
+      this.decryptedMap[encryptedCard.id] = card.id;
+      this.table.players[this.user.value!].encryptedCards.push(encryptedCard);
+      this.myHand.push(card);
+    });
+    sessionStorage.setItem("decryptedMap", JSON.stringify(this.decryptedMap));
+    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
+  }
+
+  addCardsToHand(cards: Card[]) {
+    this.table.players[this.user.value!].cards =
+      this.table.players[this.user.value!].cards.concat(cards);
+    this.myHand = this.myHand.concat(cards);
+    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
+  }
+
+  removeCardsFromHand(cards: Card[]) {
+    const user = this.user.value!;
+    this.table.players[user].encryptedCards = this.table.players[
+      user
+    ].encryptedCards.filter(
+      (e) => !cards.some((c) => c.id == this.decryptedMap[e.id])
+    );
+    this.table.players[user].cards = this.table.players[user].cards.filter(
+      (card) => !cards.some((c) => c.id == card.id)
+    );
+    this.myHand = this.myHand.filter(
+      (card) => !cards.some((c) => c.id == card.id)
+    );
+    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
   }
 }
