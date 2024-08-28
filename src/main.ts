@@ -26,7 +26,7 @@ class Truba extends LitElement {
   ];
 
   private router = new RouteController(this, routes);
-  private i18n = new TranslationController(this);
+  private i18n = new TranslationController(this, {supportedLanguages: ['en', 'fr']});
 
   render() {
     return html`

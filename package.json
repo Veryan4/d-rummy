@@ -38,9 +38,9 @@
   },
   "dependencies": {
     "@material/web": "^1.1.1",
-    "@veryan/lit-spa": "0.2.5",
+    "@veryan/lit-spa": "0.2.7",
     "crypto-js": "^4.2.0",
     "lit": "3.1.1",
-    "peerjs": "^1.5.2"
+    "peerjs": "^1.5.4"
   }
 }

@@ -1,6 +1,6 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
-import { classMap } from "lit-html/directives/class-map.js";
+import { classMap } from "lit/directives/class-map.js";
 import { UserController, PeerController } from "../../controllers";
 import { cardsService, userService } from "../../services";
 import {
