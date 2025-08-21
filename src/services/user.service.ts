@@ -1,11 +1,14 @@
+import { State } from "@veryan/lit-spa";
+
 const USER_KEY = "username";
-const USER_EVENT = "user-update";
+
+const state = new State<string | null>();
 
 export const userService = {
   getUser,
   setUser,
   removeUser,
-  USER_EVENT,
+  state,
 };
 
 function getUser(): string | null {
@@ -18,10 +21,10 @@ function setUser(nextUser: string | null): void {
   } else {
     sessionStorage.removeItem(USER_KEY);
   }
-  window.dispatchEvent(new Event(USER_EVENT));
+  state.update(nextUser);
 }
 
 function removeUser(): void {
   sessionStorage.removeItem(USER_KEY);
-  window.dispatchEvent(new Event(USER_EVENT));
+  state.update(null);
 }

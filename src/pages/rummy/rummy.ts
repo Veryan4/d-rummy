@@ -37,6 +37,7 @@ class Rummy extends LitElement {
   private others: string[] = [];
   private myHand: Card[] = [];
   private decryptedMap: Record<string, string> = {};
+  private subscriptions: (() => boolean)[] = [];
 
   @query("card-hand")
   cardHand: CardHand;
@@ -71,7 +72,7 @@ class Rummy extends LitElement {
         const hand = sessionStorage.getItem("hand");
         this.myHand = hand ? JSON.parse(hand) : [];
         const decryptedMap = sessionStorage.getItem("decryptedMap");
-        this.decryptedMap = decryptedMap ? JSON.parse(decryptedMap): {};
+        this.decryptedMap = decryptedMap ? JSON.parse(decryptedMap) : {};
         this.restoreTable();
       }
       this.initializePeerConnections();
@@ -288,15 +289,17 @@ class Rummy extends LitElement {
 
   initializePeerConnections() {
     this.peerController = new PeerController(this.players, this.table);
-    this.peerController.events.addEventListener("tableUpdated", (e) =>
-      this.handlePeerTable(e as any)
-    );
-    this.peerController.events.addEventListener("playerConnection", (e) =>
-      this.playerConnection(e as any)
-    );
-    this.peerController.events.addEventListener("decryptedCards", (e) =>
-      this.decryptCards(e as any)
-    );
+    this.subscriptions = [
+      this.peerController.tableState.subscribe((data) =>
+        this.handlePeerTable(data)
+      ),
+      this.peerController.connectionState.subscribe((data) =>
+        this.playerConnection(data)
+      ),
+      this.peerController.decryptedCardsState.subscribe((data) =>
+        this.decryptCards(data)
+      ),
+    ];
   }
 
   async connectedCallback(): Promise<void> {
@@ -308,38 +311,27 @@ class Rummy extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this.peerController.events.removeEventListener("tableUpdated", (e) =>
-      this.handlePeerTable(e as any)
-    );
-    this.peerController.events.removeEventListener("playerConnection", (e) =>
-      this.playerConnection(e as any)
-    );
-    this.peerController.events.removeEventListener("decryptedCards", (e) =>
-      this.decryptCards(e as any)
-    );
+    this.subscriptions.forEach((s) => s());
     this.peerController.disconnect();
   }
 
-  private async handlePeerTable(e: CustomEvent) {
+  private async handlePeerTable(data: { table: Table }) {
     clearTimeout(this.timer);
     this.timer = setTimeout(async () => {
-      const table: Table = e.detail.table;
-      if (!cardsService.areTablesEqual(this.table, table)) {
-        await this.updateTable(table, true);
+      if (!cardsService.areTablesEqual(this.table, data.table)) {
+        await this.updateTable(data.table, true);
       }
     }, this.debounceInterval);
   }
 
-  async playerConnection(e: CustomEvent) {
-    const playerName: string = e.detail.playerName;
-    const isConnected: boolean = e.detail.isConnected;
-    if (!isConnected) {
+  async playerConnection(data: { playerName: string; isConnected: boolean }) {
+    if (!data.isConnected) {
       if (this.isGameOver(this.table)) {
         this.returnToLobby();
       }
     }
-    if (this.table.players[playerName]) {
-      this.table.players[playerName].connected = isConnected;
+    if (this.table.players[data.playerName]) {
+      this.table.players[data.playerName].connected = data.isConnected;
       this.requestUpdate();
     }
   }
@@ -652,10 +644,11 @@ class Rummy extends LitElement {
     );
   }
 
-  decryptCards(e: CustomEvent) {
-    const decryptedCards: Card[] = e.detail.decryptedCards;
-    const encryptedCards: EncryptedCard[] = e.detail.encryptedCards;
-    this.addEncryptedCardsToHand(encryptedCards, decryptedCards);
+  decryptCards(data: {
+    decryptedCards: Card[];
+    encryptedCards: EncryptedCard[];
+  }) {
+    this.addEncryptedCardsToHand(data.encryptedCards, data.decryptedCards);
     this.sendTableUpdate();
   }
 
