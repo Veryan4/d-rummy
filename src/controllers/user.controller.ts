@@ -3,11 +3,12 @@ import { userService } from "../services";
 
 export class UserController {
   private host: ReactiveControllerHost;
+  private unsubscribe?: () => boolean;
   value = userService.getUser();
 
-  _changeUser = (e: Event) => {
-    if (this.value !== userService.getUser()) {
-      this.value = userService.getUser();
+  _changeUser = (user: string | null) => {
+    if (this.value !== user) {
+      this.value = user;
       this.host.requestUpdate();
     }
   };
@@ -18,16 +19,12 @@ export class UserController {
   }
 
   hostConnected(): void {
-    window.addEventListener(
-      userService.USER_EVENT,
-      this._changeUser as EventListener
+    this.unsubscribe = userService.state.subscribe((user) =>
+      this._changeUser(user)
     );
   }
 
   hostDisconnected(): void {
-    window.removeEventListener(
-      userService.USER_EVENT,
-      this._changeUser as EventListener
-    );
+    this.unsubscribe?.();
   }
 }

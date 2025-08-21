@@ -3,6 +3,7 @@ import Peer, { DataConnection } from "peerjs";
 import { config } from "../app.config";
 import { Card, PlayerHand, Table } from "../models";
 import { EncryptedCard } from "../models/encrypted-card.model";
+import { State } from "@veryan/lit-spa";
 
 enum PeerDataType {
   table,
@@ -43,7 +44,12 @@ export class PeerController {
   private decryptedLayers: EncryptedCard[] = [];
   private tableInitializationStarted = false;
 
-  events = new EventTarget();
+  tableState = new State<{ table: Table }>();
+  connectionState = new State<{ playerName: string; isConnected: boolean }>();
+  decryptedCardsState = new State<{
+    decryptedCards: Card[];
+    encryptedCards: EncryptedCard[];
+  }>();
 
   constructor(players: string[], table?: Table) {
     const secretMapString = sessionStorage.getItem("secretMap");
@@ -131,7 +137,7 @@ export class PeerController {
   handlePeerData(data: PeerData) {
     if (data.dataType == PeerDataType.table) {
       this.table = data.table!;
-      this.dispatchData("tableUpdated", data);
+      this.tableState.update({ table: this.table });
       return;
     }
     if (
@@ -158,13 +164,13 @@ export class PeerController {
             (player) => (table.players[player] = new PlayerHand())
           );
           this.sendTableUpdate(table);
-          this.dispatchData("tableUpdated", { table });
+          this.tableState.update({ table });
           return;
         }
         this.table.deck = encryptedDeck.encryptedCards;
         this.table.pile = [];
         this.sendTableUpdate(this.table);
-        this.dispatchData("tableUpdated", { table: this.table });
+        this.tableState.update({ table: this.table });
         return;
       }
       const userIndex = data.deckEncryption.playerOrder.indexOf(this.user);
@@ -257,7 +263,7 @@ export class PeerController {
       this.tableInitializationStarted = true;
       this.initializeDeck();
     }
-    this.dispatchData("playerConnection", {
+    this.connectionState.update({
       playerName,
       isConnected,
     });
@@ -304,7 +310,7 @@ export class PeerController {
   }
 
   cardsDecrypted(secrets: string[]) {
-    this.dispatchData("decryptedCards", {
+    this.decryptedCardsState.update({
       encryptedCards: this.cardsToDecrypt,
       decryptedCards: this.decryptedLayers.map((card, i) =>
         encryptService.decryptCard(card.card, secrets[i])
@@ -312,15 +318,6 @@ export class PeerController {
     });
     this.decryptedLayers = [];
     this.cardsToDecrypt = [];
-  }
-
-  dispatchData(eventName: string, detail: any) {
-    const options = {
-      detail,
-      bubbles: true,
-      composed: true,
-    };
-    this.events.dispatchEvent(new CustomEvent(eventName, options));
   }
 
   disconnect() {
