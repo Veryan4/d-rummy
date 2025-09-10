@@ -43,8 +43,10 @@ export const styles = css`
     border: 1px solid var(--outline-color);
     border-radius: 1px;
     padding: 30px;
-    box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2),
-      0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+    box-shadow:
+      0 2px 1px -1px rgba(0, 0, 0, 0.2),
+      0 1px 1px 0 rgba(0, 0, 0, 0.14),
+      0 1px 3px 0 rgba(0, 0, 0, 0.12);
   }
   .form-field {
     line-height: 1.5;
@@ -54,7 +56,7 @@ export const styles = css`
     position: relative;
     flex: auto;
     min-width: 0;
-    width: 180px;
+    width: 17rem;
     margin-right: 20px;
   }
   .card-title {

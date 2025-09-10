@@ -20,7 +20,7 @@ export const chipStyles = css`
 
   .md-chip:hover,
   .md-chip.selected:hover,
-  .md-chip.selected:hover .material-icons {
+  .md-chip.selected:hover .icon {
     background: #ccc;
   }
 
@@ -29,12 +29,12 @@ export const chipStyles = css`
     color: #fff;
   }
 
-  .md-chip.selected .material-icons {
+  .md-chip.selected .icon {
     background-color: #153333;
     color: #fff;
   }
 
-  .md-chip .material-icons {
+  .md-chip .icon {
     border-radius: 32px;
     align-items: center;
     display: flex;

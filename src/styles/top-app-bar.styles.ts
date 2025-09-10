@@ -8,10 +8,10 @@
 import { css } from "lit";
 
 export const topAppBarStyles = css`
-  .material-icons.mdc-top-app-bar__action-item.mdc-icon-button.hamburger {
+  .icon.mdc-top-app-bar__action-item.mdc-icon-button.hamburger {
     color: var(--primary-color);
-    font-size: 2rem;
-    height: unset;
+    height: 2rem;
+    width: 2rem;
   }
   .mdc-top-app-bar {
     background-color: #6200ee;
@@ -174,8 +174,10 @@ export const topAppBarStyles = css`
     opacity: 1;
   }
   .mdc-top-app-bar--short-collapsed {
-    box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2),
-      0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+    box-shadow:
+      0px 2px 4px -1px rgba(0, 0, 0, 0.2),
+      0px 4px 5px 0px rgba(0, 0, 0, 0.14),
+      0px 1px 10px 0px rgba(0, 0, 0, 0.12);
     width: 56px;
     transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -231,8 +233,10 @@ export const topAppBarStyles = css`
     transition: box-shadow 200ms linear;
   }
   .mdc-top-app-bar--fixed-scrolled {
-    box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2),
-      0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+    box-shadow:
+      0px 2px 4px -1px rgba(0, 0, 0, 0.2),
+      0px 4px 5px 0px rgba(0, 0, 0, 0.14),
+      0px 1px 10px 0px rgba(0, 0, 0, 0.12);
     transition: box-shadow 200ms linear;
   }
   .mdc-top-app-bar--dense.mdc-top-app-bar--prominent .mdc-top-app-bar__row {
@@ -270,6 +274,10 @@ export const topAppBarStyles = css`
     padding-top: 96px;
   }
   @media (max-width: 599px) {
+    .icon.hamburger {
+      color: var(--primary-color);
+      padding: 0 0.5rem;
+    }
     .mdc-top-app-bar__row {
       height: 56px;
     }

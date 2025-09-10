@@ -1,21 +1,12 @@
 import { css } from "lit";
 
 export const styles = css`
-  .material-icons {
-    font-family: "Material Icons";
-    font-weight: normal;
-    font-style: normal;
-    font-size: 24px;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
+  .icon {
+    width: 2rem;
+    height: 2rem;
     display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
-    -webkit-font-feature-settings: "liga";
-    -webkit-font-smoothing: antialiased;
-
+    color: var(--primary-color);
+    cursor: pointer;
     vertical-align: middle;
     padding-right: 1rem;
   }
@@ -86,7 +77,8 @@ export const styles = css`
     text-decoration: unset;
     color: unset;
   }
-  .material-icons.mdc-top-app-bar__action-item.mdc-icon-button.hamburger {
+  .icon.hamburger {
     color: var(--primary-color);
+    padding-left: 1rem;
   }
 `;
