@@ -1,12 +1,13 @@
 import { LitElement, html, css, PropertyValueMap } from "lit";
 import { customElement } from "lit/decorators.js";
-import { 
+import {
   RouteController,
   TranslationController,
-  themeService } from "@veryan/lit-spa";
+  themeService,
+} from "@veryan/lit-spa";
 import { routes } from "./app.routes";
 import "./components/top-bar/top-bar";
-import "@veryan/lit-spa"
+import "@veryan/lit-spa";
 
 @customElement("my-app")
 class Truba extends LitElement {
@@ -26,7 +27,9 @@ class Truba extends LitElement {
   ];
 
   private router = new RouteController(this, routes);
-  private i18n = new TranslationController(this, {supportedLanguages: ['en', 'fr']});
+  private i18n = new TranslationController(this, {
+    supportedLanguages: ["en", "fr"],
+  });
 
   render() {
     return html`
@@ -37,11 +40,13 @@ class Truba extends LitElement {
     `;
   }
 
-  protected shouldUpdate(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): boolean {
+  protected shouldUpdate(
+    _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
+  ): boolean {
     return this.i18n.hasLoadedTranslations;
   }
 
-  connectedCallback(): void {
+  async connectedCallback() {
     super.connectedCallback();
     this.registerThemes();
     const urlSearchParams = new URLSearchParams(location.search);
@@ -65,27 +70,26 @@ class Truba extends LitElement {
     const toastBackground = "#313131";
     const chipBackground = "#696969";
     themeService.registerThemes({
-      'light': {
-        '--primary-color': primaryBlack,
-        '--primary-background-color': primaryWhite,
-        '--secondary-background-color': secondaryWhite,
-        '--image-color': imageColor,
-        '--input-fill': inputBackgroundColor,
-        '--outline-color': outlineColor,
-        '--toast-background': toastBackground,
-        '--chip-background': inputBackgroundColor
+      light: {
+        "--primary-color": primaryBlack,
+        "--primary-background-color": primaryWhite,
+        "--secondary-background-color": secondaryWhite,
+        "--image-color": imageColor,
+        "--input-fill": inputBackgroundColor,
+        "--outline-color": outlineColor,
+        "--toast-background": toastBackground,
+        "--chip-background": inputBackgroundColor,
       },
-      'dark': {
-        '--primary-color': primaryWhite,
-        '--primary-background-color': primaryBlack,
-        '--secondary-background-color': secondaryBlack,
-        '--image-color': invertedImageColor,
-        '--input-fill': invertedInputBackgroundColor,
-        '--outline-color': invertedOutlineColor,
-        '--toast-background': secondaryBlack,
-        '--chip-background': chipBackground
-      }
+      dark: {
+        "--primary-color": primaryWhite,
+        "--primary-background-color": primaryBlack,
+        "--secondary-background-color": secondaryBlack,
+        "--image-color": invertedImageColor,
+        "--input-fill": invertedInputBackgroundColor,
+        "--outline-color": invertedOutlineColor,
+        "--toast-background": secondaryBlack,
+        "--chip-background": chipBackground,
+      },
     } as any);
   }
- 
 }

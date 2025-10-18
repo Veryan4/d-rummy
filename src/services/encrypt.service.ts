@@ -1,20 +1,24 @@
 import { Card } from "../models";
-import { EncryptedCard, EncryptedDeck } from "../models/encrypted-card.model";
+import { EncryptedCard } from "../models/encrypted-card.model";
 import { cardsService } from "./cards.service";
+
+const SECRET_MAP_STRING = "secretMap";
+const secretMap = new Map<number, JsonWebKey>();
+retrieveSecrets();
 
 export const encryptService = {
   encryptDeck,
   reEncryptDeck,
-  decryptLayer,
-  decryptCard,
+  decryptLayers,
+  decryptCards,
+  giveKeys,
 };
 
-async function encryptDeck(deck: Card[]): Promise<EncryptedDeck> {
-  const secretMap: Record<number, JsonWebKey> = {};
+async function encryptDeck(deck: Card[]): Promise<EncryptedCard[]> {
   const encryptedCards$ = deck.map(async (card, i) => {
     const { encrypted, jwk, ivArr } = await aesGcmEncrypt(card.id);
     const id = i + 1;
-    secretMap[id] = jwk;
+    secretMap.set(id, jwk);
     return {
       card: encrypted,
       id,
@@ -22,20 +26,19 @@ async function encryptDeck(deck: Card[]): Promise<EncryptedDeck> {
     };
   });
   const encryptedCards = await Promise.all(encryptedCards$);
-  return {
-    secretMap,
-    encryptedCards,
-  };
+  storeSecrets();
+  return encryptedCards;
 }
 
-async function reEncryptDeck(layers: EncryptedCard[]): Promise<EncryptedDeck> {
-  const secretMap: Record<number, JsonWebKey> = {};
+async function reEncryptDeck(
+  layers: EncryptedCard[]
+): Promise<EncryptedCard[]> {
   const encryptedCards$ = cardsService.shuffle(layers).map(async (layer, i) => {
     const { encrypted, jwk, ivArr } = await aesGcmEncrypt(
       JSON.stringify(layer)
     );
     const id = i + 1;
-    secretMap[id] = jwk;
+    secretMap.set(id, jwk);
     return {
       card: encrypted,
       id,
@@ -43,35 +46,39 @@ async function reEncryptDeck(layers: EncryptedCard[]): Promise<EncryptedDeck> {
     };
   });
   const encryptedCards = await Promise.all(encryptedCards$);
-  return {
-    secretMap,
-    encryptedCards,
-  };
+  storeSecrets();
+  return encryptedCards;
 }
 
-async function decryptLayer(
-  encryptedLayer: EncryptedCard,
-  secretKey: JsonWebKey
-): Promise<EncryptedCard> {
-  const card = await aesGcmDecrypt(
-    new Uint8Array(encryptedLayer.card).buffer,
-    secretKey,
-    new Uint8Array(encryptedLayer.ivArr).buffer
-  );
-  return JSON.parse(card);
+async function decryptLayers(
+  encryptedLayers: EncryptedCard[],
+  secrets?: JsonWebKey[]
+): Promise<EncryptedCard[]> {
+  const encryptedLayers$ = encryptedLayers.map(async (encryptedLayer, i) => {
+    const card = await aesGcmDecrypt(
+      new Uint8Array(encryptedLayer.card).buffer,
+      secrets ? secrets[i] : secretMap.get(encryptedLayer.id)!,
+      new Uint8Array(encryptedLayer.ivArr).buffer
+    );
+    return JSON.parse(card);
+  });
+  return Promise.all(encryptedLayers$);
 }
 
-async function decryptCard(
-  encryptedLayer: EncryptedCard,
-  secretKey: JsonWebKey
-): Promise<Card> {
-  const card = await aesGcmDecrypt(
-    new Uint8Array(encryptedLayer.card).buffer,
-    secretKey,
-    new Uint8Array(encryptedLayer.ivArr).buffer
-  );
-  const cardArr = card.split("-");
-  return new Card(Number(cardArr[0]), Number(cardArr[1]));
+async function decryptCards(
+  encryptedLayers: EncryptedCard[],
+  secrets?: JsonWebKey[]
+): Promise<Card[]> {
+  const encryptedLayers$ = encryptedLayers.map(async (encryptedLayer, i) => {
+    const card = await aesGcmDecrypt(
+      new Uint8Array(encryptedLayer.card).buffer,
+      secrets ? secrets[i] : secretMap.get(encryptedLayer.id)!,
+      new Uint8Array(encryptedLayer.ivArr).buffer
+    );
+    const cardArr = card.split("-");
+    return new Card(Number(cardArr[0]), Number(cardArr[1]));
+  });
+  return Promise.all(encryptedLayers$);
 }
 
 async function aesGcmEncrypt(toEncode: string) {
@@ -126,4 +133,24 @@ async function aesGcmDecrypt(
   const decoder = new TextDecoder();
   const decryptedPlaintext = decoder.decode(decryptedData);
   return decryptedPlaintext;
+}
+
+function giveKeys(ids: number[]) {
+  return ids.map((id) => secretMap.get(id)!);
+}
+
+function storeSecrets() {
+  sessionStorage.setItem(
+    SECRET_MAP_STRING,
+    JSON.stringify(Array.from(secretMap.entries()))
+  );
+}
+
+function retrieveSecrets() {
+  const secretMapString = sessionStorage.getItem(SECRET_MAP_STRING);
+  if (secretMapString) {
+    JSON.parse(secretMapString).map((entry: any) => {
+      secretMap.set(entry[0], entry[1]);
+    });
+  }
 }

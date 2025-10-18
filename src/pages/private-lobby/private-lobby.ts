@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { UserController } from "../../controllers";
-import { TranslationController, routerService} from "@veryan/lit-spa";
+import { TranslationController, routerService } from "@veryan/lit-spa";
 import { Lobby } from "../../models";
 import { config } from "../../app.config";
 import Peer, { DataConnection } from "peerjs";
@@ -81,7 +81,8 @@ class PrivateLobbyComponent extends LitElement {
       <div class="players-waiting">
         <p>${this.i18n.t("lobby.private.waiting")}</p>
         ${this.lobby.players.map((player) => {
-          const src = "https://api.dicebear.com/7.x/pixel-art/svg?seed=" + player;
+          const src =
+            "https://api.dicebear.com/7.x/pixel-art/svg?seed=" + player;
           return html` <div class="player">
             <img class="player-image" src=${src} alt="avatar" />
             <div class="player-name">${player}</div>
@@ -96,12 +97,12 @@ class PrivateLobbyComponent extends LitElement {
     return html` <div class="card">
       <h1 class="card-title">${this.i18n.t("lobby.private.create_or_join")}</h1>
       <div class="form-buttons">
-        <md-filled-button
-          @click=${this.createLobby}
-        >${this.i18n.t("lobby.private.create")}</md-filled-button>
-        <md-outlined-button
-          @click=${() => (this.createOrJoin = "join")}
-        >${this.i18n.t("lobby.private.join")}</md-outlined-button>
+        <md-filled-button @click=${this.createLobby}
+          >${this.i18n.t("lobby.private.create")}</md-filled-button
+        >
+        <md-outlined-button @click=${() => (this.createOrJoin = "join")}
+          >${this.i18n.t("lobby.private.join")}</md-outlined-button
+        >
       </div>
     </div>`;
   }
@@ -123,10 +124,9 @@ class PrivateLobbyComponent extends LitElement {
           ></md-filled-text-field>
         </form>
         <div class="form-buttons">
-          <md-filled-button
-            ?disabled=${!this.isFormValid}
-            @click=${this.join}
-          >${this.i18n.t("lobby.private.join")}</md-filled-button>
+          <md-filled-button ?disabled=${!this.isFormValid} @click=${this.join}
+            >${this.i18n.t("lobby.private.join")}</md-filled-button
+          >
         </div>
       </div>
     `;
@@ -146,9 +146,9 @@ class PrivateLobbyComponent extends LitElement {
 
   renderStartGame(players: string[]) {
     return players.length >= MIN_PLAYERS
-      ? html`<md-filled-button
-          @click=${this.startGame}
-        >${this.i18n.t("lobby.start")}</md-filled-button>`
+      ? html`<md-filled-button @click=${this.startGame}
+          >${this.i18n.t("lobby.start")}</md-filled-button
+        >`
       : html`
           ${this.renderMissingPlayers(players)}
           <div class="host">
@@ -333,6 +333,7 @@ class PrivateLobbyComponent extends LitElement {
   async createLobby() {
     this.game = this.user.value!;
     this.lobby.players.push(this.game);
+    this.lobby.host = this.game;
     sessionStorage.setItem("game", this.game);
     window.history.replaceState(null, "", `private?game=${this.user.value}`);
     navigator.clipboard.writeText(location.href);

@@ -359,28 +359,7 @@ class Rummy extends LitElement {
 
     if (table.turn == 0 && !table.hasDrawn) {
       this.table = table;
-      if (!this.playerHasCards(this.user.value!)) {
-        table.playerOrder.some((player, i) => {
-          if (
-            (i == 0 ||
-              table.players[table.playerOrder[i - 1]].encryptedCards.length) &&
-            player === this.user.value
-          ) {
-            this.myHand = [];
-            const cardsToDecrypt: EncryptedCard[] = [];
-            cardsService.moveCards(
-              table.deck,
-              cardsToDecrypt,
-              "top",
-              "bottom",
-              7
-            );
-            this.peerController.decryptCards(cardsToDecrypt);
-            return true;
-          }
-          return false;
-        });
-      }
+      this.dealInitialCards(table);
     }
 
     if (updateByOther) {
@@ -405,6 +384,26 @@ class Rummy extends LitElement {
     if (this.isYourTurn() && !this.table.hasDrawn) {
       toastService.newToast("rummy.you");
     }
+  }
+
+  dealInitialCards(table: Table) {
+    if (this.playerHasCards(this.user.value!)) {
+      return;
+    }
+    table.playerOrder.some((player, i) => {
+      if (
+        (i == 0 ||
+          table.players[table.playerOrder[i - 1]].encryptedCards.length) &&
+        player === this.user.value
+      ) {
+        this.myHand = [];
+        const cardsToDecrypt: EncryptedCard[] = [];
+        cardsService.moveCards(table.deck, cardsToDecrypt, "top", "bottom", 7);
+        this.peerController.decryptCards(cardsToDecrypt);
+        return true;
+      }
+      return false;
+    });
   }
 
   drawFromDeck(): void {
@@ -580,6 +579,12 @@ class Rummy extends LitElement {
     this.cardHand.unselectAll();
     this.removeCardsFromHand([card]);
 
+    this.table.pile = [...this.table.pile, card];
+
+    this.nextPlayerTurn();
+  }
+
+  nextPlayerTurn() {
     let next = this.table.playerOrder.indexOf(this.table.whoseTurn);
     if (next === this.table.playerOrder.length - 1) {
       next = 0;
@@ -588,7 +593,6 @@ class Rummy extends LitElement {
     }
     this.table = {
       ...this.table,
-      pile: [...this.table.pile, card],
       whoseTurn: this.table.playerOrder[next],
       hasDrawn: false,
       turn: this.table.turn + 1,
