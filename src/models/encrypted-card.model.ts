@@ -1,9 +1,10 @@
 export class EncryptedCard {
-  card: string;
+  card: number[];
   id: number;
+  ivArr: number[];
 }
 
 export class EncryptedDeck {
-  secretMap: Record<number, string>;
+  secretMap: Record<number, JsonWebKey>;
   encryptedCards: EncryptedCard[];
 }

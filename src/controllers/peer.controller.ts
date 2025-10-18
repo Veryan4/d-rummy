@@ -28,7 +28,7 @@ class PeerData {
   encryptionKeys?: {
     from: string;
     to: string;
-    keys: string[];
+    keys: JsonWebKey[];
   };
 }
 
@@ -39,7 +39,7 @@ export class PeerController {
   private players: string[] = [];
   private others: string[] = [];
   private table: Table;
-  private mySecretMap: Record<number, string>;
+  private mySecretMap: Record<number, JsonWebKey>;
   private cardsToDecrypt: EncryptedCard[] = [];
   private decryptedLayers: EncryptedCard[] = [];
   private tableInitializationStarted = false;
@@ -134,7 +134,7 @@ export class PeerController {
     });
   }
 
-  handlePeerData(data: PeerData) {
+  async handlePeerData(data: PeerData) {
     if (data.dataType == PeerDataType.table) {
       this.table = data.table!;
       this.tableState.update({ table: this.table });
@@ -144,7 +144,7 @@ export class PeerController {
       data.dataType == PeerDataType.deckEncryption &&
       data.deckEncryption?.to === this.user
     ) {
-      const encryptedDeck = encryptService.reEncryptDeck(
+      const encryptedDeck = await encryptService.reEncryptDeck(
         data.deckEncryption.cards
       );
       this.mySecretMap = encryptedDeck.secretMap;
@@ -196,9 +196,10 @@ export class PeerController {
         this.cardsDecrypted(data.encryptionKeys.keys);
         return;
       }
-      this.decryptedLayers = this.decryptedLayers.map((card, i) =>
-        encryptService.decryptLayer(card.card, data.encryptionKeys!.keys[i])
+      const decryptedLayers$ = this.decryptedLayers.map((card, i) =>
+        encryptService.decryptLayer(card, data.encryptionKeys!.keys[i])
       );
+      this.decryptedLayers = await Promise.all(decryptedLayers$);
       let next = this.table.playerOrder[orderIndex - 1];
       if (next == this.user) {
         const secrets = this.decryptedLayers.map(
@@ -208,9 +209,10 @@ export class PeerController {
           this.cardsDecrypted(secrets);
           return;
         }
-        this.decryptedLayers = this.decryptedLayers.map((card, i) =>
-          encryptService.decryptLayer(card.card, secrets[i])
+        const decryptedLayers$ = this.decryptedLayers.map((card, i) =>
+          encryptService.decryptLayer(card, secrets[i])
         );
+        this.decryptedLayers = await Promise.all(decryptedLayers$);
         next = this.table.playerOrder[orderIndex - 2];
       }
       this.connectionMap.get(`${next}-rummy-game`)?.send({
@@ -269,13 +271,13 @@ export class PeerController {
     });
   }
 
-  initializeDeck(playerOrder?: string[], pile?: Card[]) {
+  async initializeDeck(playerOrder?: string[], pile?: Card[]) {
     let order = this.players;
     if (playerOrder) {
       order = playerOrder;
     }
     const deck = pile ? cardsService.shuffle(pile) : cardsService.createDeck();
-    const encryptedDeck = encryptService.encryptDeck(deck);
+    const encryptedDeck = await encryptService.encryptDeck(deck);
     this.mySecretMap = encryptedDeck.secretMap;
     sessionStorage.setItem("secretMap", JSON.stringify(this.mySecretMap));
     const next = order[1];
@@ -289,14 +291,15 @@ export class PeerController {
     });
   }
 
-  decryptCards(cardsToDecrypt: EncryptedCard[]) {
+  async decryptCards(cardsToDecrypt: EncryptedCard[]) {
     this.decryptedLayers = cardsToDecrypt;
     this.cardsToDecrypt = cardsToDecrypt;
     let player = this.table.playerOrder.at(-1);
     if (player === this.user) {
-      this.decryptedLayers = cardsToDecrypt.map((card) =>
-        encryptService.decryptLayer(card.card, this.mySecretMap[card.id])
+      const decryptedLayers$ = cardsToDecrypt.map(async (card) =>
+        encryptService.decryptLayer(card, this.mySecretMap[card.id])
       );
+      this.decryptedLayers = await Promise.all(decryptedLayers$);
       player = this.table.playerOrder.at(-2);
     }
     this.connectionMap.get(`${player}-rummy-game`)?.send({
@@ -309,12 +312,13 @@ export class PeerController {
     });
   }
 
-  cardsDecrypted(secrets: string[]) {
+  async cardsDecrypted(secrets: JsonWebKey[]) {
+    const decryptedLayers$ = this.decryptedLayers.map((card, i) =>
+      encryptService.decryptCard(card, secrets[i])
+    );
     this.decryptedCardsState.update({
       encryptedCards: this.cardsToDecrypt,
-      decryptedCards: this.decryptedLayers.map((card, i) =>
-        encryptService.decryptCard(card.card, secrets[i])
-      ),
+      decryptedCards: await Promise.all(decryptedLayers$),
     });
     this.decryptedLayers = [];
     this.cardsToDecrypt = [];

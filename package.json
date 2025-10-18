@@ -13,7 +13,6 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "16.0.1",
     "@rollup/plugin-terser": "0.4.4",
-    "@types/crypto-js": "^4.2.2",
     "@types/jest": "29.5.14",
     "@types/node": "^22.13.14",
     "typescript-eslint": "8.40.0",
@@ -36,7 +35,6 @@
   "dependencies": {
     "@material/web": "^2.3.0",
     "@veryan/lit-spa": "0.3.4",
-    "crypto-js": "^4.2.0",
     "lit": "3.3.1",
     "peerjs": "^1.5.5"
   }
