@@ -6,6 +6,7 @@ export enum PeerDataType {
   deckEncryption,
   keyRequest,
   encryptionKeys,
+  endOfGame,
 }
 
 export interface DeckEncryption {
@@ -23,7 +24,12 @@ export interface KeyRequest {
 export interface EncryptionKeys {
   from: string;
   to: string;
-  keys: JsonWebKey[];
+  keys: Record<number, JsonWebKey>;
+}
+
+export interface EndOfGame {
+  from: string;
+  secretMaps: Record<number, JsonWebKey>[];
 }
 
 export interface PeerData {
@@ -32,4 +38,5 @@ export interface PeerData {
   deckEncryption?: DeckEncryption;
   keyRequest?: KeyRequest;
   encryptionKeys?: EncryptionKeys;
+  endOfGame?: EndOfGame;
 }

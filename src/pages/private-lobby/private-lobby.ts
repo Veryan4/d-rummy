@@ -1,6 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { UserController } from "../../controllers";
+import { storeService } from "../../services";
 import { TranslationController, routerService } from "@veryan/lit-spa";
 import { Lobby } from "../../models";
 import { config } from "../../app.config";
@@ -38,16 +39,9 @@ class PrivateLobbyComponent extends LitElement {
   constructor() {
     super();
 
-    const paramsString = sessionStorage.getItem("params");
-    if (paramsString) {
-      const params = JSON.parse(paramsString);
-      if (params) {
-        this.game = params.game;
-      }
-    }
-
     if (!this.game) {
-      this.game = sessionStorage.getItem("game");
+      const { game } = storeService.getGameState();
+      this.game = game;
     }
 
     if (this.game) {
@@ -282,8 +276,7 @@ class PrivateLobbyComponent extends LitElement {
   disconnectedCallback(): void {
     super.disconnectedCallback();
 
-    sessionStorage.removeItem("params");
-    sessionStorage.removeItem("lobby");
+    storeService.eraseLobbyState();
     this.disconnect();
   }
 
@@ -296,8 +289,8 @@ class PrivateLobbyComponent extends LitElement {
     if (this.lobby !== lobby) {
       sessionStorage.setItem("lobby", JSON.stringify(lobby));
       if (lobby.hasStarted) {
-        const playerString = JSON.stringify(lobby.players);
-        sessionStorage.setItem("players", playerString);
+        storeService.setPlayers(lobby.players);
+        sessionStorage.removeItem("lobby");
         routerService.navigate("rummy");
       }
       this.lobby = lobby;
@@ -334,7 +327,7 @@ class PrivateLobbyComponent extends LitElement {
     this.game = this.user.value!;
     this.lobby.players.push(this.game);
     this.lobby.host = this.game;
-    sessionStorage.setItem("game", this.game);
+    storeService.setGame(this.game);
     window.history.replaceState(null, "", `private?game=${this.user.value}`);
     navigator.clipboard.writeText(location.href);
     this.requestUpdate();
@@ -344,9 +337,10 @@ class PrivateLobbyComponent extends LitElement {
   async startGame(): Promise<void> {
     if (!this.lobby.hasStarted && this.lobby.players.length > 0) {
       this.lobby.hasStarted = true;
-      sessionStorage.setItem("players", JSON.stringify(this.lobby.players));
+      storeService.setPlayers(this.lobby.players);
       await this.sendAction(this.lobby);
       setTimeout(() => {
+        sessionStorage.removeItem("lobby");
         routerService.navigate("rummy");
       }, 1000);
     }

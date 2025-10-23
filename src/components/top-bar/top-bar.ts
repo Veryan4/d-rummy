@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { UserController } from "../../controllers";
-import { userService } from "../../services";
+import { storeService, userService } from "../../services";
 import {
   SoundController,
   TranslationController,
@@ -133,12 +133,7 @@ class TopBar extends LitElement {
 
   logout() {
     this.user.value = null;
-    sessionStorage.removeItem("game");
-    sessionStorage.removeItem("players");
-    sessionStorage.removeItem("table");
-    sessionStorage.removeItem("hand");
-    sessionStorage.removeItem("secretMap");
-    sessionStorage.removeItem("decryptedMap");
+    storeService.eraseGameState();
     userService.removeUser();
     routerService.navigate("");
   }

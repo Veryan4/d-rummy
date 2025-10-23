@@ -71,3 +71,18 @@ export class Table {
   hasDrawn = false;
   turn = 0;
 }
+
+export class DecryptedTable {
+  players: {
+    [username: string]: {
+      cards: Card[];
+      sets: Card[][];
+    };
+  };
+  playerOrder: string[];
+  whoseTurn: string;
+  deck: Card[];
+  pile: Card[];
+  hasDrawn: boolean;
+  turn: number;
+}

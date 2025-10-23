@@ -1,6 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { UserController } from "../../controllers";
+import { storeService } from "../../services";
 import { TranslationController, routerService } from "@veryan/lit-spa";
 import { config } from "../../app.config";
 import Peer, { DataConnection } from "peerjs";
@@ -242,7 +243,9 @@ class PublicLobbyComponent extends LitElement {
           new Date(player.expiresAt) > now || player.name === this.user.value!
       );
       if (queue.length >= PLAYERS_PER_GAME && this.staging.length === 0) {
-        const staging = queue.splice(0, PLAYERS_PER_GAME).map((player) => player.name);
+        const staging = queue
+          .splice(0, PLAYERS_PER_GAME)
+          .map((player) => player.name);
         await this.sendAction({
           queue,
           staging,
@@ -290,7 +293,7 @@ class PublicLobbyComponent extends LitElement {
   }
 
   async playerJoinGame(): Promise<void> {
-    sessionStorage.setItem("players", JSON.stringify(this.staging));
+    storeService.setPlayers(this.staging);
     if (this.staging[0] === this.user.value!) {
       await this.sendAction({
         staging: [],

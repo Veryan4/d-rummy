@@ -15,7 +15,9 @@ export const cardsService = {
   moveCardsFromIndex,
   isValidRummySet,
   areTablesEqual,
-  areArraysEqual
+  areArraysEqual,
+  areSetOfEncryptedCardsEqual,
+  areHandsEqual,
 };
 
 // for now needs to be called with default values
@@ -155,14 +157,13 @@ function isValidRummySet(set: Card[]): boolean {
   return valid;
 }
 
-
 function areTablesEqual(table1: Table, table2: Table) {
   return (
     table1.hasDrawn === table2.hasDrawn &&
     table1.whoseTurn === table2.whoseTurn &&
     table1.turn === table2.turn &&
-    areEncryptedCarsEqual(table1.deck, table2.deck) &&
-    areCardsEqual(table1.pile, table2.pile) &&
+    areSetOfEncryptedCardsEqual(table1.deck, table2.deck) &&
+    areSetOfCardsEqual(table1.pile, table2.pile) &&
     table1.playerOrder.every((player) =>
       areHandsEqual(table1.players[player], table2.players[player])
     )
@@ -176,32 +177,39 @@ function areArraysEqual(array1: any[], array2: any[]) {
   );
 }
 
-function areCardsEqual(cards1: Card[], cards2: Card[]) {
+function areSetOfCardsEqual(cards1: Card[], cards2: Card[]) {
   return (
     cards1.length === cards2.length &&
     cards1.every((card, index) => card.id == cards2[index].id)
   );
 }
 
-function areEncryptedCarsEqual(cards1: EncryptedCard[], cards2: EncryptedCard[]) {
+function areEncryptedCardsEqual(card1: EncryptedCard, card2: EncryptedCard) {
+  return areArraysEqual(card1.card, card2.card);
+}
+
+function areSetOfEncryptedCardsEqual(
+  cards1: EncryptedCard[],
+  cards2: EncryptedCard[]
+) {
   return (
     cards1.length === cards2.length &&
-    cards1.every((card, index) => card.card == cards2[index].card)
+    cards1.every((card, index) => areEncryptedCardsEqual(card, cards2[index]))
   );
 }
 
 function areSetsEqual(sets1: Card[][], sets2: Card[][]) {
   return (
     sets1.length === sets2.length &&
-    sets1.every((set, index) => areCardsEqual(set, sets2[index]))
+    sets1.every((set, index) => areSetOfCardsEqual(set, sets2[index]))
   );
 }
 
 function areHandsEqual(hand1: PlayerHand, hand2: PlayerHand) {
   return (
     hand1.connected === hand2.connected &&
-    areEncryptedCarsEqual(hand1.encryptedCards, hand2.encryptedCards) &&
-    areCardsEqual(hand1.cards, hand2.cards) &&
+    areSetOfEncryptedCardsEqual(hand1.encryptedCards, hand2.encryptedCards) &&
+    areSetOfCardsEqual(hand1.cards, hand2.cards) &&
     areSetsEqual(hand1.sets, hand2.sets)
   );
 }

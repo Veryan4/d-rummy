@@ -89,6 +89,7 @@
     "add_set": "Add Set",
     "flip_discard": "Flip to Deck",
     "place_other_set": "{from} placed a card on {to}'s set",
+    "audit": "Audit",
     "error": {
       "wait_your_turn": "Wait for your turn",
       "need_3_cards": "It takes at least 3 cards to form a set",
@@ -97,6 +98,29 @@
       "only_discard_1": "You may only discard 1 card",
       "select_discard": "You must select a card to discard",
       "draw_to_start": "You must start by drawing a card"
+    }
+  },
+  "audit": {
+    "turn": "It's turn {turn}",
+    "previous": "Previous",
+    "next": "Next",
+    "sets": "Sets",
+    "cheatDetection": "Cheat Detection",
+    "infractionDetected": "Cheating found after full game decryption",
+    "foundInfraction": "Go to first infraction",
+    "cheat": {
+      "0": "Unable to run cheat detection",
+      "1": "A turn was skipped or reverted",
+      "2": "Player turn order changed",
+      "3": "Wrong player's turn",
+      "4": "Cards were taken from both Deck and Pile",
+      "5": "Sets are not Valid",
+      "6": "Players hand changed outside of their turn"
+    },
+    "infraction": {
+      "0": "There are more or less than 52 cards in play",
+      "1": "Not all cards are unique",
+      "2": "There is an invalid Set"
     }
   }
 }
