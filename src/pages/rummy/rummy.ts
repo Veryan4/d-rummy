@@ -2,15 +2,29 @@ import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { UserController, PeerController } from "../../controllers";
-import { cardsService, userService } from "../../services";
+import {
+  auditService,
+  cardsService,
+  encryptService,
+  storeService,
+  userService,
+} from "../../services";
 import {
   TranslationController,
   SoundController,
   routerService,
   toastService,
 } from "@veryan/lit-spa";
-import { Card, Table, PlayerHand, EncryptedCard } from "../../models";
+import {
+  Card,
+  Table,
+  PlayerHand,
+  EncryptedCard,
+  EndOfGame,
+  CheatEnum,
+} from "../../models";
 import { CardHand } from "../../components/hand/hand";
+import { spinner } from "../../styles";
 import { styles } from "./rummy.styles";
 
 import "../../material-web";
@@ -36,14 +50,21 @@ class Rummy extends LitElement {
   private players: string[] = [];
   private others: string[] = [];
   private myHand: Card[] = [];
-  private decryptedMap: Record<string, string> = {};
+  private decryptedMap = new Map<number, string>();
   private subscriptions: (() => boolean)[] = [];
+  private tableOverTime: Table[] = [];
+  private playersSecretKeys = new Map<string, Map<number, JsonWebKey>[]>();
+  private isAuditEnabled = false;
+  private infractionFound = false;
 
   @query("card-hand")
   cardHand: CardHand;
 
   @state()
   private winner: string | null;
+
+  @state()
+  private cheat: CheatEnum | null;
 
   @state()
   private showPileWarning = false;
@@ -62,18 +83,26 @@ class Rummy extends LitElement {
 
   constructor() {
     super();
-    const players = sessionStorage.getItem("players");
+    const {
+      players,
+      table,
+      hand,
+      decryptedMap,
+      tableOverTime,
+      decryptedTablesOverTime,
+    } = storeService.getGameState();
     if (players) {
-      this.players = JSON.parse(players);
+      this.players = players;
       this.others = this.players.filter((player) => player != this.user.value);
-      const table = sessionStorage.getItem("table");
       if (table) {
-        this.table = JSON.parse(table);
-        const hand = sessionStorage.getItem("hand");
-        this.myHand = hand ? JSON.parse(hand) : [];
-        const decryptedMap = sessionStorage.getItem("decryptedMap");
-        this.decryptedMap = decryptedMap ? JSON.parse(decryptedMap) : {};
+        this.table = table;
+        this.myHand = hand;
+        this.decryptedMap = decryptedMap!;
+        this.tableOverTime = tableOverTime;
         this.restoreTable();
+      }
+      if (decryptedTablesOverTime) {
+        this.isAuditEnabled = true;
       }
       this.initializePeerConnections();
     }
@@ -146,7 +175,8 @@ class Rummy extends LitElement {
           ></card-hand>
         </div>
       </div>
-      ${this.renderGameWinner()} ${this.renderPileWarning()}
+      ${this.renderGameWinner()} ${this.renderCheatDetected()}
+      ${this.renderPileWarning()}
     `;
   }
 
@@ -166,7 +196,7 @@ class Rummy extends LitElement {
           rank="2"
           .unrevealed=${true}
         ></game-card>`
-      : html`<div class="empty-card" @click=${this.flipPileToDeck}>
+      : html`<div class="empty-card">
           ${this.i18n.t("rummy.flip_discard")}
         </div>`;
   }
@@ -248,11 +278,47 @@ class Rummy extends LitElement {
             <div class="winner-text">
               <b>${this.winner}</b> ${this.i18n.t("rummy.win")}
             </div>
+            ${this.infractionFound
+              ? html`<div class="audit-infraction">
+                  ${this.i18n.t("audit.infractionDetected")}
+                </div>`
+              : ""}
             <div class="winner-buttons">
               <md-filled-button
                 style="margin-right:1rem;"
                 @click=${this.rematch}
                 >${this.i18n.t("rummy.rematch")}</md-filled-button
+              >
+              <md-filled-button
+                style="margin-right:1rem;"
+                ?disabled=${!this.isAuditEnabled}
+                @click=${this.sendToAudit}
+                >${!this.isAuditEnabled ? spinner() : ""}
+                ${this.i18n.t("rummy.audit")}</md-filled-button
+              >
+              <md-filled-button @click=${this.returnToLobby}
+                >${this.i18n.t("rummy.return")}</md-filled-button
+              >
+            </div>
+          </div>
+        </div>`
+      : "";
+  }
+
+  renderCheatDetected() {
+    return this.cheat
+      ? html` <div class="winner-overlay">
+          <div class="winner-modal">
+            <div class="winner-text">
+              <b>${this.i18n.t("audit.cheatDetection")}</b>:
+              ${this.i18n.t("audit.cheat." + this.cheat)}
+            </div>
+            <div class="winner-buttons">
+              <md-filled-button
+                style="margin-right:1rem;"
+                ?disabled=${!this.isAuditEnabled}
+                @click=${this.sendToAudit}
+                >${this.i18n.t("rummy.audit")}</md-filled-button
               >
               <md-filled-button @click=${this.returnToLobby}
                 >${this.i18n.t("rummy.return")}</md-filled-button
@@ -299,6 +365,9 @@ class Rummy extends LitElement {
       this.peerController.decryptedCardsState.subscribe((data) =>
         this.decryptCards(data)
       ),
+      this.peerController.endOfGameState.subscribe((data) =>
+        this.receivedEndOfGame(data)
+      ),
     ];
   }
 
@@ -327,7 +396,11 @@ class Rummy extends LitElement {
   async playerConnection(data: { playerName: string; isConnected: boolean }) {
     if (!data.isConnected) {
       if (this.isGameOver(this.table)) {
-        this.returnToLobby();
+        setTimeout(() => {
+          if (!this.table.players[data.playerName].connected) {
+            this.returnToLobby();
+          }
+        }, 5000);
       }
     }
     if (this.table.players[data.playerName]) {
@@ -357,16 +430,34 @@ class Rummy extends LitElement {
       return;
     }
 
+    if (this.table.turn < table.turn && !table.hasDrawn) {
+      const cheat = auditService.cheatDetection(
+        table,
+        this.tableOverTime.at(-1)!
+      );
+      if (cheat != null) {
+        toastService.newError("audit.cheat." + cheat);
+        this.peerController.endOfGame();
+        this.cardHand.unselectAll();
+        return;
+      }
+    }
+
     if (table.turn == 0 && !table.hasDrawn) {
       this.table = table;
+      this.tableOverTime = [table];
       this.dealInitialCards(table);
     }
 
     if (updateByOther) {
+      if (this.table.turn < table.turn) {
+        this.tableOverTime.push(table);
+      }
       this.table = table;
       this.requestUpdate();
     }
-    sessionStorage.setItem("table", JSON.stringify(table));
+    storeService.setTable(table);
+    storeService.setTableOverTime(this.tableOverTime);
 
     if (!table.hasDrawn) {
       if (table.whoseTurn === this.user.value) {
@@ -378,6 +469,7 @@ class Rummy extends LitElement {
 
     this.winner = this.isGameOver(this.table);
     if (this.winner) {
+      this.peerController.endOfGame();
       this.cardHand.unselectAll();
     }
 
@@ -411,6 +503,10 @@ class Rummy extends LitElement {
       this.table.hasDrawn ||
       this.table.playerOrder.some((player) => !this.playerHasCards(player))
     ) {
+      return;
+    }
+    if (!this.table.deck.length) {
+      this.flipPileToDeck();
       return;
     }
     if (!this.isYourTurn()) {
@@ -578,9 +674,7 @@ class Rummy extends LitElement {
     card.selected = false;
     this.cardHand.unselectAll();
     this.removeCardsFromHand([card]);
-
-    this.table.pile = [...this.table.pile, card];
-
+    this.table.pile.push(card);
     this.nextPlayerTurn();
   }
 
@@ -598,6 +692,7 @@ class Rummy extends LitElement {
       turn: this.table.turn + 1,
     };
 
+    this.tableOverTime.push(this.table);
     this.sendTableUpdate();
   }
 
@@ -613,7 +708,7 @@ class Rummy extends LitElement {
   }
 
   rematch() {
-    this.decryptedMap = {};
+    this.decryptedMap.clear();
     this.myHand = [];
     const playerOrder = [...this.table.playerOrder];
     playerOrder.push(playerOrder.shift()!);
@@ -621,12 +716,7 @@ class Rummy extends LitElement {
   }
 
   returnToLobby() {
-    sessionStorage.removeItem("game");
-    sessionStorage.removeItem("players");
-    sessionStorage.removeItem("table");
-    sessionStorage.removeItem("hand");
-    sessionStorage.removeItem("secretMap");
-    sessionStorage.removeItem("decryptedMap");
+    storeService.eraseGameState();
     routerService.navigate("");
   }
 
@@ -634,7 +724,7 @@ class Rummy extends LitElement {
     if (this.table.hasDrawn || !this.isYourTurn()) {
       return;
     }
-    this.peerController.initializeDeck(this.table.playerOrder, this.table.pile);
+    this.peerController.deckFLipped(this.table.playerOrder, this.table.pile);
   }
 
   isYourTurn(): boolean {
@@ -658,25 +748,25 @@ class Rummy extends LitElement {
 
   reorderHand(hand: Card[]) {
     this.myHand = hand;
-    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
+    storeService.setHand(this.myHand);
   }
 
   addEncryptedCardsToHand(encryptedCards: EncryptedCard[], cards: Card[]) {
     encryptedCards.forEach((encryptedCard, i) => {
       const card = cards[i];
-      this.decryptedMap[encryptedCard.id] = card.id;
+      this.decryptedMap.set(encryptedCard.id, card.id);
       this.table.players[this.user.value!].encryptedCards.push(encryptedCard);
       this.myHand.push(card);
     });
-    sessionStorage.setItem("decryptedMap", JSON.stringify(this.decryptedMap));
-    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
+    storeService.setDecryptedMap(this.decryptedMap);
+    storeService.setHand(this.myHand);
   }
 
   addCardsToHand(cards: Card[]) {
     this.table.players[this.user.value!].cards =
       this.table.players[this.user.value!].cards.concat(cards);
     this.myHand = this.myHand.concat(cards);
-    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
+    storeService.setHand(this.myHand);
   }
 
   removeCardsFromHand(cards: Card[]) {
@@ -684,7 +774,7 @@ class Rummy extends LitElement {
     this.table.players[user].encryptedCards = this.table.players[
       user
     ].encryptedCards.filter(
-      (e) => !cards.some((c) => c.id == this.decryptedMap[e.id])
+      (e) => !cards.some((c) => c.id == this.decryptedMap.get(e.id))
     );
     this.table.players[user].cards = this.table.players[user].cards.filter(
       (card) => !cards.some((c) => c.id == card.id)
@@ -692,6 +782,33 @@ class Rummy extends LitElement {
     this.myHand = this.myHand.filter(
       (card) => !cards.some((c) => c.id == card.id)
     );
-    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
+    storeService.setHand(this.myHand);
+  }
+
+  async receivedEndOfGame(endOfGame: EndOfGame) {
+    const secretMaps = endOfGame.secretMaps.map((secretMap) => {
+      const map = new Map<number, JsonWebKey>();
+      Object.entries(secretMap).map(([k, v]) => map.set(Number(k), v));
+      return map;
+    });
+    this.playersSecretKeys.set(endOfGame.from, secretMaps);
+    if (this.playersSecretKeys.size == this.players.length - 1) {
+      this.playersSecretKeys.set(this.user.value!, encryptService.secretMaps);
+      const { audit, decryptedTablesOverTime } = await auditService.audit(
+        this.tableOverTime,
+        this.playersSecretKeys
+      );
+      storeService.setDecryptedTableOverTime(decryptedTablesOverTime);
+      storeService.setAudit(audit);
+      if (audit.some((a) => a.infractions.length)) {
+        this.infractionFound = true;
+      }
+      this.isAuditEnabled = true;
+      this.requestUpdate();
+    }
+  }
+
+  sendToAudit() {
+    window.open(location.origin + "/audit", "_blank", "noreferrer");
   }
 }

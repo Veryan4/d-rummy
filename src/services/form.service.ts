@@ -1,6 +1,10 @@
 import { MdCheckbox } from "@material/web/checkbox/checkbox";
 
-export const formService = { checkFormValidity, checkInputValidity, collectFormData };
+export const formService = {
+  checkFormValidity,
+  checkInputValidity,
+  collectFormData,
+};
 
 let debounceTimer = 0;
 
@@ -38,12 +42,15 @@ function collectFormData(shadowRoot: ShadowRoot): Record<string, any> {
   ) as NodeListOf<HTMLInputElement>;
 
   fields.forEach((field) => {
-    if (field.tagName === "MD-FILLED-TEXT-FIELD" || field.tagName === "MD-FILLED-SELECT" || "MD-FILLED-TEXT-FIELD") {
+    if (
+      field.tagName === "MD-FILLED-TEXT-FIELD" ||
+      field.tagName === "MD-FILLED-SELECT" ||
+      "MD-FILLED-TEXT-FIELD"
+    ) {
       payload[field.name] = field.value;
     }
 
     if (field.tagName === "MD-CHECKBOX") {
-      console.log(field);
       payload[field.name] = field.checked;
     }
 

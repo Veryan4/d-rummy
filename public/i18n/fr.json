@@ -89,6 +89,7 @@
     "add_set": "Ajouter",
     "flip_discard": "Renverser au Paquet",
     "place_other_set": "{from} a placé un carte sur la série de {to}",
+    "audit": "Audit",
     "error": {
       "wait_your_turn": "Il faut attende ton tour",
       "need_3_cards": "Il faut au moins 3 cartes pour former une série",
@@ -97,6 +98,29 @@
       "only_discard_1": "On peux seulement jeter une carte",
       "select_discard": "Il faut sélectionner une carte à jeter",
       "draw_to_start": "Il faut commencer par piger une carte"
+    }
+  },
+  "audit": {
+    "turn": "C'est le tour {turn}",
+    "previous": "Précédent",
+    "next": "Prochain",
+    "sets": "Séries",
+    "cheatDetection": "Cheat Detection",
+    "infractionDetected": "Cheating found after full game decryption",
+    "foundInfraction": "Go to first infraction",
+    "cheat": {
+      "0": "Unable to run cheat detection",
+      "1": "A turn was skipped or reverted",
+      "2": "Player turn order changed",
+      "3": "Wrong player's turn",
+      "4": "Cards were taken from both Deck and Pile",
+      "5": "Sets are not Valid",
+      "6": "Players hand changed outside of their turn"
+    },
+    "infraction": {
+      "0": "There are more or less than 52 cards in play",
+      "1": "Not all cards are unique",
+      "2": "There is an invalid Set"
     }
   }
 }

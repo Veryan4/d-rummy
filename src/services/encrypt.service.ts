@@ -3,7 +3,7 @@ import { EncryptedCard } from "../models/encrypted-card.model";
 import { cardsService } from "./cards.service";
 
 const SECRET_MAP_STRING = "secretMap";
-const secretMap = new Map<number, JsonWebKey>();
+const secretMaps = [new Map<number, JsonWebKey>()];
 retrieveSecrets();
 
 export const encryptService = {
@@ -12,13 +12,16 @@ export const encryptService = {
   decryptLayers,
   decryptCards,
   giveKeys,
+  secretMaps,
+  resetSecretMaps,
+  incrementSecretMaps,
 };
 
 async function encryptDeck(deck: Card[]): Promise<EncryptedCard[]> {
   const encryptedCards$ = deck.map(async (card, i) => {
     const { encrypted, jwk, ivArr } = await aesGcmEncrypt(card.id);
     const id = i + 1;
-    secretMap.set(id, jwk);
+    setSecretMap(id, jwk);
     return {
       card: encrypted,
       id,
@@ -38,7 +41,7 @@ async function reEncryptDeck(
       JSON.stringify(layer)
     );
     const id = i + 1;
-    secretMap.set(id, jwk);
+    setSecretMap(id, jwk);
     return {
       card: encrypted,
       id,
@@ -52,12 +55,14 @@ async function reEncryptDeck(
 
 async function decryptLayers(
   encryptedLayers: EncryptedCard[],
-  secrets?: JsonWebKey[]
+  secrets?: Map<number, JsonWebKey>
 ): Promise<EncryptedCard[]> {
-  const encryptedLayers$ = encryptedLayers.map(async (encryptedLayer, i) => {
+  const encryptedLayers$ = encryptedLayers.map(async (encryptedLayer) => {
     const card = await aesGcmDecrypt(
       new Uint8Array(encryptedLayer.card).buffer,
-      secrets ? secrets[i] : secretMap.get(encryptedLayer.id)!,
+      secrets
+        ? secrets.get(encryptedLayer.id)!
+        : getSecretMap(encryptedLayer.id)!,
       new Uint8Array(encryptedLayer.ivArr).buffer
     );
     return JSON.parse(card);
@@ -67,12 +72,14 @@ async function decryptLayers(
 
 async function decryptCards(
   encryptedLayers: EncryptedCard[],
-  secrets?: JsonWebKey[]
+  secrets?: Map<number, JsonWebKey>
 ): Promise<Card[]> {
-  const encryptedLayers$ = encryptedLayers.map(async (encryptedLayer, i) => {
+  const encryptedLayers$ = encryptedLayers.map(async (encryptedLayer) => {
     const card = await aesGcmDecrypt(
       new Uint8Array(encryptedLayer.card).buffer,
-      secrets ? secrets[i] : secretMap.get(encryptedLayer.id)!,
+      secrets
+        ? secrets.get(encryptedLayer.id)!
+        : getSecretMap(encryptedLayer.id)!,
       new Uint8Array(encryptedLayer.ivArr).buffer
     );
     const cardArr = card.split("-");
@@ -136,21 +143,46 @@ async function aesGcmDecrypt(
 }
 
 function giveKeys(ids: number[]) {
-  return ids.map((id) => secretMap.get(id)!);
+  const map: Record<number, JsonWebKey> = {};
+  ids.map((id) => (map[id] = getSecretMap(id)!));
+  return map;
 }
 
 function storeSecrets() {
   sessionStorage.setItem(
     SECRET_MAP_STRING,
-    JSON.stringify(Array.from(secretMap.entries()))
+    JSON.stringify(
+      secretMaps.map((secretMap) => Array.from(secretMap.entries()))
+    )
   );
 }
 
 function retrieveSecrets() {
+  secretMaps.length = 0;
   const secretMapString = sessionStorage.getItem(SECRET_MAP_STRING);
   if (secretMapString) {
-    JSON.parse(secretMapString).map((entry: any) => {
-      secretMap.set(entry[0], entry[1]);
+    JSON.parse(secretMapString).map((secretMap: any[], i: number) => {
+      if (secretMaps.length == i) {
+        secretMaps.push(new Map<number, JsonWebKey>());
+      }
+      secretMap.map((entry) => secretMaps[i].set(entry[0], entry[1]));
     });
   }
+}
+
+function getSecretMap(id: number) {
+  return secretMaps.at(-1)!.get(id);
+}
+
+function setSecretMap(id: number, secret: JsonWebKey) {
+  secretMaps.at(-1)!.set(id, secret);
+}
+
+function resetSecretMaps() {
+  secretMaps.length = 0;
+  incrementSecretMaps();
+}
+
+function incrementSecretMaps() {
+  secretMaps.push(new Map<number, JsonWebKey>());
 }

@@ -6,11 +6,6 @@ This is a decentralized implementation of a rummy card game. This means that dat
 
 See [the blog post](https://v-goodship.medium.com/p2p-zero-trust-card-game-3d7dd11fad5e).
 
-
-## WIP
-
-- A solid anti-cheat system.
-
 ### Helpful projects
 
 These projects were either directly used or served as inspiration to help with the building of this application.

@@ -8,6 +8,7 @@ import {
 import { routes } from "./app.routes";
 import "./components/top-bar/top-bar";
 import "@veryan/lit-spa";
+import { storeService } from "./services";
 
 @customElement("my-app")
 class Truba extends LitElement {
@@ -52,7 +53,7 @@ class Truba extends LitElement {
     const urlSearchParams = new URLSearchParams(location.search);
     const params = Object.fromEntries(urlSearchParams.entries());
     if (params && params.game) {
-      sessionStorage.setItem("game", params.game);
+      storeService.setGame(params.game);
     }
   }
 

@@ -1,13 +1,40 @@
 import { css } from "lit";
 
 export const styles = css`
-  .table-wrapper,
+  .infraction-btn {
+    --md-filled-button-container-color: crimson;
+  }
+  .audit-wrapper {
+    width: 70dvw;
+  }
+  .audit-wrapper,
   h1 {
     display: flex;
     font-family: var(--font-family);
   }
-  .winner-overlay {
-    font-family: var(--font-family);
+  .hidden {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    width: 100dvw;
+    height: 100dvh;
+    padding: 4rem;
+    background-color: grey;
+    opacity: 0.95;
+  }
+  .hidden-cards {
+    display: grid;
+    grid-gap: 1.6rem;
+    grid-template-columns: repeat(auto-fill, minmax(0, max-content));
+    transition: grid-template-columns 0.5s;
+    width: 100%;
+    margin-right: 1rem;
+    opacity: 1;
+  }
+  .hidden-cards game-card {
+    width: 12dvw;
+    opacity: 1;
   }
   .table,
   .deck,
@@ -19,7 +46,9 @@ export const styles = css`
     flex-direction: column;
   }
   .deck game-card,
-  .pile game-card {
+  .pile game-card,
+  .hand game-card,
+  .set game-card {
     width: 6dvw;
   }
   .table.draw {
@@ -27,7 +56,19 @@ export const styles = css`
   }
   .table {
     border-radius: 1rem;
-    padding-left: 1rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  .audit-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+  .turns {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
   }
   .pile.discard {
     border: 2px solid var(--theme-color);
@@ -58,8 +99,19 @@ export const styles = css`
     justify-content: center;
     align-items: center;
   }
+  .hand {
+    display: grid;
+    grid-gap: 0.8rem;
+    grid-template-columns: repeat(auto-fill, minmax(0, max-content));
+    transition: grid-template-columns 0.5s;
+    width: fit-content;
+    margin-right: 0.5rem;
+  }
+  .hand {
+    padding-right: 2.5rem;
+    margin: 0.5rem;
+  }
   game-card,
-  .set,
   .pile {
     cursor: pointer;
   }
@@ -83,9 +135,6 @@ export const styles = css`
     padding-right: 2.5rem;
     margin: 0.5rem;
   }
-  .set game-card {
-    width: 6dvw;
-  }
   .set-4 {
     padding-right: 3.5rem;
   }
@@ -107,6 +156,7 @@ export const styles = css`
   .other {
     display: flex;
     flex-direction: column;
+    padding: 0 1rem;
   }
   .other.active {
     border: 2px solid var(--theme-color);
@@ -135,52 +185,37 @@ export const styles = css`
     height: 2rem;
     border-radius: 2rem;
   }
-  .winner-overlay {
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-  }
 
-  .winner-modal {
-    background-color: var(--primary-background-color);
-    margin: 15% auto;
-    padding: 20px;
-    border: 2px solid var(--outline-color);
-    width: fit-content;
-  }
-
-  .winner-text {
-    margin-bottom: 1rem;
-  }
-
-  .winner-buttons {
-    display: flex;
-  }
-
-  .audit-infraction {
-    padding-bottom: 1rem;
+  .infractions {
     color: red;
   }
 
   @media only screen and (max-width: 752px) {
-    .table-wrapper {
+    .audit-wrapper {
       flex-direction: column;
+      width: 90dvw;
     }
     .first-half {
       display: flex;
       flex-direction: column-reverse;
     }
     .deck game-card,
-    .pile game-card {
-      height: 26dvw;
+    .pile game-card,
+    .hand game-card,
+    .set game-card {
+      width: 19dvw;
     }
     .empty-card {
       height: calc(26dvw - 6px);
+    }
+    .hidden {
+      padding: 1rem;
+    }
+    .hidden-cards {
+      width: 67%;
+    }
+    .hidden-cards game-card {
+      width: 24dvw;
     }
   }
   @media only screen and (min-width: 752px) {

@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { UserController } from "../../controllers";
-import { userService } from "../../services";
+import { storeService, userService } from "../../services";
 import { TranslationController, routerService } from "@veryan/lit-spa";
 import { styles } from "./home.styles";
 
@@ -24,15 +24,12 @@ class HomeComponent extends LitElement {
 
   constructor() {
     super();
-
-    const tableString = sessionStorage.getItem("table");
-    if (tableString) {
+    const { table, game } = storeService.getGameState();
+    if (table) {
       routerService.navigate("rummy");
     }
-
-    const gameString = sessionStorage.getItem("game");
-    if (gameString) {
-      this.game = gameString;
+    if (game) {
+      this.game = game;
     }
   }
 
@@ -61,7 +58,8 @@ class HomeComponent extends LitElement {
             <md-filled-button
               ?disabled=${!this.isFormValid}
               @click=${this.login}
-            >${this.i18n.t("lobby.login.button")}</md-filled-button>
+              >${this.i18n.t("lobby.login.button")}</md-filled-button
+            >
           </div>
         </div>`;
   }
@@ -70,12 +68,12 @@ class HomeComponent extends LitElement {
     return html` <div class="card">
       <h1 class="card-title">${this.i18n.t("lobby.privacy.title")}</h1>
       <div class="form-buttons">
-        <md-filled-button
-          @click=${this.public}
-        >${this.i18n.t("lobby.privacy.public")}</md-filled-button>
-        <md-outlined-button
-          @click=${this.private}
-        >${this.i18n.t("lobby.privacy.private")}</md-outlined-button>
+        <md-filled-button @click=${this.public}
+          >${this.i18n.t("lobby.privacy.public")}</md-filled-button
+        >
+        <md-outlined-button @click=${this.private}
+          >${this.i18n.t("lobby.privacy.private")}</md-outlined-button
+        >
       </div>
     </div>`;
   }
@@ -98,7 +96,7 @@ class HomeComponent extends LitElement {
     userService.setUser(this.usernameInput.value);
     setTimeout(() => {
       if (this.game) {
-        sessionStorage.setItem("game", this.game);
+        storeService.setGame(this.game);
         routerService.navigate("private");
       }
     }, 300);

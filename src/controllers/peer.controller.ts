@@ -11,6 +11,7 @@ import {
   PlayerHand,
   Table,
   EncryptedCard,
+  EndOfGame,
 } from "../models";
 import { State } from "@veryan/lit-spa";
 
@@ -30,6 +31,7 @@ export class PeerController {
     decryptedCards: Card[];
     encryptedCards: EncryptedCard[];
   }>();
+  endOfGameState = new State<EndOfGame>();
 
   constructor(players: string[], table?: Table) {
     if (table) {
@@ -149,9 +151,14 @@ export class PeerController {
       this.keyRequestReceived(data.keyRequest);
       return;
     }
+    if (data.dataType == PeerDataType.endOfGame && data.endOfGame) {
+      this.receivedSecretMap(data.endOfGame);
+      return;
+    }
   }
 
   async usersTurnToEncrypt(deckEncryption: DeckEncryption) {
+    encryptService.incrementSecretMaps();
     const encryptedCards = await encryptService.reEncryptDeck(
       deckEncryption.cards
     );
@@ -193,13 +200,17 @@ export class PeerController {
 
   async receivedKeys(encryptionKeys: EncryptionKeys) {
     const orderIndex = this.table.playerOrder.indexOf(encryptionKeys.from);
+    const secretMap = new Map<number, JsonWebKey>();
+    Object.entries(encryptionKeys.keys).map(([k, v]) =>
+      secretMap.set(Number(k), v)
+    );
     if (orderIndex === 0) {
-      this.cardsDecrypted(encryptionKeys.keys);
+      this.cardsDecrypted(secretMap);
       return;
     }
     this.decryptedLayers = await encryptService.decryptLayers(
       this.decryptedLayers,
-      encryptionKeys.keys
+      secretMap
     );
     let next = this.table.playerOrder[orderIndex - 1];
     if (next == this.user) {
@@ -233,6 +244,10 @@ export class PeerController {
     });
   }
 
+  receivedSecretMap(endOfGame: EndOfGame) {
+    this.endOfGameState.update(endOfGame);
+  }
+
   sendTableUpdate(table: Table) {
     this.table = table;
     if (this.connectionMap.size > 0) {
@@ -247,12 +262,25 @@ export class PeerController {
     }
   }
 
-  async initializeDeck(playerOrder?: string[], pile?: Card[]) {
+  async initializeDeck(playerOrder?: string[]) {
+    encryptService.resetSecretMaps();
+    const deck = cardsService.createDeck();
+    return this.initializeDeckEncryption(deck, playerOrder);
+  }
+
+  async deckFLipped(playerOrder: string[], pile: Card[]) {
+    encryptService.incrementSecretMaps();
+    return this.initializeDeckEncryption(
+      cardsService.shuffle(pile),
+      playerOrder
+    );
+  }
+
+  async initializeDeckEncryption(deck: Card[], playerOrder?: string[]) {
     let order = this.players;
     if (playerOrder) {
       order = playerOrder;
     }
-    const deck = pile ? cardsService.shuffle(pile) : cardsService.createDeck();
     const encryptedCards = await encryptService.encryptDeck(deck);
     const next = order[1];
     this.connectionMap.get(`${next}-rummy-game`)?.send({
@@ -263,6 +291,7 @@ export class PeerController {
         playerOrder: order,
       },
     });
+    return null;
   }
 
   async decryptCards(cardsToDecrypt: EncryptedCard[]) {
@@ -283,7 +312,7 @@ export class PeerController {
     });
   }
 
-  async cardsDecrypted(secrets?: JsonWebKey[]) {
+  async cardsDecrypted(secrets?: Map<number, JsonWebKey>) {
     this.decryptedCardsState.update({
       encryptedCards: this.cardsToDecrypt,
       decryptedCards: await encryptService.decryptCards(
@@ -293,6 +322,24 @@ export class PeerController {
     });
     this.decryptedLayers = [];
     this.cardsToDecrypt = [];
+  }
+
+  endOfGame() {
+    if (this.connectionMap.size > 0) {
+      this.connectionMap.forEach((connection) => {
+        if (connection.open && !connection.peer.startsWith(this.user)) {
+          connection.send({
+            dataType: PeerDataType.endOfGame,
+            endOfGame: {
+              from: this.user,
+              secretMaps: encryptService.secretMaps.map((secretMap) =>
+                Object.fromEntries(secretMap)
+              ),
+            },
+          });
+        }
+      });
+    }
   }
 
   disconnect() {
