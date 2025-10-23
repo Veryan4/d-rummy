@@ -2,7 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { UserController, PeerController } from "../../controllers";
-import { cardsService, userService } from "../../services";
+import { cardsService, storeService, userService } from "../../services";
 import {
   TranslationController,
   SoundController,
@@ -36,8 +36,9 @@ class Rummy extends LitElement {
   private players: string[] = [];
   private others: string[] = [];
   private myHand: Card[] = [];
-  private decryptedMap: Record<string, string> = {};
+  private decryptedMap = new Map<number, string>();
   private subscriptions: (() => boolean)[] = [];
+  private tableOverTime: Table[] = [];
 
   @query("card-hand")
   cardHand: CardHand;
@@ -62,17 +63,16 @@ class Rummy extends LitElement {
 
   constructor() {
     super();
-    const players = sessionStorage.getItem("players");
+    const { players, table, hand, decryptedMap, tableOverTime } =
+      storeService.getGameState();
     if (players) {
-      this.players = JSON.parse(players);
+      this.players = players;
       this.others = this.players.filter((player) => player != this.user.value);
-      const table = sessionStorage.getItem("table");
       if (table) {
-        this.table = JSON.parse(table);
-        const hand = sessionStorage.getItem("hand");
-        this.myHand = hand ? JSON.parse(hand) : [];
-        const decryptedMap = sessionStorage.getItem("decryptedMap");
-        this.decryptedMap = decryptedMap ? JSON.parse(decryptedMap) : {};
+        this.table = table;
+        this.myHand = hand;
+        this.decryptedMap = decryptedMap;
+        this.tableOverTime = tableOverTime;
         this.restoreTable();
       }
       this.initializePeerConnections();
@@ -357,8 +357,16 @@ class Rummy extends LitElement {
       return;
     }
 
+    if (this.table.turn < table.turn && !table.hasDrawn) {
+      if (!this.isAllowed(table)) {
+        toastService.newError("rummy.error.cheating");
+        return;
+      }
+    }
+
     if (table.turn == 0 && !table.hasDrawn) {
       this.table = table;
+      this.tableOverTime = [table];
       this.dealInitialCards(table);
     }
 
@@ -366,7 +374,8 @@ class Rummy extends LitElement {
       this.table = table;
       this.requestUpdate();
     }
-    sessionStorage.setItem("table", JSON.stringify(table));
+    storeService.setTable(table);
+    storeService.setTableOverTime(this.tableOverTime);
 
     if (!table.hasDrawn) {
       if (table.whoseTurn === this.user.value) {
@@ -578,9 +587,7 @@ class Rummy extends LitElement {
     card.selected = false;
     this.cardHand.unselectAll();
     this.removeCardsFromHand([card]);
-
-    this.table.pile = [...this.table.pile, card];
-
+    this.table.pile.push(card);
     this.nextPlayerTurn();
   }
 
@@ -613,7 +620,7 @@ class Rummy extends LitElement {
   }
 
   rematch() {
-    this.decryptedMap = {};
+    this.decryptedMap.clear();
     this.myHand = [];
     const playerOrder = [...this.table.playerOrder];
     playerOrder.push(playerOrder.shift()!);
@@ -621,12 +628,7 @@ class Rummy extends LitElement {
   }
 
   returnToLobby() {
-    sessionStorage.removeItem("game");
-    sessionStorage.removeItem("players");
-    sessionStorage.removeItem("table");
-    sessionStorage.removeItem("hand");
-    sessionStorage.removeItem("secretMap");
-    sessionStorage.removeItem("decryptedMap");
+    storeService.eraseGameState();
     routerService.navigate("");
   }
 
@@ -658,25 +660,25 @@ class Rummy extends LitElement {
 
   reorderHand(hand: Card[]) {
     this.myHand = hand;
-    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
+    storeService.setHand(this.myHand);
   }
 
   addEncryptedCardsToHand(encryptedCards: EncryptedCard[], cards: Card[]) {
     encryptedCards.forEach((encryptedCard, i) => {
       const card = cards[i];
-      this.decryptedMap[encryptedCard.id] = card.id;
+      this.decryptedMap.set(encryptedCard.id, card.id);
       this.table.players[this.user.value!].encryptedCards.push(encryptedCard);
       this.myHand.push(card);
     });
-    sessionStorage.setItem("decryptedMap", JSON.stringify(this.decryptedMap));
-    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
+    storeService.setDecryptedMap(this.decryptedMap);
+    storeService.setHand(this.myHand);
   }
 
   addCardsToHand(cards: Card[]) {
     this.table.players[this.user.value!].cards =
       this.table.players[this.user.value!].cards.concat(cards);
     this.myHand = this.myHand.concat(cards);
-    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
+    storeService.setHand(this.myHand);
   }
 
   removeCardsFromHand(cards: Card[]) {
@@ -684,7 +686,7 @@ class Rummy extends LitElement {
     this.table.players[user].encryptedCards = this.table.players[
       user
     ].encryptedCards.filter(
-      (e) => !cards.some((c) => c.id == this.decryptedMap[e.id])
+      (e) => !cards.some((c) => c.id == this.decryptedMap.get(e.id))
     );
     this.table.players[user].cards = this.table.players[user].cards.filter(
       (card) => !cards.some((c) => c.id == card.id)
@@ -692,6 +694,80 @@ class Rummy extends LitElement {
     this.myHand = this.myHand.filter(
       (card) => !cards.some((c) => c.id == card.id)
     );
-    sessionStorage.setItem("hand", JSON.stringify(this.myHand));
+    storeService.setHand(this.myHand);
+  }
+
+  isAllowed(table: Table): boolean {
+    const lastTable = this.tableOverTime.at(-1);
+    const playerIndex = table.playerOrder.indexOf(table.whoseTurn);
+    const previousPlayer = table.playerOrder.at(playerIndex - 1);
+
+    if (!lastTable || playerIndex < 0) {
+      return false;
+    }
+
+    // Turn is in order
+    if (lastTable.turn != table.turn - 1) {
+      return false;
+    }
+
+    //Player order is the same
+    if (!lastTable.playerOrder.every((p, i) => table.playerOrder[i] == p)) {
+      return false;
+    }
+
+    // Player turn order respected
+    if (lastTable.whoseTurn != previousPlayer) {
+      return false;
+    }
+
+    // will need to check equality of each card in order in audit for deck
+    if (
+      lastTable.deck.length != table.deck.length - 1 &&
+      table.pile.length != 1 // cards were taken from both deck and pile
+    ) {
+      return false;
+    }
+    if (
+      lastTable.turn != 0 && // what happens if deck re-shuffle?
+      table.pile.length == 1 &&
+      lastTable.deck.length != table.deck.length
+    ) {
+      return false; // cards were taken from both deck and pile
+    }
+
+    if (
+      lastTable.playerOrder.some((player) => {
+        if (player != previousPlayer) {
+          // All other player sets are valid sets
+          const invalidSets = !table.players[player].sets.every((set) =>
+            cardsService.isValidRummySet(set)
+          );
+
+          // Card changes to other player hands
+          const tamperedHands = !cardsService.areSetOfEncryptedCardsEqual(
+            lastTable.players[player].encryptedCards,
+            table.players[player].encryptedCards
+          );
+
+          return invalidSets || tamperedHands;
+        }
+        return false;
+      })
+    ) {
+      return false;
+    }
+
+    // previous players set are valid
+    if (
+      table.players[previousPlayer].sets.some(
+        (set) => !cardsService.isValidRummySet(set)
+      )
+    ) {
+      return false;
+    }
+
+    this.tableOverTime.push(table);
+    return true;
   }
 }
