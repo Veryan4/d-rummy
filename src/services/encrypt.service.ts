@@ -12,6 +12,7 @@ export const encryptService = {
   decryptLayers,
   decryptCards,
   giveKeys,
+  secretMap
 };
 
 async function encryptDeck(deck: Card[]): Promise<EncryptedCard[]> {

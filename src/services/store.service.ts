@@ -1,4 +1,4 @@
-import { Card, Table } from "../models";
+import { Card, DecryptedTable, Table } from "../models";
 
 export const storeService = {
   getGameState,
@@ -9,10 +9,18 @@ export const storeService = {
   setDecryptedMap,
   setTableOverTime,
   setGame,
+  setDecryptedTableOverTime,
+  getDecryptedTableOverTime,
 };
 
 function getGameState() {
-  let game, players, table, hand, decryptedMap, tableOverTime;
+  let game,
+    players,
+    table,
+    hand,
+    decryptedMap,
+    tableOverTime,
+    decryptedTablesOverTime;
   game = sessionStorage.getItem("game");
   players = sessionStorage.getItem("players");
   if (players) {
@@ -26,9 +34,23 @@ function getGameState() {
       decryptedMap = decryptedMap ? JSON.parse(decryptedMap) : {};
       tableOverTime = sessionStorage.getItem("tableOverTime");
       tableOverTime = tableOverTime ? JSON.parse(tableOverTime) : [];
+      decryptedTablesOverTime = sessionStorage.getItem(
+        "decryptedTablesOverTime"
+      );
+      decryptedTablesOverTime = decryptedTablesOverTime
+        ? JSON.parse(decryptedTablesOverTime)
+        : [];
     }
   }
-  return { game, players, table, hand, decryptedMap, tableOverTime };
+  return {
+    game,
+    players,
+    table,
+    hand,
+    decryptedMap,
+    tableOverTime,
+    decryptedTablesOverTime,
+  };
 }
 
 function eraseGameState() {
@@ -39,6 +61,7 @@ function eraseGameState() {
   sessionStorage.removeItem("hand");
   sessionStorage.removeItem("secretMap");
   sessionStorage.removeItem("decryptedMap");
+  sessionStorage.removeItem("decryptedTablesOverTime");
 }
 
 function setGame(value: string) {
@@ -63,4 +86,13 @@ function setDecryptedMap(value: Map<number, string>) {
 
 function setTableOverTime(value: Table[]) {
   sessionStorage.setItem("tableOverTime", JSON.stringify(value));
+}
+
+function setDecryptedTableOverTime(value: DecryptedTable[]) {
+  sessionStorage.setItem("decryptedTablesOverTime", JSON.stringify(value));
+}
+
+function getDecryptedTableOverTime() {
+  const tableOverTime = sessionStorage.getItem("decryptedTablesOverTime");
+  return tableOverTime ? JSON.parse(tableOverTime) : [];
 }

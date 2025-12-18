@@ -2,14 +2,26 @@ import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { UserController, PeerController } from "../../controllers";
-import { cardsService, storeService, userService } from "../../services";
+import {
+  auditService,
+  cardsService,
+  encryptService,
+  storeService,
+  userService,
+} from "../../services";
 import {
   TranslationController,
   SoundController,
   routerService,
   toastService,
 } from "@veryan/lit-spa";
-import { Card, Table, PlayerHand, EncryptedCard } from "../../models";
+import {
+  Card,
+  Table,
+  PlayerHand,
+  EncryptedCard,
+  EndOfGame,
+} from "../../models";
 import { CardHand } from "../../components/hand/hand";
 import { styles } from "./rummy.styles";
 
@@ -39,6 +51,8 @@ class Rummy extends LitElement {
   private decryptedMap = new Map<number, string>();
   private subscriptions: (() => boolean)[] = [];
   private tableOverTime: Table[] = [];
+  private playersSecretKeys = new Map<string, Map<number, JsonWebKey>>();
+  private isAuditEnabled = false;
 
   @query("card-hand")
   cardHand: CardHand;
@@ -63,8 +77,14 @@ class Rummy extends LitElement {
 
   constructor() {
     super();
-    const { players, table, hand, decryptedMap, tableOverTime } =
-      storeService.getGameState();
+    const {
+      players,
+      table,
+      hand,
+      decryptedMap,
+      tableOverTime,
+      decryptedTablesOverTime,
+    } = storeService.getGameState();
     if (players) {
       this.players = players;
       this.others = this.players.filter((player) => player != this.user.value);
@@ -74,6 +94,9 @@ class Rummy extends LitElement {
         this.decryptedMap = decryptedMap;
         this.tableOverTime = tableOverTime;
         this.restoreTable();
+      }
+      if (decryptedTablesOverTime) {
+        this.isAuditEnabled = true;
       }
       this.initializePeerConnections();
     }
@@ -254,6 +277,12 @@ class Rummy extends LitElement {
                 @click=${this.rematch}
                 >${this.i18n.t("rummy.rematch")}</md-filled-button
               >
+              <md-filled-button
+                style="margin-right:1rem;"
+                ?disabled=${!this.isAuditEnabled}
+                @click=${this.sendToAudit}
+                >${this.i18n.t("rummy.audit")}</md-filled-button
+              >
               <md-filled-button @click=${this.returnToLobby}
                 >${this.i18n.t("rummy.return")}</md-filled-button
               >
@@ -298,6 +327,9 @@ class Rummy extends LitElement {
       ),
       this.peerController.decryptedCardsState.subscribe((data) =>
         this.decryptCards(data)
+      ),
+      this.peerController.endOfGameState.subscribe((data) =>
+        this.receivedEndOfGame(data)
       ),
     ];
   }
@@ -387,6 +419,7 @@ class Rummy extends LitElement {
 
     this.winner = this.isGameOver(this.table);
     if (this.winner) {
+      this.peerController.endOfGame();
       this.cardHand.unselectAll();
     }
 
@@ -769,5 +802,23 @@ class Rummy extends LitElement {
 
     this.tableOverTime.push(table);
     return true;
+  }
+
+  async receivedEndOfGame(endOfGame: EndOfGame) {
+    this.playersSecretKeys.set(endOfGame.from, endOfGame.secretMap);
+    if (this.playersSecretKeys.size == this.players.length - 1) {
+      this.playersSecretKeys.set(this.user.value!, encryptService.secretMap);
+      const decryptedTablesOverTime = await auditService.decryptTablesOverTime(
+        this.tableOverTime,
+        this.playersSecretKeys
+      );
+      storeService.setDecryptedTableOverTime(decryptedTablesOverTime);
+      this.isAuditEnabled = true;
+      this.requestUpdate();
+    }
+  }
+
+  sendToAudit() {
+    routerService.navigate("audit");
   }
 }

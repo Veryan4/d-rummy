@@ -11,6 +11,7 @@ import {
   PlayerHand,
   Table,
   EncryptedCard,
+  EndOfGame,
 } from "../models";
 import { State } from "@veryan/lit-spa";
 
@@ -30,6 +31,7 @@ export class PeerController {
     decryptedCards: Card[];
     encryptedCards: EncryptedCard[];
   }>();
+  endOfGameState = new State<EndOfGame>();
 
   constructor(players: string[], table?: Table) {
     if (table) {
@@ -149,6 +151,10 @@ export class PeerController {
       this.keyRequestReceived(data.keyRequest);
       return;
     }
+    if (data.dataType == PeerDataType.endOfGame && data.endOfGame) {
+      this.receivedSecretMap(data.endOfGame);
+      return;
+    }
   }
 
   async usersTurnToEncrypt(deckEncryption: DeckEncryption) {
@@ -233,6 +239,10 @@ export class PeerController {
     });
   }
 
+  receivedSecretMap(endOfGame: EndOfGame) {
+    this.endOfGameState.update(endOfGame);
+  }
+
   sendTableUpdate(table: Table) {
     this.table = table;
     if (this.connectionMap.size > 0) {
@@ -293,6 +303,19 @@ export class PeerController {
     });
     this.decryptedLayers = [];
     this.cardsToDecrypt = [];
+  }
+
+  endOfGame() {
+    if (this.connectionMap.size > 0) {
+      this.connectionMap.forEach((connection) => {
+        if (connection.open && !connection.peer.startsWith(this.user)) {
+          connection.send({
+            dataType: PeerDataType.endOfGame,
+            secretMap: encryptService.secretMap,
+          });
+        }
+      });
+    }
   }
 
   disconnect() {
