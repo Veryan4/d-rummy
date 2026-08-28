@@ -38,14 +38,15 @@ function checkInputValidity(e: Event) {
 function collectFormData(shadowRoot: ShadowRoot): Record<string, any> {
   const payload: Record<string, any> = {};
   const fields = shadowRoot.querySelectorAll(
-    "md-filled-select, md-checkbox, md-radio, md-filled-text-field"
+    "md-filled-select, md-checkbox, md-radio, md-filled-text-field",
   ) as NodeListOf<HTMLInputElement>;
 
   fields.forEach((field) => {
+    console.log(field.tagName);
     if (
       field.tagName === "MD-FILLED-TEXT-FIELD" ||
       field.tagName === "MD-FILLED-SELECT" ||
-      "MD-FILLED-TEXT-FIELD"
+      field.tagName === "MD-FILLED-TEXT-FIELD"
     ) {
       payload[field.name] = field.value;
     }

@@ -133,11 +133,11 @@ async function audit(
     }
 
     if (
-      players.some((player) => {
+      players.some((player) =>
         table.players[player].sets.some(
-          (set) => !cardsService.isValidRummySet(set)
-        );
-      })
+          (set) => !cardsService.isValidRummySet(set),
+        ),
+      )
     ) {
       infractions.push(AuditEnum.wrongAmountOfTotalCards);
     }
