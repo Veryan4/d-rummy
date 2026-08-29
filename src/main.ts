@@ -11,7 +11,7 @@ import "@veryan/lit-spa";
 import { storeService } from "./services";
 
 @customElement("my-app")
-class Truba extends LitElement {
+class DRummy extends LitElement {
   static styles = [
     css`
       .main {
