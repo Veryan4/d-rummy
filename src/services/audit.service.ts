@@ -9,6 +9,7 @@ import {
 } from "../models";
 import { cardsService } from "./cards.service";
 import { encryptService } from "./encrypt.service";
+import { rummyService } from "./rummy.service";
 
 const decryptedMaps = [new Map<number, Card>()];
 
@@ -51,8 +52,8 @@ function cheatDetection(table: Table, lastTable: Table): CheatEnum | null {
         player != previousPlayer &&
         !cardsService.areSetOfEncryptedCardsEqual(
           lastTable.players[player].encryptedCards,
-          table.players[player].encryptedCards
-        )
+          table.players[player].encryptedCards,
+        ),
     )
   ) {
     return CheatEnum.otherPlayersHandsChanged;
@@ -63,8 +64,8 @@ function cheatDetection(table: Table, lastTable: Table): CheatEnum | null {
       (player) =>
         player != previousPlayer &&
         !table.players[player].sets.every((set) =>
-          cardsService.isValidRummySet(set)
-        )
+          rummyService.isValidRummySet(set),
+        ),
     )
   ) {
     return CheatEnum.setsNotValid;
@@ -72,7 +73,7 @@ function cheatDetection(table: Table, lastTable: Table): CheatEnum | null {
 
   if (
     table.players[previousPlayer].sets.some(
-      (set) => !cardsService.isValidRummySet(set)
+      (set) => !rummyService.isValidRummySet(set),
     )
   ) {
     return CheatEnum.setsNotValid;
@@ -83,11 +84,11 @@ function cheatDetection(table: Table, lastTable: Table): CheatEnum | null {
 
 async function audit(
   tablesOverTime: Table[],
-  playersSecrets: Map<string, Map<number, JsonWebKey>[]>
+  playersSecrets: Map<string, Map<number, JsonWebKey>[]>,
 ) {
   const decryptedTablesOverTime = await decryptTablesOverTime(
     tablesOverTime,
-    playersSecrets
+    playersSecrets,
   );
   const firstTable = decryptedTablesOverTime[0];
   const players = firstTable.playerOrder;
@@ -100,7 +101,7 @@ async function audit(
       players.reduce((a, c) => {
         const setCounts = table.players[c].sets.reduce(
           (sa, s) => sa + s.length,
-          0
+          0,
         );
         return a + table.players[c].cards.length + setCounts;
       }, 0);
@@ -116,12 +117,12 @@ async function audit(
         players.reduce((a, c) => {
           const setCards = table.players[c].sets.reduce(
             (sa, s) => sa.concat(s.map((c) => c.id)),
-            [] as string[]
+            [] as string[],
           );
           return a
             .concat(table.players[c].cards.map((c) => c.id))
             .concat(setCards);
-        }, [] as string[])
+        }, [] as string[]),
       )
       .sort();
 
@@ -135,7 +136,7 @@ async function audit(
     if (
       players.some((player) =>
         table.players[player].sets.some(
-          (set) => !cardsService.isValidRummySet(set),
+          (set) => !rummyService.isValidRummySet(set),
         ),
       )
     ) {
@@ -150,7 +151,7 @@ async function audit(
 
 async function decryptTablesOverTime(
   tablesOverTime: Table[],
-  playersSecrets: Map<string, Map<number, JsonWebKey>[]>
+  playersSecrets: Map<string, Map<number, JsonWebKey>[]>,
 ) {
   const decryptOrder = tablesOverTime[0].playerOrder.reverse();
   const pileFlips = tablesOverTime.reduce(
@@ -164,7 +165,7 @@ async function decryptTablesOverTime(
       }
       return acc;
     },
-    [0]
+    [0],
   );
   decryptedMaps.length = 0;
   let flipCount = 0;
@@ -174,7 +175,7 @@ async function decryptTablesOverTime(
     let cards = [...firstTable.deck];
     firstTable.playerOrder.map(
       (player) =>
-        (cards = cards.concat(firstTable.players[player].encryptedCards))
+        (cards = cards.concat(firstTable.players[player].encryptedCards)),
     );
     await decryptAllCards(cards, playersSecrets, decryptOrder, flipCount);
     flipCount++;
@@ -196,8 +197,8 @@ async function decryptTablesOverTime(
       decryptedTable.players[player] = {
         cards: table.players[player].cards.concat(
           table.players[player].encryptedCards?.map(
-            (layer) => decryptedMap.get(layer.id)!
-          ) ?? []
+            (layer) => decryptedMap.get(layer.id)!,
+          ) ?? [],
         ),
         sets: table.players[player].sets,
       };
@@ -210,7 +211,7 @@ async function decryptAllCards(
   encryptedCards: EncryptedCard[],
   playersSecrets: Map<string, Map<number, JsonWebKey>[]>,
   decryptOrder: string[],
-  index: number
+  index: number,
 ) {
   let layers: EncryptedCard[] = [];
   let decryptedCards: Card[] = [];

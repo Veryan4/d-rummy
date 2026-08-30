@@ -109,7 +109,7 @@ class TopBar extends LitElement {
           ? html`<md-menu-item @click=${this.logout}>
               <div class="menu-item" slot="headline">
                 <i class="icon">${closeIcon()}</i>${this.i18n.t(
-                  "header.logout"
+                  "header.logout",
                 )}
               </div>
             </md-menu-item>`

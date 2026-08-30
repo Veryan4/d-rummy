@@ -34,11 +34,11 @@ async function encryptDeck(deck: Card[]): Promise<EncryptedCard[]> {
 }
 
 async function reEncryptDeck(
-  layers: EncryptedCard[]
+  layers: EncryptedCard[],
 ): Promise<EncryptedCard[]> {
   const encryptedCards$ = cardsService.shuffle(layers).map(async (layer, i) => {
     const { encrypted, jwk, ivArr } = await aesGcmEncrypt(
-      JSON.stringify(layer)
+      JSON.stringify(layer),
     );
     const id = i + 1;
     setSecretMap(id, jwk);
@@ -55,7 +55,7 @@ async function reEncryptDeck(
 
 async function decryptLayers(
   encryptedLayers: EncryptedCard[],
-  secrets?: Map<number, JsonWebKey>
+  secrets?: Map<number, JsonWebKey>,
 ): Promise<EncryptedCard[]> {
   const encryptedLayers$ = encryptedLayers.map(async (encryptedLayer) => {
     const card = await aesGcmDecrypt(
@@ -63,7 +63,7 @@ async function decryptLayers(
       secrets
         ? secrets.get(encryptedLayer.id)!
         : getSecretMap(encryptedLayer.id)!,
-      new Uint8Array(encryptedLayer.ivArr).buffer
+      new Uint8Array(encryptedLayer.ivArr).buffer,
     );
     return JSON.parse(card);
   });
@@ -72,7 +72,7 @@ async function decryptLayers(
 
 async function decryptCards(
   encryptedLayers: EncryptedCard[],
-  secrets?: Map<number, JsonWebKey>
+  secrets?: Map<number, JsonWebKey>,
 ): Promise<Card[]> {
   const encryptedLayers$ = encryptedLayers.map(async (encryptedLayer) => {
     const card = await aesGcmDecrypt(
@@ -80,7 +80,7 @@ async function decryptCards(
       secrets
         ? secrets.get(encryptedLayer.id)!
         : getSecretMap(encryptedLayer.id)!,
-      new Uint8Array(encryptedLayer.ivArr).buffer
+      new Uint8Array(encryptedLayer.ivArr).buffer,
     );
     const cardArr = card.split("-");
     return new Card(Number(cardArr[0]), Number(cardArr[1]));
@@ -95,7 +95,7 @@ async function aesGcmEncrypt(toEncode: string) {
       length: 128,
     },
     true,
-    ["encrypt", "decrypt"]
+    ["encrypt", "decrypt"],
   );
   const encoder = new TextEncoder();
   const encodedPlaintext = encoder.encode(toEncode);
@@ -106,7 +106,7 @@ async function aesGcmEncrypt(toEncode: string) {
       iv,
     },
     key,
-    encodedPlaintext
+    encodedPlaintext,
   );
   const jwk = await crypto.subtle.exportKey("jwk", key);
   return {
@@ -119,14 +119,14 @@ async function aesGcmEncrypt(toEncode: string) {
 async function aesGcmDecrypt(
   ciphertext: ArrayBuffer,
   jwk: JsonWebKey,
-  ivBuffer: ArrayBuffer
+  ivBuffer: ArrayBuffer,
 ) {
   const key = await crypto.subtle.importKey(
     "jwk",
     jwk,
     { name: "AES-GCM", length: 128 },
     true,
-    ["encrypt", "decrypt"]
+    ["encrypt", "decrypt"],
   );
   const iv = new Uint8Array(ivBuffer);
   const decryptedData = await crypto.subtle.decrypt(
@@ -135,7 +135,7 @@ async function aesGcmDecrypt(
       iv,
     },
     key,
-    ciphertext
+    ciphertext,
   );
   const decoder = new TextDecoder();
   const decryptedPlaintext = decoder.decode(decryptedData);
@@ -152,8 +152,8 @@ function storeSecrets() {
   sessionStorage.setItem(
     SECRET_MAP_STRING,
     JSON.stringify(
-      secretMaps.map((secretMap) => Array.from(secretMap.entries()))
-    )
+      secretMaps.map((secretMap) => Array.from(secretMap.entries())),
+    ),
   );
 }
 

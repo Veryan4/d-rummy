@@ -42,7 +42,7 @@ class DRummy extends LitElement {
   }
 
   protected shouldUpdate(
-    _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
+    _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>,
   ): boolean {
     return this.i18n.hasLoadedTranslations;
   }

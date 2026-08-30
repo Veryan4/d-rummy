@@ -240,7 +240,7 @@ class PublicLobbyComponent extends LitElement {
       const now = new Date();
       const queue = this.queue.filter(
         (player) =>
-          new Date(player.expiresAt) > now || player.name === this.user.value!
+          new Date(player.expiresAt) > now || player.name === this.user.value!,
       );
       if (queue.length >= PLAYERS_PER_GAME && this.staging.length === 0) {
         const staging = queue

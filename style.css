@@ -18,7 +18,8 @@
   --font-weight-bold: 700;
   /* Misc */
   --box-border-radius: 4px;
-  --box-shadow: rgba(255, 255, 255, 0.1) 0px 1px 1px 0px inset,
+  --box-shadow:
+    rgba(255, 255, 255, 0.1) 0px 1px 1px 0px inset,
     rgba(50, 50, 93, 0.25) 0px 50px 100px -20px,
     rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;
 
@@ -38,7 +39,7 @@
   --md-outlined-button-container-shape: 4px;
   --md-outlined-button-label-text-font: var(--font-family);
   --md-filled-text-field-container-shape: 4px;
-  --md-filled-text-field-container-color: var(--input-fill);	
+  --md-filled-text-field-container-color: var(--input-fill);
   --md-filled-text-field-focus-active-indicator-color: var(--theme-color);
   --md-filled-text-field-input-text-font: var(--font-family);
   --md-filled-text-field-label-text-font: var(--font-family);

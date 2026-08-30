@@ -198,7 +198,7 @@ class PrivateLobbyComponent extends LitElement {
     });
     this.peer.on("connection", (connection) => {
       console.log(
-        `${connection.peer} connection received by ${this.user.value}`
+        `${connection.peer} connection received by ${this.user.value}`,
       );
       if (!this.connections.some((conn) => conn.peer === connection.peer)) {
         const conn = this.peer.connect(connection.peer);
@@ -311,7 +311,7 @@ class PrivateLobbyComponent extends LitElement {
 
   checkFormValidity() {
     const requiredFields = this.shadowRoot?.querySelectorAll(
-      "[required]"
+      "[required]",
     ) as NodeListOf<HTMLInputElement>;
 
     const validFields: boolean[] = [];

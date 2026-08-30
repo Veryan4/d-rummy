@@ -20,7 +20,7 @@ export class UserController {
 
   hostConnected(): void {
     this.unsubscribe = userService.state.subscribe((user) =>
-      this._changeUser(user)
+      this._changeUser(user),
     );
   }
 

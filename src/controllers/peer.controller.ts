@@ -160,7 +160,7 @@ export class PeerController {
   async usersTurnToEncrypt(deckEncryption: DeckEncryption) {
     encryptService.incrementSecretMaps();
     const encryptedCards = await encryptService.reEncryptDeck(
-      deckEncryption.cards
+      deckEncryption.cards,
     );
     if (deckEncryption.playerOrder.at(-1) == this.user) {
       if (encryptedCards.length == 52) {
@@ -174,7 +174,7 @@ export class PeerController {
           turn: 0,
         };
         this.players.forEach(
-          (player) => (table.players[player] = new PlayerHand())
+          (player) => (table.players[player] = new PlayerHand()),
         );
         this.sendTableUpdate(table);
         this.tableState.update({ table });
@@ -202,7 +202,7 @@ export class PeerController {
     const orderIndex = this.table.playerOrder.indexOf(encryptionKeys.from);
     const secretMap = new Map<number, JsonWebKey>();
     Object.entries(encryptionKeys.keys).map(([k, v]) =>
-      secretMap.set(Number(k), v)
+      secretMap.set(Number(k), v),
     );
     if (orderIndex === 0) {
       this.cardsDecrypted(secretMap);
@@ -210,7 +210,7 @@ export class PeerController {
     }
     this.decryptedLayers = await encryptService.decryptLayers(
       this.decryptedLayers,
-      secretMap
+      secretMap,
     );
     let next = this.table.playerOrder[orderIndex - 1];
     if (next == this.user) {
@@ -219,7 +219,7 @@ export class PeerController {
         return;
       }
       this.decryptedLayers = await encryptService.decryptLayers(
-        this.decryptedLayers
+        this.decryptedLayers,
       );
       next = this.table.playerOrder[orderIndex - 2];
     }
@@ -272,7 +272,7 @@ export class PeerController {
     encryptService.incrementSecretMaps();
     return this.initializeDeckEncryption(
       cardsService.shuffle(pile),
-      playerOrder
+      playerOrder,
     );
   }
 
@@ -317,7 +317,7 @@ export class PeerController {
       encryptedCards: this.cardsToDecrypt,
       decryptedCards: await encryptService.decryptCards(
         this.decryptedLayers,
-        secrets
+        secrets,
       ),
     });
     this.decryptedLayers = [];
@@ -333,7 +333,7 @@ export class PeerController {
             endOfGame: {
               from: this.user,
               secretMaps: encryptService.secretMaps.map((secretMap) =>
-                Object.fromEntries(secretMap)
+                Object.fromEntries(secretMap),
               ),
             },
           });

@@ -6,7 +6,9 @@ import {
   auditService,
   cardsService,
   encryptService,
+  rummyService,
   storeService,
+  tableService,
   userService,
 } from "../../services";
 import {
@@ -15,14 +17,7 @@ import {
   routerService,
   toastService,
 } from "@veryan/lit-spa";
-import {
-  Card,
-  Table,
-  PlayerHand,
-  EncryptedCard,
-  EndOfGame,
-  CheatEnum,
-} from "../../models";
+import { Card, Table, EncryptedCard, EndOfGame, CheatEnum } from "../../models";
 import { CardHand } from "../../components/hand/hand";
 import { spinner } from "../../styles";
 import { styles } from "./rummy.styles";
@@ -69,17 +64,9 @@ class Rummy extends LitElement {
   @state()
   private showPileWarning = false;
 
-  private table: Table = {
-    players: {
-      [userService.getUser()!]: new PlayerHand(),
-    },
-    whoseTurn: "",
-    playerOrder: [],
-    deck: [],
-    pile: [],
-    hasDrawn: false,
-    turn: 0,
-  };
+  private table: Table = tableService.createInitialTable(
+    userService.getUser()!,
+  );
 
   constructor() {
     super();
@@ -138,9 +125,9 @@ class Rummy extends LitElement {
                           class="small"
                           symbol="${card.symbol}"
                           rank="${card.rank}"
-                        ></game-card>`
+                        ></game-card>`,
                     )}
-                  </div>`
+                  </div>`,
               )}
               <div class="set empty" @click=${() => this.placeNewSet()}>
                 <div class="empty-card">${this.i18n.t("rummy.add_set")}</div>
@@ -254,9 +241,9 @@ class Rummy extends LitElement {
                             class="small"
                             symbol="${card.symbol}"
                             rank="${card.rank}"
-                          ></game-card>`
+                          ></game-card>`,
                       )}
-                    </div>`
+                    </div>`,
                 )
               : html` <div class="set empty">
                   ${this.i18n.t("rummy.no_set")}
@@ -357,16 +344,16 @@ class Rummy extends LitElement {
     this.peerController = new PeerController(this.players, this.table);
     this.subscriptions = [
       this.peerController.tableState.subscribe((data) =>
-        this.handlePeerTable(data)
+        this.handlePeerTable(data),
       ),
       this.peerController.connectionState.subscribe((data) =>
-        this.playerConnection(data)
+        this.playerConnection(data),
       ),
       this.peerController.decryptedCardsState.subscribe((data) =>
-        this.decryptCards(data)
+        this.decryptCards(data),
       ),
       this.peerController.endOfGameState.subscribe((data) =>
-        this.receivedEndOfGame(data)
+        this.receivedEndOfGame(data),
       ),
     ];
   }
@@ -395,7 +382,7 @@ class Rummy extends LitElement {
 
   async playerConnection(data: { playerName: string; isConnected: boolean }) {
     if (!data.isConnected) {
-      if (this.isGameOver(this.table)) {
+      if (rummyService.isGameOver(this.table)) {
         setTimeout(() => {
           if (!this.table.players[data.playerName].connected) {
             this.returnToLobby();
@@ -433,7 +420,7 @@ class Rummy extends LitElement {
     if (this.table.turn < table.turn && !table.hasDrawn) {
       const cheat = auditService.cheatDetection(
         table,
-        this.tableOverTime.at(-1)!
+        this.tableOverTime.at(-1)!,
       );
       if (cheat != null) {
         toastService.newError("audit.cheat." + cheat);
@@ -451,7 +438,7 @@ class Rummy extends LitElement {
 
     if (updateByOther) {
       if (this.table.turn < table.turn) {
-        this.tableOverTime.push(table);
+        this.tableOverTime.push(structuredClone(table));
       }
       this.table = table;
       this.requestUpdate();
@@ -467,7 +454,7 @@ class Rummy extends LitElement {
       }
     }
 
-    this.winner = this.isGameOver(this.table);
+    this.winner = rummyService.isGameOver(this.table);
     if (this.winner) {
       this.peerController.endOfGame();
       this.cardHand.unselectAll();
@@ -479,44 +466,28 @@ class Rummy extends LitElement {
   }
 
   dealInitialCards(table: Table) {
-    if (this.playerHasCards(this.user.value!)) {
-      return;
+    const cardsToDecrypt = rummyService.dealInitialCards(
+      table,
+      this.user.value!,
+    );
+    if (cardsToDecrypt) {
+      this.myHand = [];
+      this.peerController.decryptCards(cardsToDecrypt);
     }
-    table.playerOrder.some((player, i) => {
-      if (
-        (i == 0 ||
-          table.players[table.playerOrder[i - 1]].encryptedCards.length) &&
-        player === this.user.value
-      ) {
-        this.myHand = [];
-        const cardsToDecrypt: EncryptedCard[] = [];
-        cardsService.moveCards(table.deck, cardsToDecrypt, "top", "bottom", 7);
-        this.peerController.decryptCards(cardsToDecrypt);
-        return true;
-      }
-      return false;
-    });
   }
 
   drawFromDeck(): void {
-    if (
-      this.table.hasDrawn ||
-      this.table.playerOrder.some((player) => !this.playerHasCards(player))
-    ) {
+    const check = rummyService.canDrawFromDeck(this.table, this.user.value!);
+    if (!check.allowed) {
+      if (check.error) {
+        this.sound.play(errorSound);
+        toastService.newError(check.error);
+      } else if (check.needsFlip) {
+        this.flipPileToDeck();
+      }
       return;
     }
-    if (!this.isYourTurn()) {
-      this.sound.play(errorSound);
-      toastService.newError("rummy.error.wait_your_turn");
-      return;
-    }
-    if (!this.table.deck.length) {
-      this.flipPileToDeck();
-      return;
-    }
-    this.table.hasDrawn = true;
-    const cardsToDecrypt: EncryptedCard[] = [];
-    cardsService.moveCard(this.table.deck, cardsToDecrypt, "top", "bottom");
+    const cardsToDecrypt = tableService.drawFromDeck(this.table);
     this.peerController.decryptCards(cardsToDecrypt);
   }
 
@@ -538,180 +509,116 @@ class Rummy extends LitElement {
   }
 
   drawFromPile(): void {
-    if (this.table.hasDrawn || this.table.pile.length === 0) {
+    const check = rummyService.canDrawFromPile(this.table, this.user.value!);
+    if (!check.allowed) {
+      if (check.error) {
+        this.sound.play(errorSound);
+        toastService.newError(check.error);
+      }
       return;
     }
-    if (!this.isYourTurn()) {
-      this.sound.play(errorSound);
-      toastService.newError("rummy.error.wait_your_turn");
-      return;
-    }
-    this.addCardsToHand(this.table.pile);
-    this.table.pile = [];
-    this.table.hasDrawn = true;
+    const { newHand } = rummyService.drawFromPile(
+      this.table,
+      this.user.value!,
+      this.myHand,
+    );
+    this.myHand = newHand;
     this.sendTableUpdate();
     this.showPileWarning = false;
   }
 
   placeOthersSet(cards: Card[], otherPlayer: string) {
-    if (this.table.players[this.user.value!].sets.length === 0) {
-      this.sound.play(errorSound);
-      toastService.newError("rummy.error.place_set_first");
-      return;
-    }
-    const placedSet = this.placeSet(cards, otherPlayer);
-    if (placedSet) {
-      toastService.newToast("rummy.place_other_set", {
-        from: this.user.value!,
-        to: otherPlayer,
-      });
-    }
+    this.placeSet(cards, otherPlayer);
   }
 
   placeSet(cards: Card[], otherPlayer?: string) {
     const selected = this.cardHand.getSelectedCards();
-    let set = cards.concat(selected).map((card) => {
-      card.selected = false;
-      return card;
-    });
-    set = [...new Set(set)].sort((a, b) =>
-      a.value > b.value ? 1 : b.value > a.value ? -1 : 0
+    const result = rummyService.placeSet(
+      this.table,
+      this.user.value!,
+      selected,
+      cards,
+      this.myHand,
+      this.decryptedMap,
+      otherPlayer,
     );
 
-    if (!this.isYourTurn()) {
+    if (!result.success) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.wait_your_turn");
-      return;
-    }
-    if (!this.table.hasDrawn) {
-      this.sound.play(errorSound);
-      toastService.newError("rummy.error.draw_to_start");
-      return;
-    }
-    if (set.length < 3) {
-      this.sound.play(errorSound);
-      toastService.newError("rummy.error.need_3_cards");
-      return;
-    }
-    if (!cardsService.isValidRummySet(set)) {
-      this.sound.play(errorSound);
-      toastService.newError("rummy.error.need_valid_set");
-      return;
-    }
-
-    const user = this.user.value!;
-    const player = otherPlayer ? otherPlayer : user;
-    this.table.players[player].sets = this.table.players[player].sets.map(
-      (s) => {
-        if (set.some((c) => s[0].id === c.id)) {
-          return set;
-        }
-        return s;
+      if (result.error) {
+        toastService.newError(result.error);
       }
-    );
-    this.removeCardsFromHand(set);
-    this.sendTableUpdate();
+      return false;
+    }
 
+    this.myHand = result.newHand!;
+    if (result.toastMessage) {
+      toastService.newToast(result.toastMessage, result.toastParams);
+    }
+    this.sendTableUpdate();
     return true;
   }
 
   placeNewSet() {
     const selected = this.cardHand.getSelectedCards();
-    let set = selected.map((card) => {
-      card.selected = false;
-      return card;
-    });
-    set = [...new Set(set)].sort((a, b) =>
-      a.value > b.value ? 1 : b.value > a.value ? -1 : 0
+    const result = rummyService.placeNewSet(
+      this.table,
+      this.user.value!,
+      selected,
+      this.myHand,
+      this.decryptedMap,
     );
 
-    if (!this.isYourTurn()) {
+    if (!result.success) {
       this.sound.play(errorSound);
-      toastService.newError("rummy.error.wait_your_turn");
-      return;
-    }
-    if (set.length < 3) {
-      this.sound.play(errorSound);
-      toastService.newError("rummy.error.need_3_cards");
-      return;
-    }
-    if (!cardsService.isValidRummySet(set)) {
-      this.sound.play(errorSound);
-      toastService.newError("rummy.error.need_valid_set");
+      if (result.error) {
+        toastService.newError(result.error);
+      }
       return;
     }
 
-    this.table.players[this.user.value!].sets.push(set);
+    this.myHand = result.newHand!;
     this.cardHand.unselectAll();
-    this.removeCardsFromHand(set);
     this.sendTableUpdate();
   }
 
   discardToPile(): void {
-    if (!this.table.hasDrawn) {
-      return;
-    }
-    if (!this.isYourTurn()) {
-      this.sound.play(errorSound);
-      toastService.newError("rummy.error.wait_your_turn");
-      return;
-    }
-
     const selected = this.cardHand.getSelectedCards();
+    const validation = rummyService.validateDiscard(
+      this.table,
+      this.user.value!,
+      selected,
+    );
 
-    if (selected.length === 0) {
-      this.sound.play(errorSound);
-      toastService.newError("rummy.error.select_discard");
-      return;
-    }
-    if (selected.length !== 1) {
-      this.sound.play(errorSound);
-      toastService.newError("rummy.error.only_discard_1");
+    if (!validation.valid) {
+      if (validation.error) {
+        this.sound.play(errorSound);
+        toastService.newError(validation.error);
+      }
       return;
     }
 
     const card = selected[0];
-    card.selected = false;
     this.cardHand.unselectAll();
-    this.removeCardsFromHand([card]);
-    this.table.pile.push(card);
-    this.nextPlayerTurn();
-  }
-
-  nextPlayerTurn() {
-    let next = this.table.playerOrder.indexOf(this.table.whoseTurn);
-    if (next === this.table.playerOrder.length - 1) {
-      next = 0;
-    } else {
-      next++;
-    }
-    this.table = {
-      ...this.table,
-      whoseTurn: this.table.playerOrder[next],
-      hasDrawn: false,
-      turn: this.table.turn + 1,
-    };
-
-    this.tableOverTime.push(this.table);
+    const { newTable, newHand } = tableService.discardToPile(
+      this.table,
+      this.user.value!,
+      card,
+      this.myHand,
+      this.decryptedMap,
+    );
+    this.table = newTable;
+    this.myHand = newHand;
+    this.tableOverTime.push(structuredClone(this.table));
     this.sendTableUpdate();
-  }
-
-  isGameOver(table: Table): string | null {
-    if (!table?.turn) return null;
-    let gameOver = null;
-    table.playerOrder.forEach((player) => {
-      if (!this.playerHasCards(player)) {
-        gameOver = player;
-      }
-    });
-    return gameOver;
   }
 
   rematch() {
     this.decryptedMap.clear();
     this.myHand = [];
-    const playerOrder = [...this.table.playerOrder];
-    playerOrder.push(playerOrder.shift()!);
+    const playerOrder = rummyService.getNextRematchPlayerOrder(
+      this.table.playerOrder,
+    );
     this.peerController.initializeDeck(playerOrder);
   }
 
@@ -728,60 +635,27 @@ class Rummy extends LitElement {
   }
 
   isYourTurn(): boolean {
-    return this.table.whoseTurn === this.user.value;
-  }
-
-  playerHasCards(player: string) {
-    return Boolean(
-      this.table.players[player].cards.length +
-        this.table.players[player].encryptedCards.length
-    );
+    return tableService.isYourTurn(this.table, this.user.value!);
   }
 
   decryptCards(data: {
     decryptedCards: Card[];
     encryptedCards: EncryptedCard[];
   }) {
-    this.addEncryptedCardsToHand(data.encryptedCards, data.decryptedCards);
+    const { newHand } = tableService.addEncryptedCardsToHand(
+      this.table,
+      this.user.value!,
+      this.myHand,
+      this.decryptedMap,
+      data.encryptedCards,
+      data.decryptedCards,
+    );
+    this.myHand = newHand;
     this.sendTableUpdate();
   }
 
   reorderHand(hand: Card[]) {
     this.myHand = hand;
-    storeService.setHand(this.myHand);
-  }
-
-  addEncryptedCardsToHand(encryptedCards: EncryptedCard[], cards: Card[]) {
-    encryptedCards.forEach((encryptedCard, i) => {
-      const card = cards[i];
-      this.decryptedMap.set(encryptedCard.id, card.id);
-      this.table.players[this.user.value!].encryptedCards.push(encryptedCard);
-      this.myHand.push(card);
-    });
-    storeService.setDecryptedMap(this.decryptedMap);
-    storeService.setHand(this.myHand);
-  }
-
-  addCardsToHand(cards: Card[]) {
-    this.table.players[this.user.value!].cards =
-      this.table.players[this.user.value!].cards.concat(cards);
-    this.myHand = this.myHand.concat(cards);
-    storeService.setHand(this.myHand);
-  }
-
-  removeCardsFromHand(cards: Card[]) {
-    const user = this.user.value!;
-    this.table.players[user].encryptedCards = this.table.players[
-      user
-    ].encryptedCards.filter(
-      (e) => !cards.some((c) => c.id == this.decryptedMap.get(e.id))
-    );
-    this.table.players[user].cards = this.table.players[user].cards.filter(
-      (card) => !cards.some((c) => c.id == card.id)
-    );
-    this.myHand = this.myHand.filter(
-      (card) => !cards.some((c) => c.id == card.id)
-    );
     storeService.setHand(this.myHand);
   }
 
@@ -796,7 +670,7 @@ class Rummy extends LitElement {
       this.playersSecretKeys.set(this.user.value!, encryptService.secretMaps);
       const { audit, decryptedTablesOverTime } = await auditService.audit(
         this.tableOverTime,
-        this.playersSecretKeys
+        this.playersSecretKeys,
       );
       storeService.setDecryptedTableOverTime(decryptedTablesOverTime);
       storeService.setAudit(audit);

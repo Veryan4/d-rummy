@@ -80,7 +80,7 @@ class HomeComponent extends LitElement {
 
   checkFormValidity() {
     const requiredFields = this.shadowRoot?.querySelectorAll(
-      "[required]"
+      "[required]",
     ) as NodeListOf<HTMLInputElement>;
 
     const validFields: boolean[] = [];

@@ -25,8 +25,10 @@ export const cardStyles = css`
     background-color: #fff;
     background-color: var(--mdc-theme-surface, #fff);
     position: relative;
-    box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2),
-      0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+    box-shadow:
+      0px 2px 1px -1px rgba(0, 0, 0, 0.2),
+      0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+      0px 1px 3px 0px rgba(0, 0, 0, 0.12);
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -53,8 +55,10 @@ export const cardStyles = css`
     pointer-events: none;
   }
   .mdc-card--outlined {
-    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0.2),
-      0px 0px 0px 0px rgba(0, 0, 0, 0.14), 0px 0px 0px 0px rgba(0, 0, 0, 0.12);
+    box-shadow:
+      0px 0px 0px 0px rgba(0, 0, 0, 0.2),
+      0px 0px 0px 0px rgba(0, 0, 0, 0.14),
+      0px 0px 0px 0px rgba(0, 0, 0, 0.12);
     border-width: 1px;
     border-style: solid;
     border-color: #e0e0e0;
@@ -293,7 +297,9 @@ export const cardStyles = css`
     content: "";
   }
   .mdc-card__primary-action .mdc-card__ripple::before {
-    transition: opacity 15ms linear, background-color 15ms linear;
+    transition:
+      opacity 15ms linear,
+      background-color 15ms linear;
     z-index: 1;
     z-index: var(--mdc-ripple-z-index, 1);
   }
@@ -320,9 +326,11 @@ export const cardStyles = css`
   }
   .mdc-card__primary-action.mdc-ripple-upgraded--foreground-activation
     .mdc-card__ripple::after {
-    -webkit-animation: mdc-ripple-fg-radius-in 225ms forwards,
+    -webkit-animation:
+      mdc-ripple-fg-radius-in 225ms forwards,
       mdc-ripple-fg-opacity-in 75ms forwards;
-    animation: mdc-ripple-fg-radius-in 225ms forwards,
+    animation:
+      mdc-ripple-fg-radius-in 225ms forwards,
       mdc-ripple-fg-opacity-in 75ms forwards;
   }
   .mdc-card__primary-action.mdc-ripple-upgraded--foreground-deactivation

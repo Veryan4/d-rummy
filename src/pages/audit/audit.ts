@@ -105,7 +105,7 @@ class AuditTable extends LitElement {
     return audit?.infractions?.length
       ? html`<ul class="infractions">
           ${audit.infractions.map(
-            (i) => html`<li>${this.i18n.t("audit.infraction." + i)}</li>`
+            (i) => html`<li>${this.i18n.t("audit.infraction." + i)}</li>`,
           )}
         </ul>`
       : "";
@@ -136,7 +136,7 @@ class AuditTable extends LitElement {
                     class="small"
                     symbol="${card.symbol}"
                     rank="${card.rank}"
-                  ></game-card>`
+                  ></game-card>`,
               )}
             </div>
           </div>
@@ -185,7 +185,7 @@ class AuditTable extends LitElement {
                         class="small"
                         symbol="${card.symbol}"
                         rank="${card.rank}"
-                      ></game-card>`
+                      ></game-card>`,
                   )
                 : html``}
             </div>
@@ -205,9 +205,9 @@ class AuditTable extends LitElement {
                             class="small"
                             symbol="${card.symbol}"
                             rank="${card.rank}"
-                          ></game-card>`
+                          ></game-card>`,
                       )}
-                    </div>`
+                    </div>`,
                 )
               : html` <div class="set empty">
                   ${this.i18n.t("rummy.no_set")}

@@ -28,7 +28,7 @@ class NotFound extends LitElement {
         padding: 0 10px 0 15px;
         text-align: center;
         color: var(--primary-color);
-        border-color: var(--primary-color)
+        border-color: var(--primary-color);
       }
       .message {
         font-size: 18px;

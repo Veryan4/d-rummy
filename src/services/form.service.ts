@@ -10,7 +10,7 @@ let debounceTimer = 0;
 
 function checkFormValidity(shadowRoot: ShadowRoot): boolean {
   const requiredFields = shadowRoot.querySelectorAll(
-    "[required]"
+    "[required]",
   ) as NodeListOf<HTMLInputElement>;
 
   const validFields: boolean[] = [];
@@ -20,7 +20,7 @@ function checkFormValidity(shadowRoot: ShadowRoot): boolean {
   });
 
   const checkboxFields = shadowRoot.querySelectorAll(
-    "md-checkbox"
+    "md-checkbox",
   ) as NodeListOf<MdCheckbox>;
   checkboxFields?.forEach((field) => {
     validFields.push(field.checked);
@@ -42,7 +42,6 @@ function collectFormData(shadowRoot: ShadowRoot): Record<string, any> {
   ) as NodeListOf<HTMLInputElement>;
 
   fields.forEach((field) => {
-    console.log(field.tagName);
     if (
       field.tagName === "MD-FILLED-TEXT-FIELD" ||
       field.tagName === "MD-FILLED-SELECT" ||

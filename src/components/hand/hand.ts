@@ -4,7 +4,7 @@ import { classMap } from "lit/directives/class-map.js";
 import { repeat } from "lit/directives/repeat.js";
 import { Card } from "../../models";
 import { GameCard } from "../game-card/game-card";
-import { cardsService } from "../../services";
+import { cardsService, rummyService } from "../../services";
 import { styles } from "./hand.styles";
 import "../game-card/game-card";
 
@@ -50,7 +50,7 @@ class CardHandComponent extends LitElement {
                 rank="${card.rank}"
                 @click=${() => this.toggleSelected(card)}
               ></game-card>
-            </div>`
+            </div>`,
         )}
       </div>
     `;
@@ -60,7 +60,7 @@ class CardHandComponent extends LitElement {
     const selectedCards = this.getSelectedCards();
     if (!card.selected && selectedCards.length > 0) {
       const potentialSet = [...selectedCards, card];
-      if (!cardsService.isValidRummySet(potentialSet)) {
+      if (!rummyService.isValidRummySet(potentialSet)) {
         return;
       }
     }

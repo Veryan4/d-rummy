@@ -13,7 +13,6 @@ export const cardsService = {
   moveCard,
   moveCards,
   moveCardsFromIndex,
-  isValidRummySet,
   areTablesEqual,
   areArraysEqual,
   areSetOfEncryptedCardsEqual,
@@ -36,7 +35,7 @@ function createDeckWithOffset(
   colors = 4,
   values = 13,
   startColorsAt = 1,
-  startValuesAt = 1
+  startValuesAt = 1,
 ): Card[] {
   const deck: Card[] = [];
 
@@ -89,7 +88,7 @@ function moveCard<T>(
   src: T[],
   dest: T[],
   from: "top" | "bottom",
-  to: "top" | "bottom"
+  to: "top" | "bottom",
 ): void {
   let cardToMove: T;
   if (from == sides.top) cardToMove = src.shift()!;
@@ -103,7 +102,7 @@ function moveCards<T>(
   dest: T[],
   from: "top" | "bottom",
   to: "top" | "bottom",
-  count: number
+  count: number,
 ): void {
   for (let i = 0; i < count; i++) {
     moveCard<T>(src, dest, from, to);
@@ -115,7 +114,7 @@ function moveCardsFromIndex(
   dest: Card[],
   to: "top" | "bottom",
   count: number,
-  index: number
+  index: number,
 ): void {
   const cardsToMove = src.splice(index, count);
   if (to == sides.top) cardsToMove.reverse();
@@ -126,37 +125,6 @@ function moveCardsFromIndex(
   }
 }
 
-function isValidRummySet(set: Card[]): boolean {
-  // Can be all matching ranks
-  let values = set.map((card) => card.value);
-  if (values.every((v) => v === values[0])) {
-    return true;
-  }
-
-  // Otherwise can't have duplicate ranks in a straight
-  if (new Set(values).size !== values.length) {
-    return false;
-  }
-
-  // Straight needs to be of the same suit
-  const colors = set.map((card) => card.color);
-  if (new Set(colors).size > 1) {
-    return false;
-  }
-
-  // Needs to be a straight
-  values = values.sort((a, b) => (a > b ? 1 : b > a ? -1 : 0));
-  let valid = true;
-  values.forEach((v, i) => {
-    if (v !== 1 && i !== 0) {
-      if (values[i - 1] !== values[i] - 1) {
-        valid = false;
-      }
-    }
-  });
-  return valid;
-}
-
 function areTablesEqual(table1: Table, table2: Table) {
   return (
     table1.hasDrawn === table2.hasDrawn &&
@@ -165,7 +133,7 @@ function areTablesEqual(table1: Table, table2: Table) {
     areSetOfEncryptedCardsEqual(table1.deck, table2.deck) &&
     areSetOfCardsEqual(table1.pile, table2.pile) &&
     table1.playerOrder.every((player) =>
-      areHandsEqual(table1.players[player], table2.players[player])
+      areHandsEqual(table1.players[player], table2.players[player]),
     )
   );
 }
@@ -190,7 +158,7 @@ function areEncryptedCardsEqual(card1: EncryptedCard, card2: EncryptedCard) {
 
 function areSetOfEncryptedCardsEqual(
   cards1: EncryptedCard[],
-  cards2: EncryptedCard[]
+  cards2: EncryptedCard[],
 ) {
   return (
     cards1.length === cards2.length &&

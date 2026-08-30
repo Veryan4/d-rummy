@@ -21,7 +21,7 @@ export const routes: Route[] = [
     pattern: "private",
     component: () =>
       import("./pages/private-lobby/private-lobby").then(
-        () => html`<private-lobby></private-lobby>`
+        () => html`<private-lobby></private-lobby>`,
       ),
     guard: authGuard,
   },
@@ -30,7 +30,7 @@ export const routes: Route[] = [
     pattern: "public",
     component: () =>
       import("./pages/public-lobby/public-lobby").then(
-        () => html`<public-lobby></public-lobby>`
+        () => html`<public-lobby></public-lobby>`,
       ),
     guard: authGuard,
   },
