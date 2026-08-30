@@ -17,14 +17,13 @@ export const storeService = {
 };
 
 function getGameState() {
-  let game,
-    players,
+  let players,
     table,
     hand,
     decryptedMap,
     tableOverTime,
     decryptedTablesOverTime;
-  game = sessionStorage.getItem("game");
+  const game = sessionStorage.getItem("game");
   players = sessionStorage.getItem("players");
   if (players) {
     players = JSON.parse(players);
