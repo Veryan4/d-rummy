@@ -94,8 +94,7 @@ class HomeComponent extends LitElement {
 
   async login() {
     const name = this.usernameInput.value;
-    const formattedUser =
-      name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    const formattedUser = `${name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()}-${crypto.randomUUID()}`;
     userService.setUser(formattedUser);
     setTimeout(() => {
       if (this.game) {

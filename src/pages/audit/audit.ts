@@ -171,8 +171,8 @@ class AuditTable extends LitElement {
             <img class="player-image" src=${src} alt="avatar" />
             <div class="other-name ${classMap(classes)}">
               ${player == table.whoseTurn
-                ? this.i18n.t("rummy.them", { user: table.whoseTurn })
-                : player}
+                ? this.i18n.t("rummy.them", { user: table.whoseTurn.split("-")[0] })
+                : player.split("-")[0]}
             </div>
           </div>
           <div class="other-hand">

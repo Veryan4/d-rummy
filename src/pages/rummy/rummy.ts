@@ -209,6 +209,7 @@ class Rummy extends LitElement {
         active: other == this.table.whoseTurn,
         error: !this.table.players[other].connected,
       };
+      const username = other.split("-")[0];
       return html`
         <div class="other ${classMap(classes)}">
           <div class="other-info">
@@ -216,13 +217,13 @@ class Rummy extends LitElement {
             <div class="other-name ${classMap(classes)}">
               ${this.table.players[other].connected
                 ? html`${this.i18n.t("rummy.player", {
-                    player: other,
+                    player: username,
                     amount:
                       this.table.players[other].encryptedCards.length +
                       this.table.players[other].cards.length,
                   })}`
                 : html`${this.i18n.t("rummy.disconnected", {
-                    player: other,
+                    player: username,
                   })}`}
             </div>
           </div>

@@ -59,7 +59,7 @@ export class PeerController {
     this.peer.on("connection", (connection) => {
       if (!this.connectionMap.has(connection.peer)) {
         const conn = this.peer.connect(connection.peer);
-        const player = conn.peer.split("-")[0];
+        const player = conn.peer.replace(/-rummy-game$/, "");
         conn.on("open", () => {
           console.log("queued opened");
           this.playerConnection(player, true);
