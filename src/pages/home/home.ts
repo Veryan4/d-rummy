@@ -1,15 +1,16 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { UserController } from "../../controllers";
-import { storeService, userService } from "../../services";
+import { formService, storeService, userService } from "../../services";
 import { TranslationController, routerService } from "@veryan/lit-spa";
 import { styles } from "./home.styles";
+import { lobbySharedStyles } from "../../styles/lobby-shared.styles";
 
 import "../../material-web";
 
 @customElement("card-home")
 class HomeComponent extends LitElement {
-  static styles = [styles];
+  static styles = [lobbySharedStyles, styles];
 
   private i18n = new TranslationController(this);
   private user = new UserController(this);
@@ -79,17 +80,9 @@ class HomeComponent extends LitElement {
   }
 
   checkFormValidity() {
-    const requiredFields = this.shadowRoot?.querySelectorAll(
-      "[required]",
-    ) as NodeListOf<HTMLInputElement>;
-
-    const validFields: boolean[] = [];
-
-    requiredFields.forEach((field) => {
-      validFields.push(field.validity.valid);
-    });
-
-    this.isFormValid = !validFields.includes(false);
+    if (this.shadowRoot) {
+      this.isFormValid = formService.checkFormValidity(this.shadowRoot);
+    }
   }
 
   async login() {

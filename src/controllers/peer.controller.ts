@@ -15,9 +15,180 @@ import {
 } from "../models";
 import { State } from "@veryan/lit-spa";
 
-export class PeerController {
+export interface PeerNetworkHandlers {
+  onOpen?: (network: PeerNetwork) => void | Promise<void>;
+  onError?: (err: Error) => void;
+  onData?: (data: unknown, connection: DataConnection) => void | Promise<void>;
+  onOutgoingOpen?: (connection: DataConnection) => void | Promise<void>;
+  onIncomingOpen?: (connection: DataConnection) => void | Promise<void>;
+  onConnectionClose?: (
+    connection: DataConnection,
+    kind: "incoming" | "outgoing",
+  ) => void;
+}
+
+export interface PeerNetworkOptions {
+  connectBack?: boolean;
+  label?: string;
+}
+
+export class PeerNetwork {
   private peer: Peer;
-  private connectionMap = new Map<string, DataConnection>();
+  private connections = new Map<string, DataConnection>();
+  private connecting = new Set<string>();
+  private incoming = new Set<string>();
+  private handlers: PeerNetworkHandlers;
+  private connectBack: boolean;
+  private label: string;
+  private closed = false;
+
+  constructor(
+    peerId: string,
+    handlers: PeerNetworkHandlers = {},
+    options: PeerNetworkOptions = {},
+  ) {
+    this.handlers = handlers;
+    this.connectBack = options.connectBack ?? false;
+    this.label = options.label ?? peerId;
+    this.peer = new Peer(peerId, config.peerjs);
+    this.attachPeerEvents();
+  }
+
+  get id(): string {
+    return this.peer.id;
+  }
+
+  get size(): number {
+    return this.connections.size;
+  }
+
+  hasConnection(peerId: string): boolean {
+    return this.connections.has(peerId) || this.connecting.has(peerId);
+  }
+
+  connectTo(
+    remotePeerId: string,
+    onOpen?: (connection: DataConnection) => void | Promise<void>,
+  ): DataConnection | undefined {
+    if (this.hasConnection(remotePeerId)) {
+      return this.connections.get(remotePeerId);
+    }
+    this.connecting.add(remotePeerId);
+    const connection = this.peer.connect(remotePeerId);
+    this.listenToConnection(connection, "outgoing", onOpen);
+    return connection;
+  }
+
+  send(data: unknown, options?: { excludePeerPrefix?: string }): void {
+    this.connections.forEach((connection) => {
+      if (
+        connection.open &&
+        (!options?.excludePeerPrefix ||
+          !connection.peer.startsWith(options.excludePeerPrefix))
+      ) {
+        connection.send(data);
+      }
+    });
+  }
+
+  sendTo(peerId: string, data: unknown): void {
+    this.connections.get(peerId)?.send(data);
+  }
+
+  disconnect(): void {
+    this.closed = true;
+    this.connections.forEach((conn) => conn.close());
+    this.connections.clear();
+    this.connecting.clear();
+    this.incoming.clear();
+    this.peer.disconnect();
+  }
+
+  private attachPeerEvents() {
+    this.peer.on("open", () => {
+      if (this.closed) {
+        return;
+      }
+      console.log(`${this.label} peer open`);
+      this.handlers.onOpen?.(this);
+    });
+    this.peer.on("close", () => {
+      console.log(`${this.label} peer closed`);
+    });
+    this.peer.on("disconnected", () => {
+      console.log(`${this.label} peer disconnected`);
+    });
+    this.peer.on("error", (err) => {
+      console.log(`${this.label} peer error: `, err);
+      if (this.closed) {
+        return;
+      }
+      this.handlers.onError?.(err);
+    });
+    this.peer.on("connection", (connection) => {
+      if (this.closed || this.incoming.has(connection.peer)) {
+        return;
+      }
+      this.incoming.add(connection.peer);
+      console.log(`${connection.peer} connection received by ${this.label}`);
+      if (this.connectBack) {
+        this.connectTo(connection.peer);
+      }
+      this.listenToConnection(connection, "incoming");
+    });
+  }
+
+  private listenToConnection(
+    connection: DataConnection,
+    kind: "incoming" | "outgoing",
+    onOpen?: (connection: DataConnection) => void | Promise<void>,
+  ) {
+    connection.on("open", () => {
+      if (this.closed) {
+        return;
+      }
+      this.connecting.delete(connection.peer);
+      if (kind === "outgoing") {
+        console.log("queued opened");
+        if (!this.connections.has(connection.peer)) {
+          this.connections.set(connection.peer, connection);
+        }
+        this.handlers.onOutgoingOpen?.(connection);
+      } else {
+        console.log(`${this.label} connection opened`);
+        this.handlers.onIncomingOpen?.(connection);
+      }
+      onOpen?.(connection);
+    });
+    connection.on("data", (data) => {
+      if (this.closed) {
+        return;
+      }
+      this.handlers.onData?.(data, connection);
+    });
+    connection.on("close", () => {
+      if (this.closed) {
+        return;
+      }
+      console.log(`${this.label} connection closed`);
+      this.connecting.delete(connection.peer);
+      if (kind === "incoming") {
+        this.incoming.delete(connection.peer);
+      }
+      if (this.connections.get(connection.peer) === connection) {
+        this.connections.delete(connection.peer);
+      }
+      this.handlers.onConnectionClose?.(connection, kind);
+    });
+    connection.on("error", (err) => {
+      console.log(`${this.label} connection error: `, err);
+      this.connecting.delete(connection.peer);
+    });
+  }
+}
+
+export class PeerController {
+  private network: PeerNetwork;
   private user = userService.getUser()!;
   private players: string[] = [];
   private table: Table;
@@ -45,73 +216,53 @@ export class PeerController {
 
   setupNTwoWayPeerConnections() {
     const others = this.players.filter((player) => player != this.user);
-    this.peer = new Peer(`${this.user}-rummy-game`, config.peerjs);
-    this.addPeerLogging(this.peer);
-    this.peer.on("open", () => {
-      console.log(`${this.user} peer open`);
-      others.forEach((player) => {
-        const connection = this.peer.connect(`${player}-rummy-game`);
-        if (!this.connectionMap.has(connection.peer)) {
-          this.handleConnection(player, connection);
-        }
-      });
-    });
-    this.peer.on("connection", (connection) => {
-      if (!this.connectionMap.has(connection.peer)) {
-        const conn = this.peer.connect(connection.peer);
-        const player = conn.peer.replace(/-rummy-game$/, "");
-        conn.on("open", () => {
-          console.log("queued opened");
-          this.playerConnection(player, true);
-          if (!this.connectionMap.has(conn.peer)) {
-            this.connectionMap.set(conn.peer, conn);
-          }
-          conn.on("data", (data) => {
-            this.handlePeerData(data as PeerData);
+    this.network = new PeerNetwork(
+      `${this.user}-rummy-game`,
+      {
+        onOpen: (network) => {
+          others.forEach((player) => {
+            network.connectTo(`${player}-rummy-game`, (connection) => {
+              if (this.players[0] === this.user && this.table) {
+                connection.send({
+                  dataType: PeerDataType.table,
+                  table: this.table,
+                });
+              }
+            });
           });
-        });
-        conn.on("close", () => {
-          console.log(`user side`);
-          this.handleCloseConnection(player, conn);
-        });
-        this.handleConnection(this.user, connection);
-      }
-    });
-  }
-
-  handleConnection(player: string, connection: DataConnection) {
-    connection.on("open", () => {
-      console.log(`${player} connection opened`);
-      this.playerConnection(player, true);
-      if (this.players[0] === this.user && this.table) {
-        connection.send({
-          dataType: PeerDataType.table,
-          table: this.table,
-        });
-      }
-      connection.on("data", (data) => {
-        this.handlePeerData(data as PeerData);
-      });
-      this.connectionMap.set(connection.peer, connection);
-    });
-    connection.on("close", () => {
-      this.handleCloseConnection(player, connection);
-    });
-    connection.on("error", (err) => {
-      console.log(`${player} connection error: `, err);
-    });
-  }
-
-  handleCloseConnection(player: string, connection: DataConnection) {
-    console.log(`${player} connection closed`);
-    this.connectionMap.delete(connection.peer);
-    this.playerConnection(player, false);
+        },
+        onOutgoingOpen: (connection) => {
+          const player = connection.peer.replace(/-rummy-game$/, "");
+          this.playerConnection(player, true);
+        },
+        onIncomingOpen: (connection) => {
+          this.playerConnection(this.user, true);
+          if (this.players[0] === this.user && this.table) {
+            connection.send({
+              dataType: PeerDataType.table,
+              table: this.table,
+            });
+          }
+        },
+        onData: (data) => {
+          this.handlePeerData(data as PeerData);
+        },
+        onConnectionClose: (connection, kind) => {
+          const player =
+            kind === "incoming"
+              ? this.user
+              : connection.peer.replace(/-rummy-game$/, "");
+          this.playerConnection(player, false);
+        },
+      },
+      { connectBack: true, label: this.user },
+    );
   }
 
   playerConnection(playerName: string, isConnected: boolean) {
     if (
       !this.tableInitializationStarted &&
-      this.connectionMap.size == this.players.length - 1 &&
+      this.network.size == this.players.length - 1 &&
       this.players[0] == this.user &&
       !this.table?.deck.length
     ) {
@@ -188,7 +339,7 @@ export class PeerController {
     }
     const userIndex = deckEncryption.playerOrder.indexOf(this.user);
     const next = deckEncryption.playerOrder[userIndex + 1];
-    this.connectionMap.get(`${next}-rummy-game`)?.send({
+    this.network.sendTo(`${next}-rummy-game`, {
       dataType: PeerDataType.deckEncryption,
       deckEncryption: {
         to: next,
@@ -223,7 +374,7 @@ export class PeerController {
       );
       next = this.table.playerOrder[orderIndex - 2];
     }
-    this.connectionMap.get(`${next}-rummy-game`)?.send({
+    this.network.sendTo(`${next}-rummy-game`, {
       dataType: PeerDataType.keyRequest,
       keyRequest: {
         from: this.user,
@@ -234,7 +385,7 @@ export class PeerController {
   }
 
   keyRequestReceived(keyRequest: KeyRequest) {
-    this.connectionMap.get(`${keyRequest.from}-rummy-game`)?.send({
+    this.network.sendTo(`${keyRequest.from}-rummy-game`, {
       dataType: PeerDataType.encryptionKeys,
       encryptionKeys: {
         from: this.user,
@@ -250,16 +401,13 @@ export class PeerController {
 
   sendTableUpdate(table: Table) {
     this.table = table;
-    if (this.connectionMap.size > 0) {
-      this.connectionMap.forEach((connection) => {
-        if (connection.open && !connection.peer.startsWith(this.user)) {
-          connection.send({
-            dataType: PeerDataType.table,
-            table,
-          });
-        }
-      });
-    }
+    this.network.send(
+      {
+        dataType: PeerDataType.table,
+        table,
+      },
+      { excludePeerPrefix: this.user },
+    );
   }
 
   async initializeDeck(playerOrder?: string[]) {
@@ -283,7 +431,7 @@ export class PeerController {
     }
     const encryptedCards = await encryptService.encryptDeck(deck);
     const next = order[1];
-    this.connectionMap.get(`${next}-rummy-game`)?.send({
+    this.network.sendTo(`${next}-rummy-game`, {
       dataType: PeerDataType.deckEncryption,
       deckEncryption: {
         to: next,
@@ -302,7 +450,7 @@ export class PeerController {
       this.decryptedLayers = await encryptService.decryptLayers(cardsToDecrypt);
       player = this.table.playerOrder.at(-2);
     }
-    this.connectionMap.get(`${player}-rummy-game`)?.send({
+    this.network.sendTo(`${player}-rummy-game`, {
       dataType: PeerDataType.keyRequest,
       keyRequest: {
         from: this.user,
@@ -325,37 +473,21 @@ export class PeerController {
   }
 
   endOfGame() {
-    if (this.connectionMap.size > 0) {
-      this.connectionMap.forEach((connection) => {
-        if (connection.open && !connection.peer.startsWith(this.user)) {
-          connection.send({
-            dataType: PeerDataType.endOfGame,
-            endOfGame: {
-              from: this.user,
-              secretMaps: encryptService.secretMaps.map((secretMap) =>
-                Object.fromEntries(secretMap),
-              ),
-            },
-          });
-        }
-      });
-    }
+    this.network.send(
+      {
+        dataType: PeerDataType.endOfGame,
+        endOfGame: {
+          from: this.user,
+          secretMaps: encryptService.secretMaps.map((secretMap) =>
+            Object.fromEntries(secretMap),
+          ),
+        },
+      },
+      { excludePeerPrefix: this.user },
+    );
   }
 
   disconnect() {
-    this.connectionMap.forEach((conn) => conn.close());
-    this.peer.disconnect();
-  }
-
-  addPeerLogging(peer: Peer) {
-    peer.on("close", () => {
-      console.log(`${this.user} peer closed`);
-    });
-    peer.on("disconnected", () => {
-      console.log(`${this.user} peer disconnected`);
-    });
-    peer.on("error", (err) => {
-      console.log(`${this.user} peer error: `, err);
-    });
+    this.network?.disconnect();
   }
 }

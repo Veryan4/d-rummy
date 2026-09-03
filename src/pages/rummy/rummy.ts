@@ -171,7 +171,7 @@ class Rummy extends LitElement {
     return this.isYourTurn()
       ? html`<h1>${this.i18n.t("rummy.you")}</h1>`
       : html`<h1>
-          ${this.i18n.t("rummy.them", { user: this.table.whoseTurn })}
+          ${this.i18n.t("rummy.them", { user: this.table.whoseTurn.split("-")[0] })}
         </h1>`;
   }
 

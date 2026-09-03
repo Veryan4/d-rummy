@@ -1,2 +1,2 @@
 export { UserController } from "./user.controller";
-export { PeerController } from "./peer.controller";
+export { PeerController, PeerNetwork } from "./peer.controller";

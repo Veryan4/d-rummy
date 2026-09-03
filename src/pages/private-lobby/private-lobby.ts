@@ -1,11 +1,9 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
-import { UserController } from "../../controllers";
-import { storeService } from "../../services";
+import { UserController, PeerNetwork } from "../../controllers";
+import { formService, storeService } from "../../services";
 import { TranslationController, routerService } from "@veryan/lit-spa";
 import { Lobby } from "../../models";
-import { config } from "../../app.config";
-import Peer, { DataConnection } from "peerjs";
 import { styles } from "./private-lobby.styles";
 
 import "../../material-web";
@@ -21,8 +19,7 @@ class PrivateLobbyComponent extends LitElement {
 
   private game: string | null = null;
 
-  private peer: Peer;
-  private connections: DataConnection[] = [];
+  private network: PeerNetwork;
 
   @query("#lobby")
   lobbyInput: HTMLInputElement;
@@ -79,7 +76,7 @@ class PrivateLobbyComponent extends LitElement {
             "https://api.dicebear.com/7.x/pixel-art/svg?seed=" + player;
           return html` <div class="player">
             <img class="player-image" src=${src} alt="avatar" />
-            <div class="player-name">${player}</div>
+            <div class="player-name">${player.split("-")[0]}</div>
           </div>`;
         })}
       </div>
@@ -165,25 +162,12 @@ class PrivateLobbyComponent extends LitElement {
     super.connectedCallback();
 
     if (this.game) {
-      if (this.peer) {
-        this.disconnect();
-      }
+      this.network?.disconnect();
       if (this.game === this.user.value!) {
         this.connectAsHost();
       } else {
         this.connectAsPeer();
       }
-
-      this.peer.on("close", async () => {
-        console.log(`${this.user.value} peer closed`);
-      });
-      this.peer.on("disconnected", async () => {
-        console.log(`${this.user.value} peer disconnected`);
-      });
-      this.peer.on("error", async (err) => {
-        console.log(`${this.user.value} peer error`);
-        console.log(err);
-      });
     }
 
     window.onbeforeunload = () => {
@@ -192,85 +176,47 @@ class PrivateLobbyComponent extends LitElement {
   }
 
   connectAsHost() {
-    this.peer = new Peer(`${this.game}-rummy-lobby`, config.peerjs);
-    this.peer.on("open", async () => {
-      console.log(`${this.user.value} peer open`);
-    });
-    this.peer.on("connection", (connection) => {
-      console.log(
-        `${connection.peer} connection received by ${this.user.value}`,
-      );
-      if (!this.connections.some((conn) => conn.peer === connection.peer)) {
-        const conn = this.peer.connect(connection.peer);
-        conn.on("open", async () => {
-          console.log("queued opened");
-          this.connections.push(conn);
+    this.network = new PeerNetwork(
+      `${this.game}-rummy-lobby`,
+      {
+        onOutgoingOpen: async (connection) => {
           this.lobby.host = this.user.value!;
-          const player = connection.peer.replace("-rummy-lobby", "");
-          if (!this.lobby.players.some((p) => p === player)) {
-            this.lobby.players.push(player);
-          }
-          this.requestUpdate();
+          this.addLobbyPlayer(connection.peer);
           await this.sendAction(this.lobby);
-        });
-        connection.on("open", async () => {
-          console.log(`${this.user.value} connection opened`);
-          const player = connection.peer.replace("-rummy-lobby", "");
-          if (!this.lobby.players.some((p) => p === player)) {
-            this.lobby.players.push(player);
-          }
+        },
+        onIncomingOpen: (connection) => {
+          this.addLobbyPlayer(connection.peer);
+        },
+        onData: async (data) => {
+          await this.handlePeerData(data as Lobby);
           this.requestUpdate();
-          connection.on("data", async (data) => {
-            await this.handlePeerData(data as any);
-            this.requestUpdate();
-          });
-        });
-        connection.on("close", async () => {
-          console.log(`${this.user.value} connection closed`);
-        });
-        connection.on("error", async (err) => {
-          console.log(`${this.user.value} connection error`);
-          console.log(err);
-        });
-      }
-    });
+        },
+      },
+      { connectBack: true, label: this.user.value! },
+    );
   }
 
   connectAsPeer() {
-    this.peer = new Peer(`${this.user.value}-rummy-lobby`, config.peerjs);
-    this.peer.on("open", async () => {
-      console.log(`${this.user.value} peer open`);
-      const connection = this.peer.connect(`${this.game}-rummy-lobby`);
-      connection.on("open", async () => {
-        console.log(`${this.user.value} connection opened`);
-        this.connections.push(connection);
-      });
-      connection.on("close", async () => {
-        console.log(`${this.user.value} connection closed`);
-      });
-      connection.on("error", async (err) => {
-        console.log(`${this.user.value} connection error`);
-        console.log(err);
-      });
-    });
-    this.peer.on("connection", async (connection) => {
-      console.log("peer connection");
-      if (!this.connections.some((conn) => conn.peer === connection.peer)) {
-        connection.on("open", async () => {
-          console.log("peer queue opened");
-          connection.on("data", async (data) => {
-            console.log("peer data received");
-            await this.handlePeerData(data as any);
-          });
-          connection.on("close", async () => {
-            console.log("peer queued closed");
-          });
-          connection.on("error", async (err) => {
-            console.log(err);
-          });
-        });
-      }
-    });
+    this.network = new PeerNetwork(
+      `${this.user.value}-rummy-lobby`,
+      {
+        onOpen: (network) => {
+          network.connectTo(`${this.game}-rummy-lobby`);
+        },
+        onData: async (data) => {
+          await this.handlePeerData(data as Lobby);
+        },
+      },
+      { label: this.user.value! },
+    );
+  }
+
+  private addLobbyPlayer(peerId: string) {
+    const player = peerId.replace("-rummy-lobby", "");
+    if (!this.lobby.players.some((p) => p === player)) {
+      this.lobby.players.push(player);
+    }
+    this.requestUpdate();
   }
 
   disconnectedCallback(): void {
@@ -281,8 +227,7 @@ class PrivateLobbyComponent extends LitElement {
   }
 
   disconnect() {
-    this.connections.forEach((conn) => conn.close());
-    this.peer.disconnect();
+    this.network?.disconnect();
   }
 
   private async handlePeerData(lobby: Lobby) {
@@ -300,27 +245,15 @@ class PrivateLobbyComponent extends LitElement {
   }
 
   async sendAction(what: Lobby): Promise<void> {
-    if (this.game && this.connections.length > 0) {
-      this.connections.forEach((connection) => {
-        if (connection.open) {
-          connection.send(what);
-        }
-      });
+    if (this.game) {
+      this.network?.send(what);
     }
   }
 
   checkFormValidity() {
-    const requiredFields = this.shadowRoot?.querySelectorAll(
-      "[required]",
-    ) as NodeListOf<HTMLInputElement>;
-
-    const validFields: boolean[] = [];
-
-    requiredFields.forEach((field) => {
-      validFields.push(field.validity.valid);
-    });
-
-    this.isFormValid = !validFields.includes(false);
+    if (this.shadowRoot) {
+      this.isFormValid = formService.checkFormValidity(this.shadowRoot);
+    }
   }
 
   async createLobby() {
