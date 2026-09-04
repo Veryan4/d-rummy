@@ -17,14 +17,20 @@ class CardHandComponent extends LitElement {
   @property({ type: Array })
   cards: Card[] = [];
 
-  constructor() {
-    super();
-
+  connectedCallback(): void {
+    super.connectedCallback();
     // Prevents ugly animation after drag & drop
-    document.addEventListener("dragover", function (e) {
-      e.preventDefault();
-    });
+    document.addEventListener("dragover", this.preventDefaultDrag);
   }
+
+  disconnectedCallback(): void {
+    document.removeEventListener("dragover", this.preventDefaultDrag);
+    super.disconnectedCallback();
+  }
+
+  private preventDefaultDrag = (e: Event): void => {
+    e.preventDefault();
+  };
 
   render() {
     const classes = { dragging: this.cards.some((card) => card.isdragging) };
