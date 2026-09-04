@@ -83,10 +83,13 @@ export const cardStyles = css`
     width: 100%;
     border-radius: 10px;
     background-color: #8fa0b5;
-    background-image: url("/d-rummy-text.png");
-    background-repeat: no-repeat;
-    background-position: 50% 50%;
-    background-size: 85%;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 8px,
+      rgba(255, 255, 255, 0.16) 8px,
+      rgba(255, 255, 255, 0.16) 9px
+    );
   }
 
   /* front pane, placed above back */

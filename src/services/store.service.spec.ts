@@ -1,4 +1,11 @@
-import { Card, Table, DecryptedTable, Audit, AuditEnum, PlayerHand } from "../models";
+import {
+  Card,
+  Table,
+  DecryptedTable,
+  Audit,
+  AuditEnum,
+  PlayerHand,
+} from "../models";
 import { storeService } from "./store.service";
 
 // Mock Web Storage
@@ -54,10 +61,36 @@ describe("storeService", () => {
       expect(mockSessionStorage.getItem("game")).toBe("rummy");
     });
 
+    it("should leave gameType unset until a valid type is persisted", () => {
+      expect(storeService.getGameType()).toBeNull();
+      storeService.setGameType("crazy-eights");
+      expect(storeService.getGameType()).toBe("crazy-eights");
+      mockSessionStorage.setItem("gameType", "poker");
+      expect(storeService.getGameType()).toBeNull();
+      storeService.setGameType("rummy");
+      expect(storeService.getGameType()).toBe("rummy");
+    });
+
+    it("should not erase gameType when erasing game state", () => {
+      storeService.setGameType("crazy-eights");
+      storeService.eraseGameState();
+      expect(storeService.getGameType()).toBe("crazy-eights");
+    });
+
+    it("should clear the stored lobby host without touching gameType", () => {
+      storeService.setGame("Alice-uuid");
+      storeService.setGameType("crazy-eights");
+      storeService.clearGameHost();
+      expect(storeService.getGameState().game).toBeNull();
+      expect(storeService.getGameType()).toBe("crazy-eights");
+    });
+
     it("should set and get players", () => {
       const players = ["alice", "bob"];
       storeService.setPlayers(players);
-      expect(JSON.parse(mockSessionStorage.getItem("players")!)).toEqual(players);
+      expect(JSON.parse(mockSessionStorage.getItem("players")!)).toEqual(
+        players,
+      );
     });
 
     it("should set hand", () => {
@@ -135,6 +168,7 @@ describe("storeService", () => {
       mockSessionStorage.setItem("secretMap", JSON.stringify([]));
       mockSessionStorage.setItem("decryptedMap", JSON.stringify({}));
       mockSessionStorage.setItem("decryptedTablesOverTime", JSON.stringify([]));
+      mockSessionStorage.setItem("tableOverTime", JSON.stringify([{ turn: 1 }]));
 
       storeService.eraseGameState();
 
@@ -146,6 +180,7 @@ describe("storeService", () => {
       expect(mockSessionStorage.getItem("secretMap")).toBeNull();
       expect(mockSessionStorage.getItem("decryptedMap")).toBeNull();
       expect(mockSessionStorage.getItem("decryptedTablesOverTime")).toBeNull();
+      expect(mockSessionStorage.getItem("tableOverTime")).toBeNull();
     });
 
     it("should erase lobby state", () => {
@@ -207,9 +242,9 @@ describe("storeService", () => {
 
       storeService.setDecryptedTableOverTime(decryptedTables);
 
-      expect(JSON.parse(mockLocalStorage.getItem("decryptedTablesOverTime")!)).toEqual(
-        decryptedTables,
-      );
+      expect(
+        JSON.parse(mockLocalStorage.getItem("decryptedTablesOverTime")!),
+      ).toEqual(decryptedTables);
       expect(
         JSON.parse(mockSessionStorage.getItem("decryptedTablesOverTime")!),
       ).toEqual(decryptedTables);

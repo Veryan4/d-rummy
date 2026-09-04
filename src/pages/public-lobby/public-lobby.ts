@@ -4,10 +4,10 @@ import { UserController, PeerNetwork } from "../../controllers";
 import { storeService } from "../../services";
 import { TranslationController, routerService } from "@veryan/lit-spa";
 import { styles } from "./public-lobby.styles";
+import { getGame } from "../../games/registry";
+import { publicHostId, publicPeerId } from "../../games/peer-ids";
 
 import "@veryan/lit-spa";
-
-const PLAYERS_PER_GAME = 2;
 const UPDATE_INTERVAL = 5 * 1000;
 
 function setExpiryTime(milliseconds: number): Date {
@@ -34,6 +34,14 @@ class PublicLobbyComponent extends LitElement {
   private i18n = new TranslationController(this);
   private user = new UserController(this);
 
+  private get definition() {
+    return getGame(storeService.getGameType());
+  }
+
+  private get playersPerGame() {
+    return this.definition.publicQueueSize;
+  }
+
   private timer: number;
   private interval = UPDATE_INTERVAL;
   private queue: PlayerInQueue[] = [];
@@ -45,6 +53,8 @@ class PublicLobbyComponent extends LitElement {
 
   @state()
   isFormValid = false;
+
+  private joiningGame = false;
 
   constructor() {
     super();
@@ -84,10 +94,10 @@ class PublicLobbyComponent extends LitElement {
   connectAsPeer() {
     this.network?.disconnect();
     this.network = new PeerNetwork(
-      `public-rummy-${this.user.value}`,
+      publicPeerId(this.user.value!, this.definition.peerNamespace),
       {
         onOpen: (network) => {
-          network.connectTo(`public-rummy-host`, async () => {
+          network.connectTo(publicHostId(this.definition.peerNamespace), async () => {
             await this.playerQueued();
           });
         },
@@ -105,7 +115,7 @@ class PublicLobbyComponent extends LitElement {
   becomeHostPeer() {
     this.network?.disconnect();
     this.network = new PeerNetwork(
-      `public-rummy-host`,
+      publicHostId(this.definition.peerNamespace),
       {
         onOpen: (network) => {
           this.queue.push({
@@ -136,8 +146,10 @@ class PublicLobbyComponent extends LitElement {
   }
 
   private async handlePeerData(gameQueue: GameQueue) {
-    if (gameQueue.staging) {
-      this.staging = gameQueue.staging;
+    if (gameQueue.staging !== undefined) {
+      if (gameQueue.staging.length > 0 || !this.joiningGame) {
+        this.staging = gameQueue.staging;
+      }
     }
     if (this.playerInStaging()) {
       this.playerJoinGame();
@@ -173,7 +185,7 @@ class PublicLobbyComponent extends LitElement {
 
   async _updateQueue(): Promise<void> {
     if (this.queue[0] && this.queue[0].name === this.user.value!) {
-      if (this.network.id !== `public-rummy-host`) {
+      if (this.network.id !== publicHostId(this.definition.peerNamespace)) {
         this.becomeHostPeer();
       }
       const now = new Date();
@@ -181,9 +193,9 @@ class PublicLobbyComponent extends LitElement {
         (player) =>
           new Date(player.expiresAt) > now || player.name === this.user.value!,
       );
-      if (queue.length >= PLAYERS_PER_GAME && this.staging.length === 0) {
+      if (queue.length >= this.playersPerGame && this.staging.length === 0) {
         const staging = queue
-          .splice(0, PLAYERS_PER_GAME)
+          .splice(0, this.playersPerGame)
           .map((player) => player.name);
         await this.sendAction({
           queue,
@@ -226,14 +238,19 @@ class PublicLobbyComponent extends LitElement {
   }
 
   async playerJoinGame(): Promise<void> {
-    storeService.setPlayers(this.staging);
-    if (this.staging[0] === this.user.value!) {
+    if (this.joiningGame || this.staging.length < this.playersPerGame) {
+      return;
+    }
+    this.joiningGame = true;
+    const players = [...this.staging];
+    storeService.setPlayers(players);
+    if (players[0] === this.user.value!) {
       await this.sendAction({
         staging: [],
       });
     }
     setTimeout(() => {
-      routerService.navigate("rummy");
+      routerService.navigate(this.definition.route);
     }, 1000);
   }
 }

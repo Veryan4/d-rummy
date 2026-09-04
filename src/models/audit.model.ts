@@ -6,12 +6,16 @@ export enum CheatEnum {
   cardsTakenFromPileAndDeck = 4,
   setsNotValid = 5,
   otherPlayersHandsChanged = 6,
+  illegalCardPlayed = 7,
+  wrongNextPlayer = 8,
+  invalidCrazyEightsState = 9,
 }
 
 export enum AuditEnum {
   wrongAmountOfTotalCards = 0,
   notAllCardsAreUnique = 1,
   thereIsAnInvalidSet = 2,
+  illegalTurn = 3,
 }
 
 export class Audit {

@@ -1,5 +1,7 @@
-import { Table } from "./cards.model";
+import { Card, GameId, Table } from "./cards.model";
 import { EncryptedCard } from "./encrypted-card.model";
+
+export type DeckPurpose = "initial" | "recycle";
 
 export enum PeerDataType {
   table,
@@ -7,12 +9,17 @@ export enum PeerDataType {
   keyRequest,
   encryptionKeys,
   endOfGame,
+  rematch,
+  deckSeed,
 }
 
 export interface DeckEncryption {
   to: string;
   playerOrder: string[];
   cards: EncryptedCard[];
+  gameId?: GameId;
+  purpose?: DeckPurpose;
+  retainedPile?: Card[];
 }
 
 export interface KeyRequest {
@@ -32,6 +39,19 @@ export interface EndOfGame {
   secretMaps: Record<number, JsonWebKey>[];
 }
 
+export interface RematchRequest {
+  playerOrder: string[];
+}
+
+export interface DeckSeed {
+  to: string;
+  playerOrder: string[];
+  cards: Card[];
+  gameId?: GameId;
+  purpose?: DeckPurpose;
+  retainedPile?: Card[];
+}
+
 export interface PeerData {
   dataType: PeerDataType;
   table?: Table;
@@ -39,4 +59,6 @@ export interface PeerData {
   keyRequest?: KeyRequest;
   encryptionKeys?: EncryptionKeys;
   endOfGame?: EndOfGame;
+  rematch?: RematchRequest;
+  deckSeed?: DeckSeed;
 }

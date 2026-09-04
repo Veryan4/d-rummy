@@ -9,6 +9,7 @@ export const tableService = {
   playerHasCards,
   getNextPlayerTurn,
   drawFromDeck,
+  takeFromDeck,
   discardToPile,
   addEncryptedCardsToHand,
   addCardsToHand,
@@ -58,8 +59,13 @@ function getNextPlayerTurn(table: Table): Table {
 
 function drawFromDeck(table: Table): EncryptedCard[] {
   table.hasDrawn = true;
+  return takeFromDeck(table, 1);
+}
+
+function takeFromDeck(table: Table, count = 1): EncryptedCard[] {
   const cardsToDecrypt: EncryptedCard[] = [];
-  cardsService.moveCard(table.deck, cardsToDecrypt, "top", "bottom");
+  const n = Math.min(count, table.deck.length);
+  cardsService.moveCards(table.deck, cardsToDecrypt, "top", "bottom", n);
   return cardsToDecrypt;
 }
 

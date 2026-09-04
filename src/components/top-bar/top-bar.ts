@@ -1,5 +1,5 @@
 import { LitElement, html } from "lit";
-import { customElement, query } from "lit/decorators.js";
+import { customElement, query, state } from "lit/decorators.js";
 import { UserController } from "../../controllers";
 import { storeService, userService } from "../../services";
 import {
@@ -15,6 +15,7 @@ import {
 import {
   topAppBarStyles,
   menuIcon,
+  cardsIcon,
   infoIcon,
   invertColorsIcon,
   notificationsOnIcon,
@@ -23,6 +24,7 @@ import {
 } from "../../styles";
 import { styles } from "./top-bar.styles";
 import "../../material-web";
+import "../../pages/about/about";
 
 @customElement("top-bar")
 class TopBar extends LitElement {
@@ -37,13 +39,29 @@ class TopBar extends LitElement {
   @query("#menu")
   menu: any;
 
+  @state()
+  private helpOpen = false;
+
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener("keydown", this.onKeydown);
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener("keydown", this.onKeydown);
+    document.body.style.overflow = "";
+    super.disconnectedCallback();
+  }
+
   render() {
     return html` <header class="mdc-top-app-bar top-bar">
         <div class="mdc-top-app-bar__row">
           <section
             class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start"
           >
-            <a href="/" class="logo"></a>
+            <a href="/" class="logo" @click=${this.goHome}
+              >${cardsIcon()} ${this.i18n.t("header.brand")}</a
+            >
           </section>
           <section
             class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end"
@@ -70,7 +88,8 @@ class TopBar extends LitElement {
       </header>
       <main class="mdc-top-app-bar--fixed-adjust">
         <slot></slot>
-      </main>`;
+      </main>
+      ${this.renderHelpOverlay()}`;
   }
 
   renderMenu() {
@@ -81,7 +100,7 @@ class TopBar extends LitElement {
         .anchor-corner=${this.device.isMobile ? "TOP_RIGHT" : "TOP_LEFT"}
         .menu-corner=${this.device.isMobile ? "END" : "START"}
       >
-        <md-menu-item @click=${() => routerService.navigate("about")}>
+        <md-menu-item @click=${this.openHelp}>
           <div class="menu-item" slot="headline">
             <i class="icon">${infoIcon()}</i>
             ${this.i18n.t("header.about")}
@@ -131,11 +150,83 @@ class TopBar extends LitElement {
     `;
   }
 
+  renderHelpOverlay() {
+    if (!this.helpOpen) {
+      return "";
+    }
+    return html`
+      <div class="help-backdrop" @click=${this.closeHelp}></div>
+      <aside
+        class="help-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="help-title"
+      >
+        <div class="help-panel-header">
+          <span id="help-title">${this.i18n.t("header.about")}</span>
+          <button
+            class="help-close"
+            type="button"
+            aria-label=${this.i18n.t("header.close")}
+            @click=${this.closeHelp}
+          >
+            ${closeIcon()}
+          </button>
+        </div>
+        <div class="help-panel-body">
+          <app-about compact></app-about>
+        </div>
+      </aside>
+    `;
+  }
+
+  private isPlaying(): boolean {
+    const path = window.location.pathname.replace(/^\//, "");
+    return (
+      path === "rummy" ||
+      path === "crazy-eights" ||
+      !!storeService.getGameState().table
+    );
+  }
+
+  private onKeydown = (e: KeyboardEvent) => {
+    if (e.key === "Escape" && this.helpOpen) {
+      this.closeHelp();
+    }
+  };
+
+  openHelp() {
+    if (this.isPlaying()) {
+      this.helpOpen = true;
+      document.body.style.overflow = "hidden";
+      return;
+    }
+    routerService.navigate("about");
+  }
+
+  closeHelp() {
+    this.helpOpen = false;
+    document.body.style.overflow = "";
+  }
+
+  goHome(e: Event) {
+    e.preventDefault();
+    this.closeHelp();
+    const { table } = storeService.getGameState();
+    if (!table) {
+      storeService.clearGameHost();
+    }
+    routerService.navigate("/");
+    window.dispatchEvent(new Event("show-game-picker"));
+  }
+
   logout() {
+    this.closeHelp();
     this.user.value = null;
     storeService.eraseGameState();
     userService.removeUser();
-    routerService.navigate("");
+    routerService.navigate("/");
+    window.dispatchEvent(new Event("show-game-picker"));
   }
 
   language(lang: string): void {

@@ -36,6 +36,9 @@ class AuditTable extends LitElement {
 
   render() {
     const table = this.decryptedTablesOverTime[this.selectedTurn];
+    if (!table) {
+      return html``;
+    }
     return html`
       <div class="audit-wrapper">
         <div class="table">
@@ -64,6 +67,12 @@ class AuditTable extends LitElement {
             ${this.renderPile(table)}
             <div class="count">${table.pile.length}</div>
           </div>
+          ${table.crazyEights
+            ? html`<div class="count">
+                ${this.i18n.t("crazyEights.current_suit")}:
+                ${table.crazyEights.currentSuit}
+              </div>`
+            : ""}
         </div>
       </div>
       <div class="others">${this.renderPlayers(table)}</div>
@@ -75,8 +84,8 @@ class AuditTable extends LitElement {
           < ${this.i18n.t("audit.previous")}
         </md-filled-button>
         <md-filled-button
-          ?disabled=${this.selectedTurn ==
-          this.decryptedTablesOverTime?.at(-1)?.turn}
+          ?disabled=${this.selectedTurn >=
+          this.decryptedTablesOverTime.length - 1}
           @click=${() => (this.selectedTurn += 1)}
         >
           ${this.i18n.t("audit.next")} >
@@ -86,18 +95,29 @@ class AuditTable extends LitElement {
   }
 
   goToInfractions() {
-    const foundInfraction = this.audit.findIndex((a) => a.infractions.length);
-    return foundInfraction > -1 && foundInfraction != this.selectedTurn
+    const nextInfraction = this.findNextInfractionIndex();
+    return nextInfraction > -1
       ? html`
           <md-filled-button
             class="infraction-btn"
             style="margin-right:1rem;width: fit-content;"
-            @click=${() => (this.selectedTurn = foundInfraction)}
+            @click=${() => (this.selectedTurn = nextInfraction)}
           >
-            ${this.i18n.t("audit.foundInfraction")}</md-filled-button
+            ${this.i18n.t("audit.nextInfraction")}</md-filled-button
           >
         `
       : "";
+  }
+
+  private findNextInfractionIndex(): number {
+    const { length } = this.audit;
+    for (let offset = 1; offset < length; offset++) {
+      const index = (this.selectedTurn + offset) % length;
+      if (this.audit[index]?.infractions.length) {
+        return index;
+      }
+    }
+    return -1;
   }
 
   renderInfractions() {
@@ -190,29 +210,33 @@ class AuditTable extends LitElement {
                 : html``}
             </div>
           </div>
-          <h3>${this.i18n.t("audit.sets")}</h3>
-          <div class="other-sets">
-            ${table.players[player].sets &&
-            table.players[player].sets.length > 0
-              ? table.players[player].sets.map(
-                  (set) =>
-                    html` <div
-                      class="set ${classMap({ ["set-" + set.length]: true })}"
-                    >
-                      ${set.map(
-                        (card) =>
-                          html`<game-card
-                            class="small"
-                            symbol="${card.symbol}"
-                            rank="${card.rank}"
-                          ></game-card>`,
-                      )}
-                    </div>`,
-                )
-              : html` <div class="set empty">
-                  ${this.i18n.t("rummy.no_set")}
+          ${table.gameId === "crazy-eights"
+            ? ""
+            : html`<h3>${this.i18n.t("audit.sets")}</h3>
+                <div class="other-sets">
+                  ${table.players[player].sets &&
+                  table.players[player].sets.length > 0
+                    ? table.players[player].sets.map(
+                        (set) =>
+                          html` <div
+                            class="set ${classMap({
+                              ["set-" + set.length]: true,
+                            })}"
+                          >
+                            ${set.map(
+                              (card) =>
+                                html`<game-card
+                                  class="small"
+                                  symbol="${card.symbol}"
+                                  rank="${card.rank}"
+                                ></game-card>`,
+                            )}
+                          </div>`,
+                      )
+                    : html` <div class="set empty">
+                        ${this.i18n.t("rummy.no_set")}
+                      </div>`}
                 </div>`}
-          </div>
         </div>
         ${player !== table.whoseTurn && player !== table.playerOrder.at(-1)
           ? html`<hr />`

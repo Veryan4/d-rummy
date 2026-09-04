@@ -12,6 +12,8 @@ import {
 import { TranslationController, routerService } from "@veryan/lit-spa";
 import { styles } from "./home.styles";
 import { lobbySharedStyles } from "../../styles/lobby-shared.styles";
+import { getGame, listGames } from "../../games/registry";
+import { GameId } from "../../models";
 
 import "../../material-web";
 
@@ -22,7 +24,7 @@ class HomeComponent extends LitElement {
   private i18n = new TranslationController(this);
   private user = new UserController(this);
 
-  private game: string;
+  private lobbyHostId: string | undefined;
 
   @query("#username")
   usernameInput: HTMLInputElement;
@@ -30,16 +32,43 @@ class HomeComponent extends LitElement {
   @state()
   isFormValid = false;
 
+  @state()
+  private pickedGame = false;
+
   constructor() {
     super();
-    const { table, game } = storeService.getGameState();
+    const { table, game, gameType } = storeService.getGameState();
     if (table) {
-      routerService.navigate("rummy");
+      routerService.navigate(getGame(table.gameId ?? gameType).route);
     }
-    if (game) {
-      this.game = game;
+    if (game && !userService.getUser()) {
+      this.lobbyHostId = game;
+      this.pickedGame = true;
     }
   }
+
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener("show-game-picker", this.showGamePicker);
+    if (this.user.value) {
+      this.showGamePicker();
+    }
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener("show-game-picker", this.showGamePicker);
+    super.disconnectedCallback();
+  }
+
+  private showGamePicker = () => {
+    if (storeService.getGameState().table) {
+      return;
+    }
+    storeService.clearGameHost();
+    this.lobbyHostId = undefined;
+    this.pickedGame = false;
+    this.requestUpdate();
+  };
 
   render() {
     return html` <div class="lobby">${this.renderCreateUser()}</div> `;
@@ -47,7 +76,7 @@ class HomeComponent extends LitElement {
 
   renderCreateUser() {
     return this.user.value
-      ? this.renderPublicOrPrivate()
+      ? this.renderAfterLogin()
       : html` <div class="card">
           <h1 class="card-title">${this.i18n.t("lobby.login.title")}</h1>
           <form class="card-form">
@@ -76,9 +105,36 @@ class HomeComponent extends LitElement {
         </div>`;
   }
 
-  renderPublicOrPrivate() {
+  renderAfterLogin() {
+    if (this.lobbyHostId) {
+      return this.renderPublicOrPrivate();
+    }
+    if (!this.pickedGame) {
+      return this.renderGamePicker();
+    }
+    return this.renderPublicOrPrivate();
+  }
+
+  renderGamePicker() {
     return html` <div class="card">
-      <h1 class="card-title">${this.i18n.t("lobby.privacy.title")}</h1>
+      <h1 class="card-title">${this.i18n.t("lobby.game.title")}</h1>
+      <div class="form-buttons">
+        ${listGames().map(
+          (game) => html`
+            <md-filled-button @click=${() => this.pickGame(game.id)}
+              >${this.i18n.t(game.titleKey)}</md-filled-button
+            >
+          `,
+        )}
+      </div>
+    </div>`;
+  }
+
+  renderPublicOrPrivate() {
+    const definition = getGame(storeService.getGameType());
+    return html` <div class="card">
+      <h1 class="card-title">${this.i18n.t(definition.titleKey)}</h1>
+      <p class="card-subtitle">${this.i18n.t("lobby.privacy.title")}</p>
       <div class="form-buttons">
         <md-filled-button @click=${this.public}
           >${this.i18n.t("lobby.privacy.public")}</md-filled-button
@@ -86,8 +142,18 @@ class HomeComponent extends LitElement {
         <md-outlined-button @click=${this.private}
           >${this.i18n.t("lobby.privacy.private")}</md-outlined-button
         >
+        ${this.lobbyHostId
+          ? ""
+          : html`<md-outlined-button @click=${() => (this.pickedGame = false)}
+              >${this.i18n.t("lobby.game.change")}</md-outlined-button
+            >`}
       </div>
     </div>`;
+  }
+
+  pickGame(id: GameId) {
+    storeService.setGameType(id);
+    this.pickedGame = true;
   }
 
   onUsernameInput(e: Event) {
@@ -113,8 +179,8 @@ class HomeComponent extends LitElement {
     }
     userService.setUser(userId);
     setTimeout(() => {
-      if (this.game) {
-        storeService.setGame(this.game);
+      if (this.lobbyHostId) {
+        storeService.setGame(this.lobbyHostId);
         routerService.navigate("private");
       }
     }, 300);

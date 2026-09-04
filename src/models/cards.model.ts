@@ -55,6 +55,14 @@ export class Card {
   }
 }
 
+export type GameId = "rummy" | "crazy-eights";
+
+export interface CrazyEightsState {
+  currentSuit: SymbolType;
+  direction: 1 | -1;
+  pendingDraw: number;
+}
+
 export class PlayerHand {
   encryptedCards: EncryptedCard[] = [];
   cards: Card[] = [];
@@ -63,6 +71,7 @@ export class PlayerHand {
 }
 
 export class Table {
+  gameId?: GameId;
   players: { [username: string]: PlayerHand } = {};
   playerOrder: string[] = [];
   whoseTurn: string;
@@ -70,9 +79,11 @@ export class Table {
   pile: Card[];
   hasDrawn = false;
   turn = 0;
+  crazyEights?: CrazyEightsState;
 }
 
 export class DecryptedTable {
+  gameId?: GameId;
   players: {
     [username: string]: {
       cards: Card[];
@@ -85,4 +96,5 @@ export class DecryptedTable {
   pile: Card[];
   hasDrawn: boolean;
   turn: number;
+  crazyEights?: CrazyEightsState;
 }

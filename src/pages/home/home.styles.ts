@@ -1,7 +1,9 @@
 import { css } from "lit";
 
 export const styles = css`
-  mwc-button {
-    margin-bottom: 1rem;
+  .card-subtitle {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    font-weight: 400;
   }
 `;

@@ -7,7 +7,12 @@ import {
   EncryptedCard,
   Table,
 } from "../models";
-import { cardsService } from "./cards.service";
+import { getGame } from "../games/registry";
+import {
+  collapseCrazyEightsForcedDraws,
+  isForcedDrawContinuation,
+  tableFromDecrypted,
+} from "../games/crazy-eights/audit";
 import { encryptService } from "./encrypt.service";
 import { rummyService } from "./rummy.service";
 
@@ -16,82 +21,64 @@ const decryptedMaps = [new Map<number, Card>()];
 export const auditService = {
   cheatDetection,
   audit,
+  decryptOrderFor,
+  applyCrazyEightsTurnAudit,
 };
 
+export function decryptOrderFor(playerOrder: string[]): string[] {
+  return [...playerOrder].reverse();
+}
+
 function cheatDetection(table: Table, lastTable: Table): CheatEnum | null {
-  const playerIndex = table.playerOrder.indexOf(table.whoseTurn);
-  const previousPlayer = table.playerOrder.at(playerIndex - 1);
+  return getGame(table.gameId).cheatDetection(table, lastTable);
+}
 
-  if (!lastTable || playerIndex < 0) {
-    return CheatEnum.unableToCheatDetect;
+export function applyCrazyEightsTurnAudit(
+  audit: Audit[],
+  decryptedTablesOverTime: DecryptedTable[],
+): void {
+  for (let i = 1; i < decryptedTablesOverTime.length; i++) {
+    const previous = decryptedTablesOverTime[i - 1];
+    const next = decryptedTablesOverTime[i];
+    if (next.turn === 0) {
+      continue;
+    }
+    if (
+      isForcedDrawContinuation(
+        tableFromDecrypted(previous),
+        tableFromDecrypted(next),
+      )
+    ) {
+      continue;
+    }
+    const cheat = cheatDetection(
+      tableFromDecrypted(next),
+      tableFromDecrypted(previous),
+    );
+    if (cheat != null) {
+      audit[i]?.infractions.push(AuditEnum.illegalTurn);
+    }
   }
-
-  if (lastTable.turn != table.turn - 1) {
-    return CheatEnum.outOfOrderTurns;
-  }
-
-  if (!lastTable.playerOrder.every((p, i) => table.playerOrder[i] == p)) {
-    return CheatEnum.playerTurnOrderChanged;
-  }
-
-  if (lastTable.whoseTurn != previousPlayer) {
-    return CheatEnum.wrongPlayersTurn;
-  }
-
-  if (
-    lastTable.deck.length != table.deck.length + 1 &&
-    lastTable.pile.length == table.pile.length &&
-    table.pile.length != 1
-  ) {
-    return CheatEnum.cardsTakenFromPileAndDeck;
-  }
-
-  if (
-    lastTable.playerOrder.some(
-      (player) =>
-        player != previousPlayer &&
-        !cardsService.areSetOfEncryptedCardsEqual(
-          lastTable.players[player].encryptedCards,
-          table.players[player].encryptedCards,
-        ),
-    )
-  ) {
-    return CheatEnum.otherPlayersHandsChanged;
-  }
-
-  if (
-    lastTable.playerOrder.some(
-      (player) =>
-        player != previousPlayer &&
-        !table.players[player].sets.every((set) =>
-          rummyService.isValidRummySet(set),
-        ),
-    )
-  ) {
-    return CheatEnum.setsNotValid;
-  }
-
-  if (
-    table.players[previousPlayer].sets.some(
-      (set) => !rummyService.isValidRummySet(set),
-    )
-  ) {
-    return CheatEnum.setsNotValid;
-  }
-
-  return null;
 }
 
 async function audit(
   tablesOverTime: Table[],
   playersSecrets: Map<string, Map<number, JsonWebKey>[]>,
 ) {
-  const decryptedTablesOverTime = await decryptTablesOverTime(
+  let decryptedTablesOverTime = await decryptTablesOverTime(
     tablesOverTime,
     playersSecrets,
   );
   const firstTable = decryptedTablesOverTime[0];
   const players = firstTable.playerOrder;
+
+  const game = getGame(firstTable.gameId);
+  if (game.id === "crazy-eights") {
+    decryptedTablesOverTime = collapseCrazyEightsForcedDraws(
+      decryptedTablesOverTime,
+    );
+  }
+  const expectedCount = game.auditCardCount;
 
   const audit = decryptedTablesOverTime.reduce((acc, table) => {
     const infractions: AuditEnum[] = [];
@@ -105,7 +92,7 @@ async function audit(
         );
         return a + table.players[c].cards.length + setCounts;
       }, 0);
-    if (cardCount != 52) {
+    if (cardCount != expectedCount) {
       infractions.push(AuditEnum.wrongAmountOfTotalCards);
     }
 
@@ -127,13 +114,14 @@ async function audit(
       .sort();
 
     if (
-      cardCount == 52 &&
+      cardCount == expectedCount &&
       !cardsInPlay.every((id, i) => id == idCheckList[i])
     ) {
       infractions.push(AuditEnum.notAllCardsAreUnique);
     }
 
     if (
+      !game.skipSetAudit &&
       players.some((player) =>
         table.players[player].sets.some(
           (set) => !rummyService.isValidRummySet(set),
@@ -146,38 +134,94 @@ async function audit(
     return acc;
   }, [] as Audit[]);
 
+  if (game.id === "crazy-eights") {
+    applyCrazyEightsTurnAudit(audit, decryptedTablesOverTime);
+  }
+
   return { audit, decryptedTablesOverTime };
+}
+
+function encryptedCardKey(card: EncryptedCard): string {
+  return `${card.id}:${card.ivArr.join(",")}:${card.card.join(",")}`;
+}
+
+function isNewEncryptionGeneration(previous: Table, next: Table): boolean {
+  if (next.deck.length === 0) {
+    return false;
+  }
+  if (previous.deck.length === 0) {
+    return true;
+  }
+  const previousKeys = new Set(previous.deck.map(encryptedCardKey));
+  return next.deck.some((card) => !previousKeys.has(encryptedCardKey(card)));
+}
+
+function pileFlipIndexes(tablesOverTime: Table[]): number[] {
+  const flips = [0];
+  for (let i = 1; i < tablesOverTime.length; i++) {
+    if (isNewEncryptionGeneration(tablesOverTime[i - 1], tablesOverTime[i])) {
+      flips.push(i);
+    }
+  }
+  return flips;
+}
+
+function collectUndecryptedCards(
+  table: Table,
+  decryptedByLayer: Map<string, Card>,
+): EncryptedCard[] {
+  const seen = new Set<string>();
+  const cards: EncryptedCard[] = [];
+  for (const card of [
+    ...table.deck,
+    ...table.playerOrder.flatMap(
+      (player) => table.players[player]?.encryptedCards ?? [],
+    ),
+  ]) {
+    const key = encryptedCardKey(card);
+    if (seen.has(key) || decryptedByLayer.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    cards.push(card);
+  }
+  return cards;
+}
+
+function lookupDecryptedCard(
+  layer: EncryptedCard,
+  decryptedByLayer: Map<string, Card>,
+  decryptedMap: Map<number, Card>,
+): Card {
+  return (
+    decryptedByLayer.get(encryptedCardKey(layer)) ?? decryptedMap.get(layer.id)!
+  );
 }
 
 async function decryptTablesOverTime(
   tablesOverTime: Table[],
   playersSecrets: Map<string, Map<number, JsonWebKey>[]>,
 ) {
-  const decryptOrder = tablesOverTime[0].playerOrder.reverse();
-  const pileFlips = tablesOverTime.reduce(
-    (acc, t, i) => {
-      if (
-        i > 0 &&
-        tablesOverTime[i - 1].deck.length == 0 &&
-        t.deck.length != 0
-      ) {
-        acc.push(i);
-      }
-      return acc;
-    },
-    [0],
-  );
+  const decryptOrder = decryptOrderFor(tablesOverTime[0].playerOrder);
+  const pileFlips = pileFlipIndexes(tablesOverTime);
   decryptedMaps.length = 0;
+  const decryptedByLayer = new Map<string, Card>();
   let flipCount = 0;
   for (const pileFlip of pileFlips) {
     decryptedMaps.push(new Map<number, Card>());
-    const firstTable = tablesOverTime[pileFlip];
-    let cards = [...firstTable.deck];
-    firstTable.playerOrder.map(
-      (player) =>
-        (cards = cards.concat(firstTable.players[player].encryptedCards)),
+    const cards = collectUndecryptedCards(
+      tablesOverTime[pileFlip],
+      decryptedByLayer,
     );
-    await decryptAllCards(cards, playersSecrets, decryptOrder, flipCount);
+    if (cards.length) {
+      await decryptAllCards(
+        cards,
+        playersSecrets,
+        decryptOrder,
+        flipCount,
+        decryptedByLayer,
+      );
+    }
     flipCount++;
   }
   let decryptedMapCount = 0;
@@ -186,19 +230,19 @@ async function decryptTablesOverTime(
       decryptedMapCount++;
     }
     const decryptedMap = decryptedMaps[decryptedMapCount];
+    const lookup = (layer: EncryptedCard) =>
+      lookupDecryptedCard(layer, decryptedByLayer, decryptedMap);
     const decryptedTable: DecryptedTable = {
       ...table,
       players: {
         ...table.players,
       },
-      deck: table.deck.map((layer) => decryptedMap.get(layer.id)!),
+      deck: table.deck.map(lookup),
     };
     table.playerOrder.map((player) => {
       decryptedTable.players[player] = {
         cards: table.players[player].cards.concat(
-          table.players[player].encryptedCards?.map(
-            (layer) => decryptedMap.get(layer.id)!,
-          ) ?? [],
+          table.players[player].encryptedCards?.map(lookup) ?? [],
         ),
         sets: table.players[player].sets,
       };
@@ -212,6 +256,7 @@ async function decryptAllCards(
   playersSecrets: Map<string, Map<number, JsonWebKey>[]>,
   decryptOrder: string[],
   index: number,
+  decryptedByLayer: Map<string, Card>,
 ) {
   let layers: EncryptedCard[] = [];
   let decryptedCards: Card[] = [];
@@ -232,6 +277,7 @@ async function decryptAllCards(
   }
   ids.map((id, i) => {
     decryptedMaps[index].set(id, decryptedCards[i]);
+    decryptedByLayer.set(encryptedCardKey(encryptedCards[i]), decryptedCards[i]);
   });
   return decryptedCards;
 }

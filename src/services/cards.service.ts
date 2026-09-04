@@ -120,11 +120,30 @@ function moveCardsFromIndex(
   }
 }
 
+function areCrazyEightsEqual(
+  a: Table["crazyEights"],
+  b: Table["crazyEights"],
+) {
+  if (!a && !b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  return (
+    a.currentSuit === b.currentSuit &&
+    a.direction === b.direction &&
+    a.pendingDraw === b.pendingDraw
+  );
+}
+
 function areTablesEqual(table1: Table, table2: Table) {
   return (
+    (table1.gameId ?? "rummy") === (table2.gameId ?? "rummy") &&
     table1.hasDrawn === table2.hasDrawn &&
     table1.whoseTurn === table2.whoseTurn &&
     table1.turn === table2.turn &&
+    areCrazyEightsEqual(table1.crazyEights, table2.crazyEights) &&
     areSetOfEncryptedCardsEqual(table1.deck, table2.deck) &&
     areSetOfCardsEqual(table1.pile, table2.pile) &&
     table1.playerOrder.every((player) =>

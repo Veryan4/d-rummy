@@ -6,31 +6,81 @@
     "sound_on": "sound On",
     "sound_off": "sound Off",
     "logout": "logout",
-    "menu": "Menu"
+    "menu": "Menu",
+    "close": "close",
+    "brand": "cards"
+  },
+  "games": {
+    "rummy": "Rummy",
+    "crazyEights": "Crazy Eights"
   },
   "about": {
-    "rank": {
-      "title": "RANK OF CARDS",
-      "text": "A, 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K (high)"
-    },
-    "goal": {
-      "title": "GOAL OF THE GAME",
-      "text": "The goal of the game is to be the first player to rid your hand of all their cards. This can be done by forming matched sets consisting of groups of three or four of a kind, or sequences of three or more cards of the same suit."
-    },
-    "play": {
-      "title": "THE PLAY",
-      "text": "Each turn a player has to either draw the top card of the deck or take the entire discard pile and adds it to their hand. A player may also lay down on the table, any matched set. At the end of their turn, the player discards one card, face up, onto the discard pile. If all of their remaining cards are matched, the player may lay them down without discarding on their last turn. This ends the game and there is no further play."
-    },
-    "sets": {
-      "title": "ADDING TO SETS",
-      "text": "On their turn and if the players has already managed to place a set, they may add one or more from their hand to any matched set already shown on the table. Thus, if threes are showing, they may add the fourth three; if 10, 9, 8 are showing, they may add J, or Q, J, 7, or 7, 6."
-    },
-    "empty": {
-      "title": "EMPTY DECK",
-      "text": "If the last card of the deck has been drawn and no player has won, the next player may turn the discard pile over to form a new deck (without shuffling it) and draw the top card."
+    "app": {
+      "title": "Peer-to-peer card games",
+      "text": "Play Rummy and Crazy Eights with friends or strangers. Game data is not stored on a server — players exchange it with each other in encrypted form."
     },
     "open_source": {
       "title": "Open Source Application"
+    },
+    "rummy": {
+      "rank": {
+        "title": "RANK OF CARDS",
+        "text": "A, 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K (high)"
+      },
+      "goal": {
+        "title": "GOAL OF THE GAME",
+        "text": "The goal of the game is to be the first player to rid your hand of all their cards. This can be done by forming matched sets consisting of groups of three or four of a kind, or sequences of three or more cards of the same suit."
+      },
+      "play": {
+        "title": "THE PLAY",
+        "text": "Each turn a player has to either draw the top card of the deck or take the entire discard pile and adds it to their hand. A player may also lay down on the table, any matched set. At the end of their turn, the player discards one card, face up, onto the discard pile. If all of their remaining cards are matched, the player may lay them down without discarding on their last turn. This ends the game and there is no further play."
+      },
+      "sets": {
+        "title": "ADDING TO SETS",
+        "text": "On their turn and if the players has already managed to place a set, they may add one or more from their hand to any matched set already shown on the table. Thus, if threes are showing, they may add the fourth three; if 10, 9, 8 are showing, they may add J, or Q, J, 7, or 7, 6."
+      },
+      "empty": {
+        "title": "EMPTY DECK",
+        "text": "If the last card of the deck has been drawn and no player has won, the next player may turn the discard pile over to form a new deck (without shuffling it) and draw the top card."
+      }
+    },
+    "crazy-eights": {
+      "rank": {
+        "title": "RANK OF CARDS",
+        "text": "A, 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K. A standard 52-card deck is used."
+      },
+      "goal": {
+        "title": "GOAL OF THE GAME",
+        "text": "Be the first player to empty your hand. The game is a single round — the first player out wins."
+      },
+      "play": {
+        "title": "THE PLAY",
+        "text": "Play a card that matches the suit or rank of the top discard, or play an 8. You may draw from the stock even if you already have a playable card. If the stock is empty, the discard pile except the top card is reshuffled as a new stock. If you still cannot play, you pass."
+      },
+      "eights": {
+        "title": "EIGHTS",
+        "text": "An 8 may be played at any time (unless you are drawing a 2 penalty). After playing an 8, choose the suit the next player must follow."
+      },
+      "queen": {
+        "title": "QUEENS",
+        "text": "Playing a Queen skips the next player's turn."
+      },
+      "ace": {
+        "title": "ACES",
+        "text": "Playing an Ace reverses the direction of play."
+      },
+      "twos": {
+        "title": "TWOS",
+        "text": "Playing a 2 forces the next player to draw two cards at the start of their turn. After drawing the penalty, that player may still play a card."
+      },
+      "upcard": {
+        "title": "THE UPCARD",
+        "text": "After the deal, the first card of the stock is turned face up to start the discard pile. Only that card's printed suit is used. An 8, Queen, Ace, or 2 as the upcard does not change suit by choice, skip, reverse, or force a draw."
+      },
+      "empty": {
+        "title": "EMPTY STOCK",
+        "text": "When the stock runs out, all discards except the top card are shuffled to form a new stock. If a player wins by playing a Queen, Ace, or 2, that card's special effect is not applied."
+      }
     }
   },
   "lobby": {
@@ -50,8 +100,12 @@
       "button": "Submit"
     },
     "join": "",
+    "game": {
+      "title": "Choose a game",
+      "change": "Change game"
+    },
     "privacy": {
-      "title": "Rummy",
+      "title": "How do you want to play?",
       "public": "Play with strangers",
       "private": "Play with friends"
     },
@@ -102,6 +156,43 @@
       "draw_to_start": "You must start by drawing a card"
     }
   },
+  "crazyEights": {
+    "you": "It's your turn",
+    "them": "It's {user}'s turn",
+    "deck": "Deck",
+    "pile": "Discards",
+    "others": "Other players",
+    "hand": "Hand",
+    "win": "has won the game!",
+    "rematch": "Rematch",
+    "return": "Return to Lobby",
+    "player": "{player} has {amount} cards in hand",
+    "disconnected": "{player} is currently disconnected",
+    "empty": "Empty",
+    "flip_discard": "Recycle pile",
+    "audit": "Audit",
+    "current_suit": "Current suit",
+    "direction": "Direction",
+    "clockwise": "Clockwise",
+    "counterclockwise": "Counter-clockwise",
+    "pending_draw": "Next player draws {count}",
+    "forced_draw": "You were made to draw {count} cards",
+    "turn_skipped": "A Queen skipped your turn",
+    "draw_penalty": "Draw {count}",
+    "pass": "Pass",
+    "cancel": "Cancel",
+    "choose_suit": "Choose a suit for the next player",
+    "error": {
+      "wait_your_turn": "Wait for your turn",
+      "illegal_play": "That card does not match the suit or rank",
+      "choose_suit": "Choose a suit after playing an 8",
+      "select_card": "Select one card to play",
+      "must_respond_to_draw": "Draw the penalty cards first",
+      "deck_empty": "The stock is empty",
+      "can_play": "You have a card you can play",
+      "must_draw": "Draw from the stock before passing"
+    }
+  },
   "audit": {
     "turn": "It's turn {turn}",
     "previous": "Previous",
@@ -109,7 +200,7 @@
     "sets": "Sets",
     "cheatDetection": "Cheat Detection",
     "infractionDetected": "Cheating found after full game decryption",
-    "foundInfraction": "Go to first infraction",
+    "nextInfraction": "Go to next infraction",
     "cheat": {
       "0": "Unable to run cheat detection",
       "1": "A turn was skipped or reverted",
@@ -117,12 +208,16 @@
       "3": "Wrong player's turn",
       "4": "Cards were taken from both Deck and Pile",
       "5": "Sets are not Valid",
-      "6": "Players hand changed outside of their turn"
+      "6": "Players hand changed outside of their turn",
+      "7": "An illegal card was played",
+      "8": "The next player is not the one expected",
+      "9": "Crazy Eights table state is inconsistent"
     },
     "infraction": {
       "0": "There are more or less than 52 cards in play",
       "1": "Not all cards are unique",
-      "2": "There is an invalid Set"
+      "2": "There is an invalid Set",
+      "3": "A turn did not follow Crazy Eights rules"
     }
   }
 }

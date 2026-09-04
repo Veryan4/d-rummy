@@ -6,31 +6,81 @@
     "sound_on": "Son",
     "sound_off": "Muet",
     "logout": "déconnexion",
-    "menu": "Menu"
+    "menu": "Menu",
+    "close": "fermer",
+    "brand": "cards"
+  },
+  "games": {
+    "rummy": "Rummy",
+    "crazyEights": "Huit américain"
   },
   "about": {
-    "rank": {
-      "title": "ORDRE DES CARTES",
-      "text": "A, 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K"
-    },
-    "goal": {
-      "title": "BUT DU JEU",
-      "text": "Le but du jeu est d'être le premier a vider sa main de tout ses cartes. Ceci peux-être fait en formant des séries constituants de groupes de 3 ou 4 cartes de la même valeur, ou un séquence d'au moins 3 cartes de la même suite."
-    },
-    "play": {
-      "title": "UN TOUR",
-      "text": "Chaque joueur doit soit piger la première carte du paquet, ou soit piger la paquet entier de cartes jeter. Un joueur peux mettre sur la table une série. À la fin du tour un joueur doit jeter une carte dans le paquet des cartes jeter. Si un joueur n'a plus de cartes dans les mains avant de jeter, il gagne la partie, car ceci représente la fin du jeu."
-    },
-    "sets": {
-      "title": "AJOUTER À UNE SÉRIE",
-      "text": "Sur son tour, et si le joueur à déjà réussit a placer une série, il peu ajouter à une série d'un autre joueur. Par example, si les trois are sont disponible, il peux ajouter le quatriéme trois. Si 10, 9, 8 sont disponibles, on pourrait continuer la série, avec en example le J ou le Q, J, 7, ou le 7, 6."
-    },
-    "empty": {
-      "title": "PAQUET VIDE",
-      "text": "Si la dernière carte du paquet a été tirer et aucun joueur a gagner, le prochain joueur peux renverser le paquet jeter en paquet normal sans le mélanger, et continuer de jouer en pigeant sa carte."
+    "app": {
+      "title": "Jeux de cartes pair à pair",
+      "text": "Jouez au rummy et au huit américain avec des amis ou des inconnus. Les données de partie ne sont pas stockées sur un serveur — les joueurs les échangent entre eux de façon chiffrée."
     },
     "open_source": {
       "title": "Code source ouvert"
+    },
+    "rummy": {
+      "rank": {
+        "title": "ORDRE DES CARTES",
+        "text": "A, 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K"
+      },
+      "goal": {
+        "title": "BUT DU JEU",
+        "text": "Le but du jeu est d'être le premier a vider sa main de tout ses cartes. Ceci peux-être fait en formant des séries constituants de groupes de 3 ou 4 cartes de la même valeur, ou un séquence d'au moins 3 cartes de la même suite."
+      },
+      "play": {
+        "title": "UN TOUR",
+        "text": "Chaque joueur doit soit piger la première carte du paquet, ou soit piger la paquet entier de cartes jeter. Un joueur peux mettre sur la table une série. À la fin du tour un joueur doit jeter une carte dans le paquet des cartes jeter. Si un joueur n'a plus de cartes dans les mains avant de jeter, il gagne la partie, car ceci représente la fin du jeu."
+      },
+      "sets": {
+        "title": "AJOUTER À UNE SÉRIE",
+        "text": "Sur son tour, et si le joueur à déjà réussit a placer une série, il peu ajouter à une série d'un autre joueur. Par example, si les trois are sont disponible, il peux ajouter le quatriéme trois. Si 10, 9, 8 sont disponibles, on pourrait continuer la série, avec en example le J ou le Q, J, 7, ou le 7, 6."
+      },
+      "empty": {
+        "title": "PAQUET VIDE",
+        "text": "Si la dernière carte du paquet a été tirer et aucun joueur a gagner, le prochain joueur peux renverser le paquet jeter en paquet normal sans le mélanger, et continuer de jouer en pigeant sa carte."
+      }
+    },
+    "crazy-eights": {
+      "rank": {
+        "title": "ORDRE DES CARTES",
+        "text": "A, 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K. Un jeu de 52 cartes est utilisé."
+      },
+      "goal": {
+        "title": "BUT DU JEU",
+        "text": "Soyez le premier joueur à vider votre main. La partie se joue en une seule manche — le premier qui n'a plus de cartes gagne."
+      },
+      "play": {
+        "title": "UN TOUR",
+        "text": "Jouez une carte de la même couleur ou de la même valeur que le dessus du tas, ou un 8. Vous pouvez piger même si vous avez déjà une carte jouable. Si le paquet est vide, les rejets sauf la carte du dessus sont mélangés pour former un nouveau paquet. Si vous ne pouvez toujours pas jouer, vous passez."
+      },
+      "eights": {
+        "title": "LES HUITS",
+        "text": "Un 8 peut être joué n'importe quand (sauf pendant une pénalité de 2). Après un 8, choisissez la couleur que le prochain joueur doit suivre."
+      },
+      "queen": {
+        "title": "LES DAMES",
+        "text": "Jouer une Dame fait sauter le tour du joueur suivant."
+      },
+      "ace": {
+        "title": "LES AS",
+        "text": "Jouer un As inverse le sens du jeu."
+      },
+      "twos": {
+        "title": "LES DEUX",
+        "text": "Jouer un 2 force le joueur suivant à piger deux cartes au début de son tour. Après avoir pigé la pénalité, ce joueur peut encore jouer une carte."
+      },
+      "upcard": {
+        "title": "LA CARTE RETOURNÉE",
+        "text": "Après la donne, la première carte du paquet est retournée pour commencer le tas. Seule la couleur imprimée de cette carte compte. Un 8, une Dame, un As ou un 2 comme carte retournée ne permet pas de choisir la couleur, de faire sauter un tour, d'inverser le sens ou de forcer une pige."
+      },
+      "empty": {
+        "title": "PAQUET VIDE",
+        "text": "Quand le paquet est épuisé, tous les rejets sauf la carte du dessus sont mélangés pour former un nouveau paquet. Si un joueur gagne en jouant une Dame, un As ou un 2, l'effet spécial de cette carte n'est pas appliqué."
+      }
     }
   },
   "lobby": {
@@ -50,22 +100,26 @@
       "button": "Soumettre"
     },
     "join": "",
+    "game": {
+      "title": "Choisissez un jeu",
+      "change": "Changer de jeu"
+    },
     "privacy": {
-      "title": "Rummy",
-      "public": "Play with strangers",
-      "private": "Play with friends"
+      "title": "Comment voulez-vous jouer?",
+      "public": "Jouer avec des inconnus",
+      "private": "Jouer avec des amis"
     },
     "public": {
-      "staging": "Game starting",
-      "queue": "Waiting for other players"
+      "staging": "La partie commence",
+      "queue": "En attente d'autres joueurs"
     },
     "private": {
-      "create_or_join": "Create or Join a Private Game",
-      "join_title": "Join your friend's game",
-      "join_description": "Enter their name",
-      "create": "Create Game",
-      "join": "Join Game",
-      "waiting": "Players Waiting"
+      "create_or_join": "Créer ou rejoindre une partie privée",
+      "join_title": "Rejoindre la partie d'un ami",
+      "join_description": "Entrez leur nom",
+      "create": "Créer une partie",
+      "join": "Rejoindre",
+      "waiting": "Joueurs en attente"
     }
   },
   "rummy": {
@@ -102,27 +156,68 @@
       "draw_to_start": "Il faut commencer par piger une carte"
     }
   },
+  "crazyEights": {
+    "you": "C'est votre tour",
+    "them": "C'est le tour de {user}",
+    "deck": "Paquet",
+    "pile": "Rejets",
+    "others": "Autres joueurs",
+    "hand": "Main",
+    "win": "a gagné le jeu!",
+    "rematch": "Revanche",
+    "return": "Retour a l'accueil",
+    "player": "{player} a {amount} cartes en main",
+    "disconnected": "{player} est présentement déconnecter",
+    "empty": "Vide",
+    "flip_discard": "Recycler le tas",
+    "audit": "Audit",
+    "current_suit": "Couleur en cours",
+    "direction": "Sens",
+    "clockwise": "Sens horaire",
+    "counterclockwise": "Sens antihoraire",
+    "pending_draw": "Le prochain joueur pige {count}",
+    "forced_draw": "Vous avez été forcé de piger {count} cartes",
+    "turn_skipped": "Une Dame a fait sauter votre tour",
+    "draw_penalty": "Piger {count}",
+    "pass": "Passer",
+    "cancel": "Annuler",
+    "choose_suit": "Choisissez une couleur pour le prochain joueur",
+    "error": {
+      "wait_your_turn": "Il faut attendre ton tour",
+      "illegal_play": "Cette carte ne correspond pas à la couleur ou à la valeur",
+      "choose_suit": "Choisissez une couleur après un 8",
+      "select_card": "Sélectionnez une carte à jouer",
+      "must_respond_to_draw": "Pigez d'abord les cartes de pénalité",
+      "deck_empty": "Le paquet est vide",
+      "can_play": "Vous avez une carte jouable",
+      "must_draw": "Pigez avant de passer"
+    }
+  },
   "audit": {
     "turn": "C'est le tour {turn}",
     "previous": "Précédent",
     "next": "Prochain",
     "sets": "Séries",
-    "cheatDetection": "Cheat Detection",
-    "infractionDetected": "Cheating found after full game decryption",
-    "foundInfraction": "Go to first infraction",
+    "cheatDetection": "Détection de triche",
+    "infractionDetected": "Triche détectée après le déchiffrement complet de la partie",
+    "nextInfraction": "Aller à l'infraction suivante",
     "cheat": {
-      "0": "Unable to run cheat detection",
-      "1": "A turn was skipped or reverted",
-      "2": "Player turn order changed",
-      "3": "Wrong player's turn",
-      "4": "Cards were taken from both Deck and Pile",
-      "5": "Sets are not Valid",
-      "6": "Players hand changed outside of their turn"
+      "0": "Impossible d'exécuter la détection de triche",
+      "1": "Un tour a été sauté ou annulé",
+      "2": "L'ordre des joueurs a changé",
+      "3": "Ce n'était pas le tour de ce joueur",
+      "4": "Des cartes ont été prises du paquet et du tas",
+      "5": "Les séries ne sont pas valides",
+      "6": "La main d'un joueur a changé hors de son tour",
+      "7": "Une carte illégale a été jouée",
+      "8": "Le joueur suivant n'est pas celui attendu",
+      "9": "L'état de la table de Huit américain est incohérent"
     },
     "infraction": {
-      "0": "There are more or less than 52 cards in play",
-      "1": "Not all cards are unique",
-      "2": "There is an invalid Set"
+      "0": "Il n'y a pas exactement 52 cartes en jeu",
+      "1": "Les cartes ne sont pas toutes uniques",
+      "2": "Il y a une série invalide",
+      "3": "Un tour n'a pas respecté les règles du Huit américain"
     }
   }
 }

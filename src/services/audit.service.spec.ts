@@ -291,5 +291,310 @@ describe("auditService", () => {
         AuditEnum.notAllCardsAreUnique,
       );
     });
+
+    it("decrypts a recycled deck without mixing leftover hand cards from the previous encryption", async () => {
+      const allCards = [
+        new Card(1, 1),
+        new Card(1, 2),
+        new Card(1, 3),
+        new Card(1, 4),
+      ];
+
+      encryptService.resetSecretMaps();
+      const aliceInitial = await encryptService.encryptDeck(allCards);
+      const aliceSecrets0 = new Map(encryptService.secretMaps.at(-1)!);
+      encryptService.resetSecretMaps();
+      const bobInitial = await encryptService.reEncryptDeck(aliceInitial);
+      const bobSecrets0 = new Map(encryptService.secretMaps.at(-1)!);
+
+      const peeled = await encryptService.decryptLayers(bobInitial, bobSecrets0);
+      const decryptedInitial = await encryptService.decryptCards(
+        peeled,
+        aliceSecrets0,
+      );
+
+      const recycledPlain = [decryptedInitial[1]];
+      encryptService.resetSecretMaps();
+      const aliceRecycled = await encryptService.encryptDeck(recycledPlain);
+      const aliceSecrets1 = new Map(encryptService.secretMaps.at(-1)!);
+      encryptService.resetSecretMaps();
+      const bobRecycled = await encryptService.reEncryptDeck(aliceRecycled);
+      const bobSecrets1 = new Map(encryptService.secretMaps.at(-1)!);
+
+      const playersSecrets = new Map<string, Map<number, JsonWebKey>[]>([
+        ["alice", [aliceSecrets0, aliceSecrets1]],
+        ["bob", [bobSecrets0, bobSecrets1]],
+      ]);
+
+      const emptyHand = () => ({
+        cards: [] as Card[],
+        encryptedCards: [] as EncryptedCard[],
+        sets: [] as Card[][],
+        connected: true,
+      });
+
+      const table0: Table = {
+        gameId: "crazy-eights",
+        turn: 0,
+        whoseTurn: "alice",
+        playerOrder: ["alice", "bob"],
+        deck: bobInitial,
+        pile: [],
+        hasDrawn: false,
+        crazyEights: { currentSuit: "♠", direction: 1, pendingDraw: 0 },
+        players: {
+          alice: emptyHand(),
+          bob: emptyHand(),
+        },
+      };
+
+      const tableEmpty: Table = {
+        ...structuredClone(table0),
+        turn: 3,
+        deck: [],
+        pile: [decryptedInitial[1], decryptedInitial[2]],
+        players: {
+          alice: {
+            ...emptyHand(),
+            encryptedCards: [bobInitial[0]],
+          },
+          bob: {
+            ...emptyHand(),
+            encryptedCards: [bobInitial[3]],
+          },
+        },
+      };
+
+      const tableRecycled: Table = {
+        ...structuredClone(tableEmpty),
+        deck: bobRecycled,
+        pile: [decryptedInitial[2]],
+      };
+
+      const result = await auditService.audit(
+        [table0, tableEmpty, tableRecycled],
+        playersSecrets,
+      );
+
+      const recycled = result.decryptedTablesOverTime[2];
+      expect(bobInitial[0].id).toBe(1);
+      expect(bobRecycled[0].id).toBe(1);
+      expect(recycled.deck.map((card) => card.id)).toEqual([
+        decryptedInitial[1].id,
+      ]);
+      expect(recycled.players["alice"].cards.map((card) => card.id)).toEqual([
+        decryptedInitial[0].id,
+      ]);
+      expect(recycled.players["bob"].cards.map((card) => card.id)).toEqual([
+        decryptedInitial[3].id,
+      ]);
+      expect(recycled.pile.map((card) => card.id)).toEqual([
+        decryptedInitial[2].id,
+      ]);
+    });
+
+    it("detects a recycle even when the empty-deck snapshot was skipped", async () => {
+      const allCards = [
+        new Card(2, 1),
+        new Card(2, 2),
+        new Card(2, 3),
+        new Card(2, 4),
+      ];
+
+      encryptService.resetSecretMaps();
+      const aliceInitial = await encryptService.encryptDeck(allCards);
+      const aliceSecrets0 = new Map(encryptService.secretMaps.at(-1)!);
+      encryptService.resetSecretMaps();
+      const bobInitial = await encryptService.reEncryptDeck(aliceInitial);
+      const bobSecrets0 = new Map(encryptService.secretMaps.at(-1)!);
+
+      const peeled = await encryptService.decryptLayers(bobInitial, bobSecrets0);
+      const decryptedInitial = await encryptService.decryptCards(
+        peeled,
+        aliceSecrets0,
+      );
+
+      encryptService.resetSecretMaps();
+      const aliceRecycled = await encryptService.encryptDeck([
+        decryptedInitial[1],
+      ]);
+      const aliceSecrets1 = new Map(encryptService.secretMaps.at(-1)!);
+      encryptService.resetSecretMaps();
+      const bobRecycled = await encryptService.reEncryptDeck(aliceRecycled);
+      const bobSecrets1 = new Map(encryptService.secretMaps.at(-1)!);
+
+      const playersSecrets = new Map<string, Map<number, JsonWebKey>[]>([
+        ["alice", [aliceSecrets0, aliceSecrets1]],
+        ["bob", [bobSecrets0, bobSecrets1]],
+      ]);
+
+      const emptyHand = () => ({
+        cards: [] as Card[],
+        encryptedCards: [] as EncryptedCard[],
+        sets: [] as Card[][],
+        connected: true,
+      });
+
+      const before: Table = {
+        gameId: "crazy-eights",
+        turn: 4,
+        whoseTurn: "bob",
+        playerOrder: ["alice", "bob"],
+        deck: [bobInitial[0]],
+        pile: [decryptedInitial[1], decryptedInitial[2]],
+        hasDrawn: false,
+        crazyEights: { currentSuit: "♠", direction: 1, pendingDraw: 2 },
+        players: {
+          alice: {
+            ...emptyHand(),
+            encryptedCards: [bobInitial[3]],
+          },
+          bob: emptyHand(),
+        },
+      };
+
+      const after: Table = {
+        ...structuredClone(before),
+        deck: bobRecycled,
+        pile: [decryptedInitial[2]],
+        players: {
+          alice: {
+            ...emptyHand(),
+            encryptedCards: [bobInitial[3]],
+          },
+          bob: {
+            ...emptyHand(),
+            encryptedCards: [bobInitial[0]],
+          },
+        },
+      };
+
+      const result = await auditService.audit([before, after], playersSecrets);
+      const recycled = result.decryptedTablesOverTime[1];
+      expect(before.deck.length).toBe(after.deck.length);
+      expect(recycled.deck.map((card) => card.id)).toEqual([
+        decryptedInitial[1].id,
+      ]);
+      expect(recycled.players["alice"].cards[0].id).toBe(decryptedInitial[3].id);
+      expect(recycled.players["bob"].cards[0].id).toBe(decryptedInitial[0].id);
+    });
+  });
+
+  describe("decryptOrderFor", () => {
+    it("copies playerOrder before reversing", () => {
+      const order = ["alice", "bob", "cara"];
+      expect(auditService.decryptOrderFor(order)).toEqual([
+        "cara",
+        "bob",
+        "alice",
+      ]);
+      expect(order).toEqual(["alice", "bob", "cara"]);
+    });
+  });
+
+  describe("applyCrazyEightsTurnAudit", () => {
+    it("records illegalTurn when a decrypted pair violates the rules", () => {
+      const previous = {
+        gameId: "crazy-eights" as const,
+        turn: 1,
+        whoseTurn: "alice",
+        playerOrder: ["alice", "bob"],
+        deck: [new Card(1, 5)],
+        pile: [new Card(1, 6)],
+        hasDrawn: false,
+        crazyEights: { currentSuit: "♠" as const, direction: 1 as const, pendingDraw: 0 },
+        players: {
+          alice: { cards: [new Card(2, 4)], sets: [] },
+          bob: { cards: [new Card(3, 4)], sets: [] },
+        },
+      };
+      const next = structuredClone(previous);
+      next.turn = 2;
+      next.whoseTurn = "bob";
+      next.pile = [...previous.pile, new Card(1, 12), new Card(2, 4)];
+      next.players["alice"].cards = [];
+      const audit = [
+        { turn: 1, infractions: [] },
+        { turn: 2, infractions: [] },
+      ];
+      auditService.applyCrazyEightsTurnAudit(audit, [previous, next]);
+      expect(audit[1].infractions).toContain(AuditEnum.illegalTurn);
+    });
+
+    it("does not flag a legal 2 followed by the forced draw", () => {
+      const afterTwo = {
+        gameId: "crazy-eights" as const,
+        turn: 2,
+        whoseTurn: "bob",
+        playerOrder: ["alice", "bob"],
+        deck: [new Card(1, 5), new Card(1, 6)],
+        pile: [new Card(1, 6), new Card(1, 2)],
+        hasDrawn: false,
+        crazyEights: { currentSuit: "♠" as const, direction: 1 as const, pendingDraw: 2 },
+        players: {
+          alice: { cards: [new Card(2, 4)], sets: [] },
+          bob: { cards: [new Card(1, 3)], sets: [] },
+        },
+      };
+      const afterDraw = structuredClone(afterTwo);
+      afterDraw.hasDrawn = true;
+      afterDraw.crazyEights.pendingDraw = 0;
+      afterDraw.deck = [];
+      afterDraw.players["bob"].cards = [
+        new Card(1, 3),
+        new Card(1, 5),
+        new Card(1, 6),
+      ];
+      const audit = [
+        { turn: 2, infractions: [] },
+        { turn: 2, infractions: [] },
+      ];
+      auditService.applyCrazyEightsTurnAudit(audit, [afterTwo, afterDraw]);
+      expect(audit[1].infractions).not.toContain(AuditEnum.illegalTurn);
+    });
+
+    it("does not flag a 2-play snapshot separately from the forced draw", () => {
+      const before = {
+        gameId: "crazy-eights" as const,
+        turn: 1,
+        whoseTurn: "alice",
+        playerOrder: ["alice", "bob"],
+        deck: [new Card(1, 5), new Card(1, 6)],
+        pile: [new Card(1, 6)],
+        hasDrawn: false,
+        crazyEights: { currentSuit: "♠" as const, direction: 1 as const, pendingDraw: 0 },
+        players: {
+          alice: { cards: [new Card(1, 2), new Card(2, 4)], sets: [] },
+          bob: { cards: [new Card(1, 3)], sets: [] },
+        },
+      };
+      const afterTwo = structuredClone(before);
+      afterTwo.turn = 2;
+      afterTwo.whoseTurn = "bob";
+      afterTwo.pile = [...before.pile, new Card(1, 2)];
+      afterTwo.players["alice"].cards = [new Card(2, 4)];
+      afterTwo.crazyEights.pendingDraw = 2;
+      const afterDraw = structuredClone(afterTwo);
+      afterDraw.hasDrawn = true;
+      afterDraw.crazyEights.pendingDraw = 0;
+      afterDraw.deck = [];
+      afterDraw.players["bob"].cards = [
+        new Card(1, 3),
+        new Card(1, 5),
+        new Card(1, 6),
+      ];
+      const audit = [
+        { turn: 1, infractions: [] },
+        { turn: 2, infractions: [] },
+        { turn: 2, infractions: [] },
+      ];
+      auditService.applyCrazyEightsTurnAudit(audit, [
+        before,
+        afterTwo,
+        afterDraw,
+      ]);
+      expect(audit[1].infractions).not.toContain(AuditEnum.illegalTurn);
+      expect(audit[2].infractions).not.toContain(AuditEnum.illegalTurn);
+    });
   });
 });

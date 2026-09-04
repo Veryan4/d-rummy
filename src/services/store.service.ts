@@ -1,4 +1,4 @@
-import { Audit, Card, DecryptedTable, Table } from "../models";
+import { Audit, Card, DecryptedTable, GameId, Table } from "../models";
 
 export const storeService = {
   getGameState,
@@ -11,6 +11,9 @@ export const storeService = {
   setDecryptedMap,
   setTableOverTime,
   setGame,
+  clearGameHost,
+  setGameType,
+  getGameType,
   setDecryptedTableOverTime,
   getDecryptedTableOverTime,
   setAudit,
@@ -43,6 +46,7 @@ function getGameState() {
   }
   return {
     game,
+    gameType: getGameType(),
     players,
     table,
     hand,
@@ -75,6 +79,7 @@ function eraseGameState() {
   sessionStorage.removeItem("secretMap");
   sessionStorage.removeItem("decryptedMap");
   sessionStorage.removeItem("decryptedTablesOverTime");
+  sessionStorage.removeItem("tableOverTime");
 }
 
 function eraseLobbyState() {
@@ -84,6 +89,22 @@ function eraseLobbyState() {
 
 function setGame(value: string) {
   sessionStorage.setItem("game", value);
+}
+
+function clearGameHost() {
+  sessionStorage.removeItem("game");
+}
+
+function setGameType(value: GameId) {
+  sessionStorage.setItem("gameType", value);
+}
+
+function getGameType(): GameId | null {
+  const stored = sessionStorage.getItem("gameType");
+  if (stored === "rummy" || stored === "crazy-eights") {
+    return stored;
+  }
+  return null;
 }
 
 function setPlayers(value: string[]) {

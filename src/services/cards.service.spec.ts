@@ -307,5 +307,26 @@ describe("cardsService", () => {
       t7.players["alice"].connected = false;
       expect(cardsService.areTablesEqual(t1, t7)).toBe(false);
     });
+
+    it("should treat missing gameId as rummy and compare crazyEights extras", () => {
+      const createTable = () => {
+        const t = new Table();
+        t.turn = 1;
+        t.whoseTurn = "alice";
+        t.hasDrawn = false;
+        t.deck = [];
+        t.pile = [];
+        t.playerOrder = ["alice"];
+        t.players = { alice: new PlayerHand() };
+        return t;
+      };
+      const t1 = createTable();
+      const t2 = createTable();
+      t2.gameId = "rummy";
+      expect(cardsService.areTablesEqual(t1, t2)).toBe(true);
+
+      t2.crazyEights = { currentSuit: "♥", direction: 1, pendingDraw: 0 };
+      expect(cardsService.areTablesEqual(t1, t2)).toBe(false);
+    });
   });
 });

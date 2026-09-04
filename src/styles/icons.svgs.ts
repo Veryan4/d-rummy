@@ -1,5 +1,34 @@
 import { svg } from "lit";
 
+export const cardsIcon = () => svg`
+<svg viewBox="0 0 36 32" aria-hidden="true">
+  <rect
+    x="13.5"
+    y="1"
+    width="20"
+    height="27"
+    rx="2.5"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.75"
+  />
+  <path fill="currentColor" d="M23.5 8.4 27.8 14.5 23.5 20.6 19.2 14.5Z" />
+  <rect
+    x="1.5"
+    y="4"
+    width="20"
+    height="27"
+    rx="2.5"
+    fill="var(--secondary-background-color)"
+    stroke="currentColor"
+    stroke-width="1.75"
+  />
+  <path
+    fill="currentColor"
+    d="M11.5 10.6c-2.5 4.1-5.5 6.2-5.5 8.8 0 1.9 1.5 3.4 3.4 3.4.8 0 1.5-.3 2.1-.8.6.5 1.3.8 2.1.8 1.9 0 3.4-1.5 3.4-3.4 0-2.6-3-4.7-5.5-8.8zm-.85 12.9v.8c0 .5.4.9.85.9s.85-.4.85-.9v-.8c-.27.07-.55.1-.85.1s-.58-.03-.85-.1z"
+  />
+</svg>`;
+
 export const menuIcon = () => svg`
 <svg viewBox="0 -960 960 960" fill="currentColor">
 <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>

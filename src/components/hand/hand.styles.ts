@@ -10,7 +10,7 @@ export const styles = css`
   }
 
   game-card {
-    width: 12dvw;
+    width: var(--hand-card-width, 12dvw);
   }
 
   .card-wrapper {

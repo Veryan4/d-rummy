@@ -5,10 +5,10 @@ import { formService, storeService } from "../../services";
 import { TranslationController, routerService } from "@veryan/lit-spa";
 import { Lobby } from "../../models";
 import { styles } from "./private-lobby.styles";
+import { getGame } from "../../games/registry";
+import { lobbyPeerId, playerFromLobbyPeer } from "../../games/peer-ids";
 
 import "../../material-web";
-
-const MIN_PLAYERS = 2;
 
 @customElement("private-lobby")
 class PrivateLobbyComponent extends LitElement {
@@ -18,8 +18,15 @@ class PrivateLobbyComponent extends LitElement {
   private user = new UserController(this);
 
   private game: string | null = null;
-
   private network: PeerNetwork;
+
+  private get definition() {
+    return getGame(storeService.getGameType());
+  }
+
+  private lobbyPeer(user: string) {
+    return lobbyPeerId(user, this.definition.peerNamespace);
+  }
 
   @query("#lobby")
   lobbyInput: HTMLInputElement;
@@ -130,13 +137,13 @@ class PrivateLobbyComponent extends LitElement {
   }
 
   renderPlayerWaiting(players: string[]) {
-    return players.length >= MIN_PLAYERS
+    return players.length >= this.definition.minPlayers
       ? html`<div>Waiting on Host</div>`
       : this.renderMissingPlayers(players);
   }
 
   renderStartGame(players: string[]) {
-    return players.length >= MIN_PLAYERS
+    return players.length >= this.definition.minPlayers
       ? html`<md-filled-button @click=${this.startGame}
           >${this.i18n.t("lobby.start")}</md-filled-button
         >`
@@ -153,7 +160,7 @@ class PrivateLobbyComponent extends LitElement {
   renderMissingPlayers(players: string[]) {
     return html`<p>
       ${this.i18n.t("lobby.missing", {
-        amount: MIN_PLAYERS - players.length,
+        amount: this.definition.minPlayers - players.length,
       })}
     </p>`;
   }
@@ -182,7 +189,7 @@ class PrivateLobbyComponent extends LitElement {
 
   connectAsHost() {
     this.network = new PeerNetwork(
-      `${this.game}-rummy-lobby`,
+      this.lobbyPeer(this.game!),
       {
         onOutgoingOpen: async (connection) => {
           this.lobby.host = this.user.value!;
@@ -203,10 +210,10 @@ class PrivateLobbyComponent extends LitElement {
 
   connectAsPeer() {
     this.network = new PeerNetwork(
-      `${this.user.value}-rummy-lobby`,
+      this.lobbyPeer(this.user.value!),
       {
         onOpen: (network) => {
-          network.connectTo(`${this.game}-rummy-lobby`);
+          network.connectTo(this.lobbyPeer(this.game!));
         },
         onData: async (data) => {
           await this.handlePeerData(data as Lobby);
@@ -217,8 +224,11 @@ class PrivateLobbyComponent extends LitElement {
   }
 
   private addLobbyPlayer(peerId: string) {
-    const player = peerId.replace("-rummy-lobby", "");
-    if (!this.lobby.players.some((p) => p === player)) {
+    const player = playerFromLobbyPeer(peerId, this.definition.peerNamespace);
+    if (
+      !this.lobby.players.some((p) => p === player) &&
+      this.lobby.players.length < this.definition.maxPlayers
+    ) {
       this.lobby.players.push(player);
     }
     this.requestUpdate();
@@ -241,7 +251,7 @@ class PrivateLobbyComponent extends LitElement {
       if (lobby.hasStarted) {
         storeService.setPlayers(lobby.players);
         sessionStorage.removeItem("lobby");
-        routerService.navigate("rummy");
+        routerService.navigate(this.definition.route);
       }
       this.lobby = lobby;
       await this.updateComplete;
@@ -266,7 +276,11 @@ class PrivateLobbyComponent extends LitElement {
     this.lobby.players.push(this.game);
     this.lobby.host = this.game;
     storeService.setGame(this.game);
-    window.history.replaceState(null, "", `private?game=${this.user.value}`);
+    window.history.replaceState(
+      null,
+      "",
+      `private?game=${this.user.value}&type=${this.definition.id}`,
+    );
     navigator.clipboard.writeText(location.href);
     this.requestUpdate();
     this.setupNetwork();
@@ -279,7 +293,7 @@ class PrivateLobbyComponent extends LitElement {
       await this.sendAction(this.lobby);
       setTimeout(() => {
         sessionStorage.removeItem("lobby");
-        routerService.navigate("rummy");
+        routerService.navigate(this.definition.route);
       }, 1000);
     }
   }

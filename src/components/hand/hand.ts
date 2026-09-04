@@ -4,9 +4,10 @@ import { classMap } from "lit/directives/class-map.js";
 import { repeat } from "lit/directives/repeat.js";
 import { Card } from "../../models";
 import { GameCard } from "../game-card/game-card";
-import { cardsService, rummyService } from "../../services";
+import { rummyService } from "../../services";
 import { styles } from "./hand.styles";
 import "../game-card/game-card";
+import { SelectionPolicy } from "../../games/types";
 
 @customElement("card-hand")
 class CardHandComponent extends LitElement {
@@ -16,6 +17,12 @@ class CardHandComponent extends LitElement {
 
   @property({ type: Array })
   cards: Card[] = [];
+
+  @property({ type: String })
+  selectionPolicy: SelectionPolicy = "set";
+
+  @property({ type: Boolean })
+  locked = false;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -63,7 +70,20 @@ class CardHandComponent extends LitElement {
   }
 
   async toggleSelected(card: Card) {
+    if (this.locked) {
+      return;
+    }
     const selectedCards = this.getSelectedCards();
+    if (this.selectionPolicy === "single") {
+      if (!card.selected) {
+        this.unselectAll();
+      }
+      card.selected = !card.selected;
+      (
+        this.renderRoot.querySelector(`#game-card-${card.id}`) as GameCard
+      ).selected = card.selected;
+      return;
+    }
     if (!card.selected && selectedCards.length > 0) {
       const potentialSet = [...selectedCards, card];
       if (!rummyService.isValidRummySet(potentialSet)) {
@@ -115,6 +135,9 @@ class CardHandComponent extends LitElement {
   }
 
   private dragMouseEventHandler(e: Event, value: string) {
+    if (this.locked) {
+      return;
+    }
     const element = e.target as HTMLElement;
     element.setAttribute("draggable", value);
   }

@@ -1,10 +1,18 @@
-import { cardsService, encryptService, userService } from "../services";
+import {
+  cardsService,
+  encryptService,
+  storeService,
+  userService,
+} from "../services";
 import Peer, { DataConnection } from "peerjs";
 import { config } from "../app.config";
 import {
   Card,
   DeckEncryption,
+  DeckPurpose,
+  DeckSeed,
   EncryptionKeys,
+  GameId,
   KeyRequest,
   PeerData,
   PeerDataType,
@@ -14,6 +22,9 @@ import {
   EndOfGame,
 } from "../models";
 import { State } from "@veryan/lit-spa";
+import { getGame } from "../games/registry";
+import { gamePeerId, playerFromGamePeer } from "../games/peer-ids";
+import { isDeckDealer, nextEncryptHop } from "../games/deck-protocol";
 
 export interface PeerNetworkHandlers {
   onOpen?: (network: PeerNetwork) => void | Promise<void>;
@@ -96,12 +107,15 @@ export class PeerNetwork {
   }
 
   disconnect(): void {
+    if (this.closed) {
+      return;
+    }
     this.closed = true;
     this.connections.forEach((conn) => conn.close());
     this.connections.clear();
     this.connecting.clear();
     this.incoming.clear();
-    this.peer.disconnect();
+    this.peer.destroy();
   }
 
   private attachPeerEvents() {
@@ -195,6 +209,8 @@ export class PeerController {
   private cardsToDecrypt: EncryptedCard[] = [];
   private decryptedLayers: EncryptedCard[] = [];
   private tableInitializationStarted = false;
+  private gameId: GameId;
+  private namespace: string;
 
   tableState = new State<{ table: Table }>();
   connectionState = new State<{ playerName: string; isConnected: boolean }>();
@@ -204,24 +220,32 @@ export class PeerController {
   }>();
   endOfGameState = new State<EndOfGame>();
 
-  constructor(players: string[], table?: Table) {
+  constructor(players: string[], table?: Table, gameId?: GameId) {
     if (table) {
       this.table = table;
     }
+    this.gameId = getGame(
+      gameId ?? table?.gameId ?? storeService.getGameType(),
+    ).id;
+    this.namespace = getGame(this.gameId).peerNamespace;
     this.players = players;
     if (this.players.length > 0) {
       this.setupNTwoWayPeerConnections();
     }
   }
 
+  private peerIdFor(user: string): string {
+    return gamePeerId(user, this.namespace);
+  }
+
   setupNTwoWayPeerConnections() {
     const others = this.players.filter((player) => player != this.user);
     this.network = new PeerNetwork(
-      `${this.user}-rummy-game`,
+      this.peerIdFor(this.user),
       {
         onOpen: (network) => {
           others.forEach((player) => {
-            network.connectTo(`${player}-rummy-game`, (connection) => {
+            network.connectTo(this.peerIdFor(player), (connection) => {
               if (this.players[0] === this.user && this.table) {
                 connection.send({
                   dataType: PeerDataType.table,
@@ -232,7 +256,7 @@ export class PeerController {
           });
         },
         onOutgoingOpen: (connection) => {
-          const player = connection.peer.replace(/-rummy-game$/, "");
+          const player = playerFromGamePeer(connection.peer, this.namespace);
           this.playerConnection(player, true);
         },
         onIncomingOpen: (connection) => {
@@ -251,7 +275,7 @@ export class PeerController {
           const player =
             kind === "incoming"
               ? this.user
-              : connection.peer.replace(/-rummy-game$/, "");
+              : playerFromGamePeer(connection.peer, this.namespace);
           this.playerConnection(player, false);
         },
       },
@@ -306,6 +330,17 @@ export class PeerController {
       this.receivedSecretMap(data.endOfGame);
       return;
     }
+    if (data.dataType == PeerDataType.rematch && data.rematch) {
+      this.receivedRematch(data.rematch.playerOrder);
+      return;
+    }
+    if (
+      data.dataType == PeerDataType.deckSeed &&
+      data.deckSeed?.to === this.user
+    ) {
+      await this.receivedDeckSeed(data.deckSeed);
+      return;
+    }
   }
 
   async usersTurnToEncrypt(deckEncryption: DeckEncryption) {
@@ -314,8 +349,13 @@ export class PeerController {
       deckEncryption.cards,
     );
     if (deckEncryption.playerOrder.at(-1) == this.user) {
-      if (encryptedCards.length == 52) {
+      const purpose: DeckPurpose =
+        deckEncryption.purpose ??
+        (encryptedCards.length == 52 ? "initial" : "recycle");
+      const gameId = deckEncryption.gameId ?? this.gameId;
+      if (purpose === "initial") {
         const table: Table = {
+          gameId,
           players: {},
           playerOrder: deckEncryption.playerOrder,
           whoseTurn: deckEncryption.playerOrder[0],
@@ -324,6 +364,13 @@ export class PeerController {
           hasDrawn: false,
           turn: 0,
         };
+        if (gameId === "crazy-eights") {
+          table.crazyEights = {
+            currentSuit: "♠",
+            direction: 1,
+            pendingDraw: 0,
+          };
+        }
         this.players.forEach(
           (player) => (table.players[player] = new PlayerHand()),
         );
@@ -332,19 +379,24 @@ export class PeerController {
         return;
       }
       this.table.deck = encryptedCards;
-      this.table.pile = [];
+      this.table.pile = deckEncryption.retainedPile ?? [];
       this.sendTableUpdate(this.table);
       this.tableState.update({ table: this.table });
       return;
     }
-    const userIndex = deckEncryption.playerOrder.indexOf(this.user);
-    const next = deckEncryption.playerOrder[userIndex + 1];
-    this.network.sendTo(`${next}-rummy-game`, {
+    const next = nextEncryptHop(this.user, deckEncryption.playerOrder);
+    if (!next) {
+      return;
+    }
+    this.network.sendTo(this.peerIdFor(next), {
       dataType: PeerDataType.deckEncryption,
       deckEncryption: {
         to: next,
         cards: encryptedCards,
         playerOrder: deckEncryption.playerOrder,
+        gameId: deckEncryption.gameId ?? this.gameId,
+        purpose: deckEncryption.purpose,
+        retainedPile: deckEncryption.retainedPile,
       },
     });
   }
@@ -374,7 +426,7 @@ export class PeerController {
       );
       next = this.table.playerOrder[orderIndex - 2];
     }
-    this.network.sendTo(`${next}-rummy-game`, {
+    this.network.sendTo(this.peerIdFor(next), {
       dataType: PeerDataType.keyRequest,
       keyRequest: {
         from: this.user,
@@ -385,7 +437,7 @@ export class PeerController {
   }
 
   keyRequestReceived(keyRequest: KeyRequest) {
-    this.network.sendTo(`${keyRequest.from}-rummy-game`, {
+    this.network.sendTo(this.peerIdFor(keyRequest.from), {
       dataType: PeerDataType.encryptionKeys,
       encryptionKeys: {
         from: this.user,
@@ -411,32 +463,125 @@ export class PeerController {
   }
 
   async initializeDeck(playerOrder?: string[]) {
+    const order = playerOrder ?? this.players;
+    if (!isDeckDealer(this.user, order)) {
+      return null;
+    }
     encryptService.resetSecretMaps();
     const deck = cardsService.createDeck();
-    return this.initializeDeckEncryption(deck, playerOrder);
+    return this.initializeDeckEncryption(deck, order, "initial");
+  }
+
+  requestRematch(playerOrder: string[]) {
+    this.network.send(
+      {
+        dataType: PeerDataType.rematch,
+        rematch: { playerOrder },
+      },
+      { excludePeerPrefix: this.user },
+    );
+    if (isDeckDealer(this.user, playerOrder)) {
+      void this.initializeDeck(playerOrder);
+    }
+  }
+
+  private receivedRematch(playerOrder: string[]) {
+    if (isDeckDealer(this.user, playerOrder)) {
+      void this.initializeDeck(playerOrder);
+    }
   }
 
   async deckFLipped(playerOrder: string[], pile: Card[]) {
-    encryptService.incrementSecretMaps();
     return this.initializeDeckEncryption(
       cardsService.shuffle(pile),
       playerOrder,
+      "recycle",
+      [],
     );
   }
 
-  async initializeDeckEncryption(deck: Card[], playerOrder?: string[]) {
-    let order = this.players;
-    if (playerOrder) {
-      order = playerOrder;
+  async recycleDeck(
+    playerOrder: string[],
+    cards: Card[],
+    retainedPile: Card[],
+  ) {
+    return this.initializeDeckEncryption(
+      cardsService.shuffle(cards),
+      playerOrder,
+      "recycle",
+      retainedPile,
+    );
+  }
+
+  private async receivedDeckSeed(seed: DeckSeed) {
+    if (seed.purpose === "recycle") {
+      encryptService.incrementSecretMaps();
+    } else {
+      encryptService.resetSecretMaps();
     }
+    return this.encryptAndForward(
+      seed.cards,
+      seed.playerOrder,
+      seed.purpose ?? "recycle",
+      seed.retainedPile,
+      seed.gameId,
+    );
+  }
+
+  async initializeDeckEncryption(
+    deck: Card[],
+    playerOrder?: string[],
+    purpose: DeckPurpose = "initial",
+    retainedPile?: Card[],
+  ) {
+    const order = playerOrder ?? this.players;
+    if (!isDeckDealer(this.user, order)) {
+      this.network.sendTo(this.peerIdFor(order[0]), {
+        dataType: PeerDataType.deckSeed,
+        deckSeed: {
+          to: order[0],
+          cards: deck,
+          playerOrder: order,
+          gameId: this.gameId,
+          purpose,
+          retainedPile,
+        },
+      });
+      return null;
+    }
+    if (purpose === "recycle") {
+      encryptService.incrementSecretMaps();
+    }
+    return this.encryptAndForward(
+      deck,
+      order,
+      purpose,
+      retainedPile,
+      this.gameId,
+    );
+  }
+
+  private async encryptAndForward(
+    deck: Card[],
+    order: string[],
+    purpose: DeckPurpose,
+    retainedPile: Card[] | undefined,
+    gameId?: GameId,
+  ) {
     const encryptedCards = await encryptService.encryptDeck(deck);
-    const next = order[1];
-    this.network.sendTo(`${next}-rummy-game`, {
+    const next = nextEncryptHop(this.user, order);
+    if (!next) {
+      return null;
+    }
+    this.network.sendTo(this.peerIdFor(next), {
       dataType: PeerDataType.deckEncryption,
       deckEncryption: {
         to: next,
         cards: encryptedCards,
         playerOrder: order,
+        gameId: gameId ?? this.gameId,
+        purpose,
+        retainedPile,
       },
     });
     return null;
@@ -450,7 +595,10 @@ export class PeerController {
       this.decryptedLayers = await encryptService.decryptLayers(cardsToDecrypt);
       player = this.table.playerOrder.at(-2);
     }
-    this.network.sendTo(`${player}-rummy-game`, {
+    if (!player) {
+      return;
+    }
+    this.network.sendTo(this.peerIdFor(player), {
       dataType: PeerDataType.keyRequest,
       keyRequest: {
         from: this.user,

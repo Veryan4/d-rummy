@@ -42,6 +42,15 @@ export const routes: Route[] = [
     guard: authGuard,
   },
   {
+    name: "crazy-eights",
+    pattern: "crazy-eights",
+    component: () =>
+      import("./pages/crazy-eights/crazy-eights").then(
+        () => html`<card-crazy-eights></card-crazy-eights>`,
+      ),
+    guard: authGuard,
+  },
+  {
     name: "audit",
     pattern: "audit",
     component: () =>

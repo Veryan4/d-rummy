@@ -55,6 +55,11 @@ class DRummy extends LitElement {
     if (params && params.game) {
       storeService.setGame(params.game);
     }
+    if (params && params.type) {
+      storeService.setGameType(
+        params.type === "crazy-eights" ? "crazy-eights" : "rummy",
+      );
+    }
   }
 
   registerThemes() {

@@ -5,3 +5,7 @@ dist-ssr
 *.local
 .history
 rdata
+test-results
+playwright-report
+blob-report
+playwright/.cache
