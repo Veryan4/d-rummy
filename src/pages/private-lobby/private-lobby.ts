@@ -161,18 +161,23 @@ class PrivateLobbyComponent extends LitElement {
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
 
-    if (this.game) {
-      this.network?.disconnect();
-      if (this.game === this.user.value!) {
-        this.connectAsHost();
-      } else {
-        this.connectAsPeer();
-      }
-    }
+    this.setupNetwork();
 
     window.onbeforeunload = () => {
       this.disconnect();
     };
+  }
+
+  private setupNetwork() {
+    if (!this.game) {
+      return;
+    }
+    this.network?.disconnect();
+    if (this.game === this.user.value!) {
+      this.connectAsHost();
+    } else {
+      this.connectAsPeer();
+    }
   }
 
   connectAsHost() {
@@ -264,7 +269,7 @@ class PrivateLobbyComponent extends LitElement {
     window.history.replaceState(null, "", `private?game=${this.user.value}`);
     navigator.clipboard.writeText(location.href);
     this.requestUpdate();
-    this.connectedCallback();
+    this.setupNetwork();
   }
 
   async startGame(): Promise<void> {
@@ -283,6 +288,6 @@ class PrivateLobbyComponent extends LitElement {
     const game = this.lobbyInput.value!;
     this.game = game;
     console.log(this.game);
-    this.connectedCallback();
+    this.setupNetwork();
   }
 }
