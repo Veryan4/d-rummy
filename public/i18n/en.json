@@ -44,7 +44,9 @@
     "missing": "Missing {amount} players",
     "login": {
       "title": "Pick a username",
-      "name": "Any name",
+      "name": "Username",
+      "hint": "2–16 letters or numbers",
+      "validation": "Use 2–16 letters or numbers only",
       "button": "Submit"
     },
     "join": "",

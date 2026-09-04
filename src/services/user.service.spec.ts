@@ -11,7 +11,9 @@ jest.mock("@veryan/lit-spa", () => {
     }
 
     getValue(): T {
-      return this.value !== undefined ? structuredClone(this.value) : (this.value as any);
+      return this.value !== undefined
+        ? structuredClone(this.value)
+        : (this.value as any);
     }
 
     subscribe(fn: (e: T) => any): () => boolean {
@@ -44,7 +46,11 @@ jest.mock("@veryan/lit-spa", () => {
   return { State };
 });
 
-import { userService } from "./user.service";
+import {
+  userService,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+} from "./user.service";
 
 describe("userService", () => {
   beforeEach(() => {
@@ -112,6 +118,85 @@ describe("userService", () => {
       expect(stateListener).toHaveBeenCalledWith(null);
 
       unsubscribe();
+    });
+  });
+
+  describe("filterUsernameInput", () => {
+    it("should strip non-alphanumeric characters", () => {
+      expect(userService.filterUsernameInput("Al!ice<script>")).toBe(
+        "Alicescript",
+      );
+      expect(userService.filterUsernameInput("bob_doe-42")).toBe("bobdoe42");
+      expect(userService.filterUsernameInput("  spaced  name  ")).toBe(
+        "spacedname",
+      );
+    });
+
+    it("should truncate input to the max length", () => {
+      const tooLong = "a".repeat(USERNAME_MAX_LENGTH + 8);
+      expect(userService.filterUsernameInput(tooLong)).toBe(
+        "a".repeat(USERNAME_MAX_LENGTH),
+      );
+    });
+  });
+
+  describe("sanitizeUsername", () => {
+    it("should filter, truncate, and apply capitalization formatting", () => {
+      expect(userService.sanitizeUsername("aLICE")).toBe("Alice");
+      expect(userService.sanitizeUsername("  bob!!  ")).toBe("Bob");
+      expect(userService.sanitizeUsername("x".repeat(20))).toBe(
+        "X" + "x".repeat(USERNAME_MAX_LENGTH - 1),
+      );
+    });
+
+    it("should return an empty string when nothing valid remains", () => {
+      expect(userService.sanitizeUsername("!!!")).toBe("");
+      expect(userService.sanitizeUsername("   ")).toBe("");
+    });
+  });
+
+  describe("isValidUsername", () => {
+    it("should accept alphanumeric names within the length limit", () => {
+      expect(userService.isValidUsername("Al")).toBe(true);
+      expect(userService.isValidUsername("Alice")).toBe(true);
+      expect(userService.isValidUsername("Player1")).toBe(true);
+      expect(userService.isValidUsername("a".repeat(USERNAME_MAX_LENGTH))).toBe(
+        true,
+      );
+    });
+
+    it("should reject names that are too short, too long, or have invalid characters", () => {
+      expect(userService.isValidUsername("")).toBe(false);
+      expect(
+        userService.isValidUsername("a".repeat(USERNAME_MIN_LENGTH - 1)),
+      ).toBe(false);
+      expect(
+        userService.isValidUsername("a".repeat(USERNAME_MAX_LENGTH + 1)),
+      ).toBe(false);
+      expect(userService.isValidUsername("Alice!")).toBe(false);
+      expect(userService.isValidUsername("bob-doe")).toBe(false);
+      expect(userService.isValidUsername("Ann Marie")).toBe(false);
+    });
+  });
+
+  describe("createUserId", () => {
+    const uuid = "11111111-1111-4111-8111-111111111111";
+
+    beforeEach(() => {
+      jest.spyOn(crypto, "randomUUID").mockReturnValue(uuid);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it("should return a capitalized name with a UUID suffix", () => {
+      expect(userService.createUserId("alice!")).toBe(`Alice-${uuid}`);
+    });
+
+    it("should return null for names that are invalid after sanitization", () => {
+      expect(userService.createUserId("!")).toBeNull();
+      expect(userService.createUserId("a")).toBeNull();
     });
   });
 });

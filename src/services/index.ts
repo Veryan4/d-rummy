@@ -1,6 +1,11 @@
 export { cardsService } from "./cards.service";
 export { formService } from "./form.service";
-export { userService } from "./user.service";
+export {
+  userService,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+  USERNAME_PATTERN,
+} from "./user.service";
 export { encryptService } from "./encrypt.service";
 export { storeService } from "./store.service";
 export { auditService } from "./audit.service";

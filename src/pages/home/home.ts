@@ -1,7 +1,14 @@
 import { LitElement, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 import { UserController } from "../../controllers";
-import { formService, storeService, userService } from "../../services";
+import {
+  formService,
+  storeService,
+  userService,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+  USERNAME_PATTERN,
+} from "../../services";
 import { TranslationController, routerService } from "@veryan/lit-spa";
 import { styles } from "./home.styles";
 import { lobbySharedStyles } from "../../styles/lobby-shared.styles";
@@ -51,8 +58,12 @@ class HomeComponent extends LitElement {
               type="text"
               name="username"
               required
-              validationMessage="A valid username must be submitted"
-              @input=${this.checkFormValidity}
+              minlength=${USERNAME_MIN_LENGTH}
+              maxlength=${USERNAME_MAX_LENGTH}
+              pattern=${USERNAME_PATTERN}
+              supporting-text="${this.i18n.t("lobby.login.hint")}"
+              validationMessage="${this.i18n.t("lobby.login.validation")}"
+              @input=${this.onUsernameInput}
             ></md-filled-text-field>
           </form>
           <div class="form-buttons">
@@ -79,6 +90,15 @@ class HomeComponent extends LitElement {
     </div>`;
   }
 
+  onUsernameInput(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const filtered = userService.filterUsernameInput(input.value);
+    if (input.value !== filtered) {
+      input.value = filtered;
+    }
+    this.checkFormValidity();
+  }
+
   checkFormValidity() {
     if (this.shadowRoot) {
       this.isFormValid = formService.checkFormValidity(this.shadowRoot);
@@ -86,9 +106,12 @@ class HomeComponent extends LitElement {
   }
 
   async login() {
-    const name = this.usernameInput.value;
-    const formattedUser = `${name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()}-${crypto.randomUUID()}`;
-    userService.setUser(formattedUser);
+    const userId = userService.createUserId(this.usernameInput.value);
+    if (!userId) {
+      this.isFormValid = false;
+      return;
+    }
+    userService.setUser(userId);
     setTimeout(() => {
       if (this.game) {
         storeService.setGame(this.game);

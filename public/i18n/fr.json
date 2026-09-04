@@ -44,7 +44,9 @@
     "missing": "{amount} joueurs manquants",
     "login": {
       "title": "Choisissez un nom",
-      "name": "N'importe lequel",
+      "name": "Nom d'utilisateur",
+      "hint": "2 à 16 lettres ou chiffres",
+      "validation": "Utilisez 2 à 16 lettres ou chiffres uniquement",
       "button": "Soumettre"
     },
     "join": "",
